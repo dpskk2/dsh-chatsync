@@ -33,7 +33,7 @@
 
 ## 开始使用
 
-准备好 **DSH Web、Git 和 [GitHub CLI](https://cli.github.com/)**，在运行 DSH 的同一台电脑、同一系统用户下执行：
+准备好 **[DSH Web](https://github.com/deepseek-ai/deepseek-harness)、[Git](https://git-scm.com/downloads/) 和 [GitHub CLI](https://cli.github.com/)**；运行环境建议使用 [Node.js 24](https://nodejs.org/en/download)。全新电脑先按[环境准备](docs/getting-started.md#环境准备)安装工具，再在运行 DSH 的同一台电脑、同一系统用户下执行：
 
 ```sh
 dsh plugin --profile web add dsh-sync-plugin
@@ -52,11 +52,13 @@ gh auth status
 ## 接入第二台电脑
 
 1. 安装 DSH Web、Git、GitHub CLI 和本插件，重启 DSH。
-2. 执行 `gh auth login` 登录同一 GitHub 账号。默认仓库可自动复用；自定义仓库需填写相同的 `remote` 和 `branch`。
+2. 执行 `gh auth login` 登录同一 GitHub 账号。默认仓库可自动复用；已有仓库，在 **设置 → 同步 → 连接同步仓库** 填入第一台相同的仓库地址和分支，点「保存连接设置」。无需手工编辑配置文件。
 3. 点「⟳ 同步」，确认成功后重启 DSH，让取回的会话索引与设置完整加载。
 4. 配置这台机器的 API 密钥、安装插件和项目依赖。项目路径不同，可在同步结果中使用「换位置」。
 
 **试一下：** A 新建测试会话 → A 同步 → B 同步 → B 找到会话；再从 B 新建会话同步回 A，完成双向验证。
+
+保存连接设置不会验证登录或上传数据；点「立即同步」后查看结果。第二台已有内容会参与双向合并。完整步骤、依赖恢复和检查表见[新电脑部署指南](docs/getting-started.md#第二台电脑)。
 
 ## 日常只需记住两件事
 
@@ -91,10 +93,10 @@ gh auth status
 
 | 现象 | 先做这一步 |
 | --- | --- |
-| 没有同步按钮 | 确认装在 `web` profile，重启 DSH 并刷新页面 |
-| 只有本地快照 | 执行 `gh auth status`，检查设置页仓库地址与错误 |
-| 第二台没有会话 | 先同步 A 再同步 B，核对仓库 / 分支，然后重启 B |
-| 工作区同步失败 | 查看具体工作区错误，修复网络或路径后重试 |
+| 没有同步按钮 | 确认装在 `web` profile，重启 DSH 并刷新页面；[安装检查](docs/getting-started.md#环境准备) |
+| 只有本地快照 | 执行 `gh auth status`，检查设置页仓库地址与错误；[连接说明](docs/getting-started.md#手动连接仓库) |
+| 第二台没有会话 | 先同步 A 再同步 B，核对仓库 / 分支，然后重启 B；[换机检查表](docs/getting-started.md#第二台电脑) |
+| 工作区同步失败 | 展开「上次同步详情」查看具体错误；[网络与代理配置](docs/configuration.md) |
 
 [完整排障](docs/getting-started.md#常见问题) · [配置参考](docs/configuration.md) · [更新记录](CHANGELOG.md) · [开发与验证](CONTRIBUTING.md)
 

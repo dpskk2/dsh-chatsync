@@ -43,13 +43,17 @@ In **设置 → 同步** (Settings → Sync), verify the repository URL and a su
 ## Connect another computer
 
 1. Install DSH, Git, GitHub CLI and this plugin on the second computer, then restart DSH.
-2. Sign in to the same GitHub account. The default `dsh-sync` repository can be reused automatically. For a custom repository, use the same `remote` and `branch` on both computers.
+2. Sign in to the same GitHub account. The default `dsh-sync` repository can be reused automatically. For an existing repository, enter the same URL and branch in Settings → Sync → **连接同步仓库** (Connect sync repository), then click **保存连接设置** (Save connection settings).
 3. Click Sync, check the result, then restart DSH to reload settings and session indexes.
 4. Configure API credentials and install required plugin / project dependencies on that computer. `node_modules` is not transferred.
 
 Create a test conversation on A, sync A, sync B, and verify it appears on B. Repeat in the other direction. For everyday use, sync before starting and after finishing on each computer.
 
 ## Manual configuration
+
+The settings form accepts HTTPS or SSH GitHub URLs without embedded credentials. Saving does not verify access or transfer data: click Sync to check the connection. To use local snapshots only, clear the URL and turn off automatic repository creation. Connection changes apply to the next sync; configuration writes are blocked while a sync is running.
+
+[Install Git](https://git-scm.com/downloads/) · [Install DSH](https://github.com/deepseek-ai/deepseek-harness) · [GitHub login help](https://cli.github.com/manual/gh_auth_login) · [Create a repository](https://github.com/new)
 
 Create or edit `dsh-sync.json` inside the DSH data directory: `~/.dsh` by default, `%USERPROFILE%\.dsh` on Windows, or the directory selected by `DSH_HOME`. Merge these fields into any existing configuration:
 

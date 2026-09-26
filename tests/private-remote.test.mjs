@@ -13,6 +13,15 @@ function fixture(t) {
   return engine;
 }
 
+test('missing Git produces an error outcome and never starts workspace sync', async t => {
+  const engine = fixture(t);
+  engine.gitMissing = true;
+  engine.syncAllWorkspaces = async () => assert.fail('must not sync workspaces without Git');
+  const outcome = await engine.syncOnce('test');
+  assert.match(outcome.error, /Git/);
+  assert.equal(engine.progress.stage, 'error');
+});
+
 test('auto setup refuses an existing public repository without saving remote', async (t) => {
   const engine = fixture(t);
   engine.gh = async () => ({ code: 0, out: '{"visibility":"PUBLIC"}', err: '' });

@@ -16,7 +16,7 @@ function text(node) {
 
 // Load the shipped browser bundle through its normal slot registration contract.
 // Only React hooks and HTTP transport are replaced; no user data or Git is accessed.
-function harness(fetchImpl) {
+function harness(fetchImpl, componentName = 'SyncPreferences') {
   let hooks = [], cursor = 0, effects = [], bundle;
   const slots = new Map();
   const react = {
@@ -42,7 +42,7 @@ function harness(fetchImpl) {
   });
   bundle.apply({ slots: { inject: (_name, cb) => cb(), register: (meta, component) => slots.set(meta.id, component) } });
   const section = slots.get('dsh-sync-manage')({});
-  const Preferences = all(section).find((n) => n.type?.name === 'SyncPreferences').type;
+  const Preferences = all(section).find((n) => n.type?.name === componentName).type;
   hooks = []; cursor = 0; effects = [];
   return {
     render(props = {}) { cursor = 0; return Preferences({ busy: false, ...props }); },
@@ -73,6 +73,54 @@ test('load preferences, save the selected mode and scope, and explain immediate 
   assert.deepEqual(requests, [{ mode: 'auto', workspaceSync: false }]);
   assert.equal(refreshed, true);
   assert.match(text(h.render()), /已保存.*立即生效/);
+});
+
+test('connection form saves a custom repository and explains that saving is not verification', async () => {
+  let saved;
+  const config = { remote: '', branch: 'main', autoRepo: true };
+  const h = harness((_url, options) => {
+    if (!options) return response({ ok: true, config });
+    saved = JSON.parse(options.body);
+    return response({ ok: true, config: saved });
+  }, 'ConnectionSettings');
+  h.render(); await h.effects();
+  let tree = h.render();
+  all(tree).find(n => n.type === 'input' && n.props.type === 'text').props.onChange({ target: { value: ' https://github.com/alice/existing.git ' } });
+  tree = h.render();
+  await tree.props.onSubmit({ preventDefault() {} });
+  assert.deepEqual(saved, { remote: 'https://github.com/alice/existing.git', branch: 'main', autoRepo: true });
+  assert.match(text(h.render()), /保存不会验证登录/);
+  assert.ok(all(tree).filter(n => n.type === 'a').every(n => n.props.href.startsWith('https://') && n.props.rel.includes('noopener')));
+});
+
+test('connection form preserves user input on failure and blocks writes while syncing', async () => {
+  let posts = 0;
+  const h = harness((_url, options) => {
+    if (!options) return response({ ok: true, config: { remote: 'https://github.com/alice/data.git', branch: 'main', autoRepo: false } });
+    posts++;
+    return response({ ok: false, error: '请完成同步后重试' });
+  }, 'ConnectionSettings');
+  h.render(); await h.effects();
+  await h.render({ busy: true }).props.onSubmit({ preventDefault() {} });
+  assert.equal(posts, 0);
+  await h.render().props.onSubmit({ preventDefault() {} });
+  assert.match(text(h.render()), /请完成同步后重试/);
+  assert.equal(all(h.render()).find(n => n.type === 'input').props.value, 'https://github.com/alice/data.git');
+  assert.doesNotMatch(text(h.render()), /连接设置已保存/);
+});
+
+test('background status refresh never replaces an unsaved connection draft', async () => {
+  let calls = 0;
+  const h = harness(() => {
+    calls++;
+    return response({ ok: true, config: { remote: '', branch: 'main', autoRepo: true } });
+  }, 'ConnectionSettings');
+  h.render({ remote: '' }); await h.effects();
+  all(h.render({ remote: '' })).find(n => n.type === 'input').props.onChange({ target: { value: 'https://github.com/alice/draft.git' } });
+  h.render({ remote: 'https://github.com/alice/auto-created.git' }); await h.effects();
+  const tree = h.render({ remote: 'https://github.com/alice/auto-created.git' });
+  assert.equal(all(tree).find(n => n.type === 'input').props.value, 'https://github.com/alice/draft.git');
+  assert.equal(calls, 1);
 });
 
 test('failed config loading offers a working retry', async () => {

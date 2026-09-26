@@ -2,104 +2,126 @@
 
 # DSH Sync
 
-### Another computer. The same work.
+### Pick up where you left off.
 
-**Bring your conversations, attachments, settings and project files along.**
-Personal multi-computer sync for DeepSeek Harness, through your own private GitHub repository.
+Sync your [DeepSeek Harness][dsh] **sessions, attachments, settings and workspace files** across computers.
+Your data lives in your own [private GitHub repository][private-repo]. Choose manual or automatic syncing.
 
 [![npm](https://img.shields.io/npm/v/dsh-sync-plugin?color=2563eb)](https://www.npmjs.com/package/dsh-sync-plugin)
 [![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
 
-[Quick start](#quick-start) · [Connect another computer](#connect-another-computer) · [中文](README.md) · [Issues](https://github.com/dpskk2/dsh-sync-plugin/issues)
+[Get started](#get-started) · [Connect another computer](#connect-another-computer) · [Troubleshooting](#troubleshooting) · [中文](README.md)
 
 </div>
 
-## Keep the conversation. Bring the project.
+## Get started
 
-Move from your desktop to your laptop with the context and files you need to continue.
+Already running [DSH Web][dsh]? Check these tools, then install the plugin. Starting from a fresh computer? Follow the [setup guide](docs/getting-started.md#环境准备) (Chinese).
 
-| What you want | What comes with you |
-| --- | --- |
-| Continue the conversation | Sessions, attachments and workspace associations |
-| Continue the project | Actual workspace files, with a local relocation option |
-| Repeat less setup | Model / interface settings and plugin manifests; configure credentials and install dependencies per computer |
-| Control where data goes | Your GitHub repository, with private visibility checked before upload |
-| Spend less time syncing | Manual or automatic sync; switching modes in Settings takes effect immediately |
+| What you need | Why | Get it |
+| --- | --- | --- |
+| [DSH Web][dsh] | Runs the plugin in the `web` profile | [Official setup][dsh] |
+| [Node.js][node] | Runtime; version 24 is recommended | [Download][node] |
+| [Git][git] | Transfers files and keeps versions | [Download][git] |
+| [GitHub account][github] + [GitHub CLI][gh] | Signs in and connects your private repository | [Create an account][signup] · [Install CLI][gh] |
 
-## Quick start
+### 1. Install the plugin
 
-You need a working DSH Web installation, Git, access to GitHub, and [GitHub CLI](https://cli.github.com/). The package declares Node.js ≥ 20; Node.js 24 is recommended for compressed session handling. A complete cross-platform compatibility matrix is not yet available.
+Open a terminal on the computer running [DSH][dsh]:
 
 ```sh
 dsh plugin --profile web add dsh-sync-plugin
+```
+
+### 2. Sign in
+
+Use [GitHub CLI][gh], choosing **[GitHub.com][github] → HTTPS** when prompted:
+
+```sh
 gh auth login
 gh auth status
 ```
 
-Choose GitHub.com and HTTPS during login. Restart DSH, then click **⟳ 同步** (Sync) in the sidebar. With no remote configured, the plugin tries to create or reuse `dsh-sync` under the logged-in account. It verifies that an existing repository is private and refuses to upload if visibility cannot be confirmed.
+Confirm the signed-in account, then restart [DSH][dsh]. Need help? See the [login guide][login].
 
-In **设置 → 同步** (Settings → Sync), verify the repository URL and a successful result, including workspace results. A local snapshot alone does **not** mean data was uploaded. Workspace file syncing is on by default; turn off **同步工作区文件** before the first sync if you only want sessions and settings.
+### 3. Click Sync
+
+Before your first sync, open **Settings → Sync → 同步偏好** (Sync preferences). **Workspace files are included by default.** Turn off **同步工作区文件** if you only want sessions, attachments and settings.
+
+Then click **⟳ 同步** in the sidebar:
+
+| Your situation | What to do |
+| --- | --- |
+| You do not have a sync repository yet | Keep the defaults. The plugin tries to create or reuse a private repository under the signed-in account; the default name is `dsh-sync` |
+| You already have a repository or want to choose one | Enter its URL and branch under **连接同步仓库**, save, then sync. [Create a private repository][new-repo] · [Connection guide](docs/getting-started.md#手动连接仓库) |
+
+**Check the result:** Settings should show the intended repository and a completed sync without workspace errors. A **local snapshot** means the data was saved on this computer, not uploaded.
 
 ## Connect another computer
 
-1. Install DSH, Git, GitHub CLI and this plugin on the second computer, then restart DSH.
-2. Sign in to the same GitHub account. The default `dsh-sync` repository can be reused automatically. For an existing repository, enter the same URL and branch in Settings → Sync → **连接同步仓库** (Connect sync repository), then click **保存连接设置** (Save connection settings).
-3. Click Sync, check the result, then restart DSH to reload settings and session indexes.
-4. Configure API credentials and install required plugin / project dependencies on that computer. `node_modules` is not transferred.
+1. Install the tools and plugin from the [checklist above](#get-started). Sign in with [GitHub CLI][gh] using an account that can access your sync repository.
+2. In **Settings → Sync → 连接同步仓库**, enter the **same URL and branch** as the original computer and save. The default repository can also be reused automatically under the same account.
+3. Sync the original computer, then the new one. Restart [DSH][dsh] on the new computer to load the retrieved sessions and settings.
+4. Configure API credentials and install the required plugin and project dependencies. Use **换位置** in the sync result to adjust workspace paths. [Recovery checklist](docs/getting-started.md#第二台电脑) (Chinese).
 
-Create a test conversation on A, sync A, sync B, and verify it appears on B. Repeat in the other direction. For everyday use, sync before starting and after finishing on each computer.
+No manual clone of the data directory is needed. Existing data on the new computer participates in two-way merging. Saving a repository URL does not start a transfer.
 
-## Manual configuration
+## Everyday use
 
-The settings form accepts HTTPS or SSH GitHub URLs without embedded credentials. Saving does not verify access or transfer data: click Sync to check the connection. To use local snapshots only, clear the URL and turn off automatic repository creation. Connection changes apply to the next sync; configuration writes are blocked while a sync is running.
+**Sync before starting and after finishing.** Before switching computers, check that your latest changes were uploaded.
 
-[Install Git](https://git-scm.com/downloads/) · [Install DSH](https://github.com/deepseek-ai/deepseek-harness) · [GitHub login help](https://cli.github.com/manual/gh_auth_login) · [Create a repository](https://github.com/new)
+For fewer clicks, select automatic mode in **同步偏好** and save. It takes effect immediately, defaults to a five-minute interval, and responds to session activity. The app must be running and the network available; a final manual sync lets you check the result before leaving.
 
-Create or edit `dsh-sync.json` inside the DSH data directory: `~/.dsh` by default, `%USERPROFILE%\.dsh` on Windows, or the directory selected by `DSH_HOME`. Merge these fields into any existing configuration:
+## What comes along?
 
-```json
-{
-  "remote": "https://github.com/YOUR_USERNAME/dsh-sync.git",
-  "autoRepo": false,
-  "mode": "manual"
-}
-```
+| Included | Handled on each computer |
+| --- | --- |
+| Sessions, attachments and workspace associations | API credentials: `.credentials.yaml` is excluded |
+| Workspace files, optionally | Dependencies and caches such as `node_modules` |
+| Model settings, interface settings and plugin manifests | Plugin dependency installation and local path adjustments |
+| Patches you provide | Compatibility with the installed target files |
 
-Configure Git authentication separately; do not put access tokens in the URL. GitHub CLI must be installed and authenticated to verify repository visibility, including for manually configured remotes. SSH is supported with an already configured key and host trust. Other Git hosts are not supported for cloud uploads. Switching modes in Settings takes effect immediately. Restart DSH after editing scheduling options directly in the file. Automatic mode defaults to a 300-second interval and also responds to session activity.
+Other files, conversations or attachments may still contain secrets. Check the [scope and exclusions](docs/sync-content.md) before uploading. Sync propagates deletions and mistakes too; keep independent backups of important data.
 
-## Daily use
+<details>
+<summary>Sync behavior and compatibility</summary>
 
-Sync before starting and after finishing on each computer. To automate it, select automatic mode in Settings → Sync and save. Switching back to manual cancels future scheduled runs; a sync already in progress finishes normally.
+Supported sessions and configuration files are merged automatically where possible. Ordinary-file conflicts may prefer the local version and attempt to back up remote history. Check the result and [merge boundaries](docs/sync-content.md#合并与恢复边界).
 
-## Compatibility
+- Host declaration: [DSH Web][dsh] ≥ `0.1.5-rc.3`.
+- Runtime: [Node.js][node] ≥20; 24 recommended for Zstandard support in compressed session handling.
+- Cloud transfer: [Git][git], authenticated [GitHub CLI][gh], and access to [GitHub][github].
+- See the [validation record](docs/release-0.12.5-validation.md) for test coverage and unverified environments.
 
-The package declares DSH Web ≥ `0.1.5-rc.3` via `engines.dsh`. This minimum is not a claim that every newer host version has been tested. Local Git replica tests and UI / scheduler tests are reproducible with `npm test`; authenticated GitHub two-device validation is separate. See the [validation record](docs/release-0.12.5-validation.md).
-
-## Scope and limits
-
-- Sessions, attachments, settings, plugin manifests, workspace files and user-provided patches are included unless excluded by ignore rules.
-- The dedicated `.credentials.yaml` file, dependencies and selected machine-local state are excluded. This is **not** a general secret scanner: secrets in conversations, attachments, `.env` files or other project files can still be uploaded.
-- Session logs and supported configuration files are merged automatically. Competing values of the same field resolve to one value. Unresolved ordinary-file conflicts prefer the local version and attempt to back up remote history. Review the result; this is not a guarantee against data loss.
-- Sync is not live collaborative editing or an independent disaster backup. Existing data on the second computer participates in two-way merging.
+</details>
 
 ## Troubleshooting
 
-| Symptom | Next step |
+| Problem | Where to go |
 | --- | --- |
-| No Sync button | Check the `web` profile, restart DSH and refresh the browser |
-| Git not found | Verify `git --version` under the same system user; restart DSH after installing Git |
-| Local snapshot only | Check `gh auth status`; retry after about 60 seconds, or set `remote` manually |
-| Authentication error | Run `gh auth login` again under the same system user; Git runs non-interactively |
-| Session missing on B | Sync A first, then B; check remote / branch and errors, then restart B |
-| Auto mode does not start | Allow up to the configured interval (300 seconds by default); ensure `enabled` is not `false` and host overrides do not force manual mode |
+| No Sync button | [Installation and restart checks](docs/getting-started.md#环境准备) |
+| Login failure or local snapshots only | [Login help][login] · [Connection troubleshooting](docs/getting-started.md#常见问题) |
+| Missing sessions on another computer | [Recovery checklist](docs/getting-started.md#第二台电脑) |
+| Network or proxy problems | [Configuration reference](docs/configuration.md) |
+| Excluding files or projects | [Sync scope](docs/sync-content.md) |
+| Still stuck | [Report an issue](https://github.com/dpskk2/dsh-sync-plugin/issues/new/choose) with versions, steps and redacted errors |
 
-More detailed documentation is currently in Chinese: [setup](docs/getting-started.md), [configuration](docs/configuration.md), [sync scope](docs/sync-content.md).
+The detailed guides linked above are currently in Chinese.
 
-## Update or remove
+## Updates and more
 
 ```sh
 dsh plugin --profile web update dsh-sync-plugin
-dsh plugin --profile web remove dsh-sync-plugin
 ```
 
-Restart DSH after updating. Removing the plugin does not automatically delete local data or the remote repository. MIT licensed.
+Restart [DSH][dsh] after updating. [Changelog](CHANGELOG.md) · [Setup guide](docs/getting-started.md) · [Configuration](docs/configuration.md) · [Development](CONTRIBUTING.md) · [npm package](https://www.npmjs.com/package/dsh-sync-plugin)
+
+[dsh]: https://github.com/deepseek-ai/deepseek-harness
+[node]: https://nodejs.org/en/download
+[git]: https://git-scm.com/downloads/
+[github]: https://github.com/
+[signup]: https://github.com/signup
+[gh]: https://cli.github.com/
+[login]: https://cli.github.com/manual/gh_auth_login
+[new-repo]: https://github.com/new
+[private-repo]: https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories

@@ -4,4 +4,4 @@
 # 本文件自 v0.3.2 起随仓库维护,内容幂等;当前版本见 package.json。
 - insert:
     - id: dsh-chatsync
-      name: dsh-chatsync
+      name: "@dpskk2/dsh-chatsync"

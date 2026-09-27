@@ -22,8 +22,6 @@
 
 ### 1. 先准备好这几样东西
 
-先确认你能正常打开 DSH 的网页界面。如果还没装 DSH，请先完成[DSH 官方安装步骤](https://github.com/deepseek-ai/deepseek-harness)，能打开网页后再回来继续。安装过程中如果需要 Node.js，可从[官网下载](https://nodejs.org/en/download)，建议使用 24。
-
 | 需要什么 | 你需要做什么 |
 | --- | --- |
 | GitHub 账号 | 用来存放同步数据。没有账号就[先注册](https://github.com/signup)；记住这个账号，其他电脑也要用 |

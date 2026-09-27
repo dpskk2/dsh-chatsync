@@ -7,7 +7,7 @@
 把 DeepSeek Harness（DSH）的**会话、附件、设置和项目文件**同步到你的其他电脑。
 数据放在你自己的 GitHub 私有仓库中，由你掌握。
 
-[![npm](https://img.shields.io/npm/v/dsh-chatsync?color=2563eb)](https://www.npmjs.com/package/dsh-chatsync)
+[![npm](https://img.shields.io/npm/v/%40dpskk2%2Fdsh-chatsync?color=2563eb)](https://www.npmjs.com/package/@dpskk2/dsh-chatsync)
 [![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
 
 [第一次使用](#第一次使用) · [换到另一台电脑](#换到另一台电脑) · [遇到问题](#遇到问题) · [English](README.en.md)
@@ -45,7 +45,7 @@ Git 和 GitHub CLI 是两个不同的工具，都要安装。**GitHub CLI 没有
 先安装同步插件：
 
 ```text
-dsh plugin --profile web add dsh-chatsync
+dsh plugin --profile web add @dpskk2/dsh-chatsync
 ```
 
 等终端显示安装结果、重新出现可输入命令的提示符。若出现错误，先看下方[常见问题](#遇到问题)，不要接着往下做。
@@ -136,7 +136,7 @@ gh auth status
 需要升级插件时，在终端运行下面这一行，完成后重启 DSH：
 
 ```text
-dsh plugin --profile web update dsh-chatsync
+dsh plugin --profile web update @dpskk2/dsh-chatsync
 ```
 
 </details>

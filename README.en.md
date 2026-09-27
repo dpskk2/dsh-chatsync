@@ -7,7 +7,7 @@
 Bring your DeepSeek Harness (DSH) **conversations, attachments, settings and project files** to your other computers.
 Your data stays in your own private GitHub repository.
 
-[![npm](https://img.shields.io/npm/v/dsh-chatsync?color=2563eb)](https://www.npmjs.com/package/dsh-chatsync)
+[![npm](https://img.shields.io/npm/v/%40dpskk2%2Fdsh-chatsync?color=2563eb)](https://www.npmjs.com/package/@dpskk2/dsh-chatsync)
 [![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
 
 [First-time setup](#first-time-setup) · [Another computer](#another-computer) · [Troubleshooting](#troubleshooting) · [中文](README.md)
@@ -45,7 +45,7 @@ Paste commands into that window, **not the DSH chat box or your browser's addres
 Install the plugin:
 
 ```text
-dsh plugin --profile web add dsh-chatsync
+dsh plugin --profile web add @dpskk2/dsh-chatsync
 ```
 
 Wait for the installation result and the input prompt to return. If it reports an error, use [Troubleshooting](#troubleshooting) before proceeding.
@@ -134,7 +134,7 @@ The plugin uses DSH's `web` profile and declares DSH ≥ `0.1.5-rc.3`. Node.js �
 To update, run this line in a terminal, then restart DSH:
 
 ```text
-dsh plugin --profile web update dsh-chatsync
+dsh plugin --profile web update @dpskk2/dsh-chatsync
 ```
 
 </details>

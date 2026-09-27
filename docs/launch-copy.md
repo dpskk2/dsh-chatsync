@@ -23,7 +23,7 @@
 安装：
 
 ```sh
-dsh plugin --profile web add dsh-chatsync
+dsh plugin --profile web add @dpskk2/dsh-chatsync
 ```
 
 重启 DSH，在同一系统用户下登录 GitHub CLI，然后点侧栏「⟳ 同步」。完整教程包含第二台电脑的接入和双向验证。

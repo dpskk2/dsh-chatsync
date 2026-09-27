@@ -4,28 +4,28 @@
 
 ## 环境准备
 
-首次安装 DSH，请从 [DSH 官方项目与安装说明](https://github.com/deepseek-ai/deepseek-harness)开始；运行环境可从 [Node.js 官网](https://nodejs.org/en/download)安装。先确认 `dsh --version` 能运行、DSH Web 能打开，再安装本插件。
+**第一次接触终端或 GitHub？先按 [README 的第一次使用步骤](../README.md#第一次使用)操作。** 那里从下载工具、打开终端开始，逐步说明粘贴命令、浏览器授权和成功检查。本页补充安装检查、已有仓库连接和排障。
 
 插件界面用于 DSH 的 `web` profile，包声明宿主 DSH ≥ `0.1.5-rc.3`。已在该版本完成本地安装、bundle 组合和 Web 启动检查；这是保守的发布下限，尚未完成所有更高版本的双机兼容验证。请先确认 DSH Web 能正常打开。包声明 Node.js ≥ 20，但压缩会话的解析和合并还依赖运行时的 Zstandard 支持；建议使用 Node.js 24。跨操作系统路径组合尚无完整兼容矩阵。
 
-安装 [Git](https://git-scm.com/downloads) 和 [GitHub CLI](https://cli.github.com/)。Windows 可使用：
+如果工具还没装，优先用 README 中的下载入口。已熟悉 Windows 终端的用户，也可以在 PowerShell 中逐行执行以下安装命令，每行按 Enter，等待完成后再执行下一行：
 
 ```powershell
 winget install --id Git.Git -e
 winget install --id GitHub.cli -e
 ```
 
-安装后重新打开终端，并重启 DSH，让新进程读到更新后的 PATH：
+安装后关闭并重新打开终端。先分别运行以下命令，每行都应返回版本号。若提示找不到命令，先解决对应工具的安装问题：
 
 ```sh
 git --version
 gh --version
-gh auth login
-gh auth status
-dsh plugin --profile web add dsh-sync-plugin
+dsh --version
 ```
 
-`gh auth login` 选择 GitHub.com、HTTPS，按提示完成浏览器登录。然后重启 DSH，在设置 → 同步查看状态。
+检查通过后，回到 README 完成插件安装和账号登录。登录命令启动的是一次授权流程，要完成浏览器中的验证码和授权，再回终端检查结果；不能在它等待输入时直接粘贴下一条命令。所有安装和登录操作都应在运行 DSH 的同一个系统用户下完成。
+
+重启 DSH 是停止并重新启动应用进程，然后刷新网页；不是只关掉网页标签。用终端启动时，可回到运行 DSH 的窗口按 Ctrl+C 停止，再使用原来的启动命令；使用启动器时按启动器的退出和启动方式操作。请先结束正在生成的回复。
 
 ## 第一台电脑
 
@@ -101,7 +101,7 @@ SSH 地址示例：`git@github.com:你的用户名/dsh-sync.git`。需先自行�
 | 安装后没有按钮 | 确认安装到 `web` profile；重启 DSH 并刷新浏览器；检查启动日志中插件是否加载 |
 | 未检测到 Git | 在 DSH 所用的系统用户下运行 `git --version`；安装后重启 DSH，刷新 PATH |
 | 显示“本地快照”，没有仓库地址 | 执行 `gh auth status`；检查同名仓库；约 60 秒后重试，或手动填写 `remote` |
-| 认证失败 | 在同一系统用户下重新运行 `gh auth login`；自定义 Git / SSH 地址检查对应凭据。插件采用非交互 Git，不会替你弹登录窗口 |
+| 认证失败 | 按 [README 登录步骤](../README.md#第一次使用)重新授权并检查用户名；自定义 Git / SSH 地址检查对应凭据。插件不会替你弹登录窗口 |
 | 网络超时 / 无法连接 GitHub | 检查网络；需要代理时在配置里设置 `proxy`，见[配置参考](configuration.md) |
 | A 有会话，B 看不到 | 先 A 同步，再 B 同步；核对仓库与分支；检查工作区错误；重启 B 的 DSH 加载索引 |
 | 会话在“未分组”里 | 同步后重启 DSH；自动重启修复是高级选项，依赖本机环境，不能保证所有环境可用 |

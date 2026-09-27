@@ -4,124 +4,137 @@
 
 ### Pick up where you left off.
 
-Sync your [DeepSeek Harness][dsh] **sessions, attachments, settings and workspace files** across computers.
-Your data lives in your own [private GitHub repository][private-repo]. Choose manual or automatic syncing.
+Bring your DeepSeek Harness (DSH) **conversations, attachments, settings and project files** to your other computers.
+Your data stays in your own private GitHub repository.
 
 [![npm](https://img.shields.io/npm/v/dsh-sync-plugin?color=2563eb)](https://www.npmjs.com/package/dsh-sync-plugin)
 [![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
 
-[Get started](#get-started) · [Connect another computer](#connect-another-computer) · [Troubleshooting](#troubleshooting) · [中文](README.md)
+[First-time setup](#first-time-setup) · [Another computer](#another-computer) · [Troubleshooting](#troubleshooting) · [中文](README.md)
 
 </div>
 
-## Get started
+**Once set up, you normally just click Sync.** The first setup involves installing two helper tools and signing in once. Follow the steps below; no programming knowledge is needed.
 
-Already running [DSH Web][dsh]? Check these tools, then install the plugin. Starting from a fresh computer? Follow the [setup guide](docs/getting-started.md#环境准备) (Chinese).
+This plugin is for alternating between your own computers. Model API keys in the dedicated credentials file are not synced; configure them separately on each computer.
 
-| What you need | Why | Get it |
-| --- | --- | --- |
-| [DSH Web][dsh] | Runs the plugin in the `web` profile | [Official setup][dsh] |
-| [Node.js][node] | Runtime; version 24 is recommended | [Download][node] |
-| [Git][git] | Transfers files and keeps versions | [Download][git] |
-| [GitHub account][github] + [GitHub CLI][gh] | Signs in and connects your private repository | [Create an account][signup] · [Install CLI][gh] |
+## First-time setup
 
-### 1. Install the plugin
+### 1. Prepare the tools
 
-Open a terminal on the computer running [DSH][dsh]:
+First, make sure you can open the DSH web interface. If DSH is not installed, follow its [official setup instructions](https://github.com/deepseek-ai/deepseek-harness) and return here once it opens. If that setup asks for Node.js, [download it here](https://nodejs.org/en/download); version 24 is recommended.
 
-```sh
+| You need | What to do |
+| --- | --- |
+| A GitHub account | Holds your synced data. [Create an account](https://github.com/signup) if needed; use the same account on your other computers |
+| Git | Transfers files and keeps versions. [Download Git](https://git-scm.com/downloads/) for your operating system and install it |
+| GitHub CLI | Signs this computer in to GitHub. [Download GitHub CLI](https://cli.github.com/) for your operating system and install it |
+
+Git and GitHub CLI are separate tools; install both. GitHub CLI does not have a separate sign-in window you need to find. The `gh` command below starts it from a terminal.
+
+### 2. Open a terminal and install the plugin
+
+After installing the tools, open a **new terminal window**:
+
+- **Windows:** open Start, search for **PowerShell**, and open it normally; administrator mode is not needed.
+- **macOS:** open the **Terminal** app.
+- **Linux:** open your system's terminal.
+
+Paste commands into that window, **not the DSH chat box or your browser's address bar**. Copy the whole line inside each code box, paste it, press Enter once, and wait for it to finish before continuing.
+
+Install the plugin:
+
+```text
 dsh plugin --profile web add dsh-sync-plugin
 ```
 
-### 2. Sign in
+Wait for the installation result and the input prompt to return. If it reports an error, use [Troubleshooting](#troubleshooting) before proceeding.
 
-Use [GitHub CLI][gh], choosing **[GitHub.com][github] → HTTPS** when prompted:
+### 3. Sign this computer in
 
-```sh
-gh auth login
+In the same terminal, paste this entire line and press Enter. It starts browser sign-in, with GitHub.com and HTTPS already selected:
+
+```text
+gh auth login --hostname github.com --git-protocol https --web
+```
+
+1. If asked whether to authenticate Git with your account, choose `Yes` and press Enter.
+2. Note the one-time code shown in the terminal, then press Enter when prompted to open a browser. If the browser does not open, use the URL printed in the terminal.
+3. Sign in to your GitHub account in the browser. Enter the **code from the terminal** when requested, then authorize GitHub CLI. This is not your model API key.
+4. Return to the terminal and wait for sign-in to finish and the input prompt to return.
+
+Now run this separate command to **check** the sign-in; it does not start another login:
+
+```text
 gh auth status
 ```
 
-Confirm the signed-in account, then restart [DSH][dsh]. Need help? See the [login guide][login].
+Look for `Logged in to github.com account` followed by your intended username. Being signed in on the website alone does not complete this step.
 
-### 3. Click Sync
+### 4. Return to DSH and sync
 
-Before your first sync, open **Settings → Sync → 同步偏好** (Sync preferences). **Workspace files are included by default.** Turn off **同步工作区文件** if you only want sessions, attachments and settings.
+Stop and restart DSH, then refresh its web page. Refreshing the page alone does not restart DSH. If you launched DSH in a terminal, stop that process and start it again the way you normally do.
 
-Then click **⟳ 同步** in the sidebar:
+Open **设置 → 同步** (Settings → Sync):
 
-| Your situation | What to do |
-| --- | --- |
-| You do not have a sync repository yet | Keep the defaults. The plugin tries to create or reuse a private repository under the signed-in account; the default name is `dsh-sync` |
-| You already have a repository or want to choose one | Enter its URL and branch under **连接同步仓库**, save, then sync. [Create a private repository][new-repo] · [Connection guide](docs/getting-started.md#手动连接仓库) |
+1. **Choose what to upload.** Under **同步偏好**, workspace files are included by default. If you only want conversations, attachments and settings, turn off **同步工作区文件** and click **保存偏好**. A workspace is a project folder you opened in DSH.
+2. **Leave the connection fields alone on your first setup.** Keep automatic repository creation enabled and click **立即同步**, or **⟳ 同步** in the sidebar. The plugin tries to create or reuse a private repository named `dsh-sync` under your account. Think of this as your cloud storage space; you do not need to create it manually first.
+3. **Check the result.** The settings page should show a repository URL. Wait until syncing finishes, and check that neither the overall sync nor any workspace has failed.
 
-**Check the result:** Settings should show the intended repository and a completed sync without workspace errors. A **local snapshot** means the data was saved on this computer, not uploaded.
+A **local snapshot** means the data is saved on this computer only, not uploaded. Expand the sync error details and use the troubleshooting section if needed.
 
-## Connect another computer
+If you already have a specific repository, enter its URL and branch under **连接同步仓库** instead. Otherwise, follow the defaults above. [Custom repository guide](docs/getting-started.md#手动连接仓库) (Chinese).
 
-1. Install the tools and plugin from the [checklist above](#get-started). Sign in with [GitHub CLI][gh] using an account that can access your sync repository.
-2. In **Settings → Sync → 连接同步仓库**, enter the **same URL and branch** as the original computer and save. The default repository can also be reused automatically under the same account.
-3. Sync the original computer, then the new one. Restart [DSH][dsh] on the new computer to load the retrieved sessions and settings.
-4. Configure API credentials and install the required plugin and project dependencies. Use **换位置** in the sync result to adjust workspace paths. [Recovery checklist](docs/getting-started.md#第二台电脑) (Chinese).
+## Another computer
 
-No manual clone of the data directory is needed. Existing data on the new computer participates in two-way merging. Saving a repository URL does not start a transfer.
+**Sync successfully on the original computer first.** Then:
+
+1. Repeat steps 1–3 above on the new computer: install the tools and plugin, and sign in with the **same GitHub account**.
+2. Restart DSH, check the sync preferences, and click Sync. If you used the default repository on the original computer, the plugin will try to reuse it.
+3. For a custom repository, copy the URL and branch from the original computer's sync settings into **连接同步仓库** on the new computer. Save, then sync; saving the address alone does not transfer anything.
+4. After a successful sync, restart DSH again. Open a conversation from the original computer and check an attachment or project file to confirm that it arrived.
+5. Configure your model API keys on this computer. Install other plugins and project dependencies as needed. If conversations appear but the model does not work, check credentials before syncing again.
+
+You do not need to delete existing conversations or clone the data directory. Existing content participates in two-way merging. See the [recovery guide](docs/getting-started.md#第二台电脑) (Chinese) for dependencies and project paths.
 
 ## Everyday use
 
-**Sync before starting and after finishing.** Before switching computers, check that your latest changes were uploaded.
+**Sync before starting and after finishing.** Check that changes on the previous computer were uploaded before switching devices.
 
-For fewer clicks, select automatic mode in **同步偏好** and save. It takes effect immediately, defaults to a five-minute interval, and responds to session activity. The app must be running and the network available; a final manual sync lets you check the result before leaving.
+For automatic syncing, choose automatic mode under **同步偏好** and save. It takes effect immediately, defaults to five-minute intervals, and responds to session activity. DSH must be running and the network available.
 
-## What comes along?
+## What transfers?
 
-| Included | Handled on each computer |
+| Synced | Set up on each computer |
 | --- | --- |
-| Sessions, attachments and workspace associations | API credentials: `.credentials.yaml` is excluded |
-| Workspace files, optionally | Dependencies and caches such as `node_modules` |
-| Model settings, interface settings and plugin manifests | Plugin dependency installation and local path adjustments |
-| Patches you provide | Compatibility with the installed target files |
+| Conversations, attachments and workspace associations | Model API keys |
+| Model settings, interface settings and plugin manifests | Other plugins and project dependencies |
+| Actual workspace files, optionally | Project paths, if they need changing |
 
-Other files, conversations or attachments may still contain secrets. Check the [scope and exclusions](docs/sync-content.md) before uploading. Sync propagates deletions and mistakes too; keep independent backups of important data.
-
-<details>
-<summary>Sync behavior and compatibility</summary>
-
-Supported sessions and configuration files are merged automatically where possible. Ordinary-file conflicts may prefer the local version and attempt to back up remote history. Check the result and [merge boundaries](docs/sync-content.md#合并与恢复边界).
-
-- Host declaration: [DSH Web][dsh] ≥ `0.1.5-rc.3`.
-- Runtime: [Node.js][node] ≥20; 24 recommended for Zstandard support in compressed session handling.
-- Cloud transfer: [Git][git], authenticated [GitHub CLI][gh], and access to [GitHub][github].
-- See the [validation record](docs/release-0.12.5-validation.md) for test coverage and unverified environments.
-
-</details>
+The dedicated credentials file is excluded, but secrets you put in conversations, attachments or project files can still be uploaded. Check the scope before your first sync. Sync also propagates deletions and mistakes; keep separate backups of important data. [Scope, exclusions and conflicts](docs/sync-content.md).
 
 ## Troubleshooting
 
-| Problem | Where to go |
+| What you see | What to do first |
 | --- | --- |
-| No Sync button | [Installation and restart checks](docs/getting-started.md#环境准备) |
-| Login failure or local snapshots only | [Login help][login] · [Connection troubleshooting](docs/getting-started.md#常见问题) |
-| Missing sessions on another computer | [Recovery checklist](docs/getting-started.md#第二台电脑) |
-| Network or proxy problems | [Configuration reference](docs/configuration.md) |
-| Excluding files or projects | [Sync scope](docs/sync-content.md) |
-| Still stuck | [Report an issue](https://github.com/dpskk2/dsh-sync-plugin/issues/new/choose) with versions, steps and redacted errors |
+| `dsh`, `git` or `gh` is not recognized / `command not found` | Install the corresponding tool, then close and reopen the terminal. `gh` is GitHub CLI |
+| Signed in on the website but not in the terminal | Complete the authorization started in step 3, then run `gh auth status` |
+| No Sync section in settings | Check the plugin installation succeeded, restart the DSH process, then refresh the page |
+| Local snapshot only or upload failure | Check sign-in, then read the error in sync settings. After failed automatic repository setup, wait about a minute before retrying |
+| Conversations missing on the new computer | Sync the original computer first, then the new one; check matching repository and branch, then restart DSH |
+| Network / proxy problem or still stuck | Read the [troubleshooting guide](docs/getting-started.md#常见问题) (Chinese), or [report an issue](https://github.com/dpskk2/dsh-sync-plugin/issues/new/choose) with redacted errors |
 
-The detailed guides linked above are currently in Chinese.
+<details>
+<summary>Requirements and more</summary>
 
-## Updates and more
+The plugin uses DSH's `web` profile and declares DSH ≥ `0.1.5-rc.3`. Node.js ≥20 is declared; 24 is recommended for compressed sessions. See the [validation record](docs/release-0.12.5-validation.md) for tested environments and limits.
 
-```sh
+[Configuration](docs/configuration.md) · [Changelog](CHANGELOG.md) · [Development](CONTRIBUTING.md)
+
+To update, run this line in a terminal, then restart DSH:
+
+```text
 dsh plugin --profile web update dsh-sync-plugin
 ```
 
-Restart [DSH][dsh] after updating. [Changelog](CHANGELOG.md) · [Setup guide](docs/getting-started.md) · [Configuration](docs/configuration.md) · [Development](CONTRIBUTING.md) · [npm package](https://www.npmjs.com/package/dsh-sync-plugin)
-
-[dsh]: https://github.com/deepseek-ai/deepseek-harness
-[node]: https://nodejs.org/en/download
-[git]: https://git-scm.com/downloads/
-[github]: https://github.com/
-[signup]: https://github.com/signup
-[gh]: https://cli.github.com/
-[login]: https://cli.github.com/manual/gh_auth_login
-[new-repo]: https://github.com/new
-[private-repo]: https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories
+</details>

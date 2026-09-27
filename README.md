@@ -1,13 +1,13 @@
 <div align="center">
 
-# DSH Sync
+# DSH 接着聊
 
 ### 换台电脑，接着聊、接着做。
 
 把 DeepSeek Harness（DSH）的**会话、附件、设置和项目文件**同步到你的其他电脑。
 数据放在你自己的 GitHub 私有仓库中，由你掌握。
 
-[![npm](https://img.shields.io/npm/v/dsh-sync-plugin?color=2563eb)](https://www.npmjs.com/package/dsh-sync-plugin)
+[![npm](https://img.shields.io/npm/v/dsh-chatsync?color=2563eb)](https://www.npmjs.com/package/dsh-chatsync)
 [![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
 
 [第一次使用](#第一次使用) · [换到另一台电脑](#换到另一台电脑) · [遇到问题](#遇到问题) · [English](README.en.md)
@@ -45,7 +45,7 @@ Git 和 GitHub CLI 是两个不同的工具，都要安装。**GitHub CLI 没有
 先安装同步插件：
 
 ```text
-dsh plugin --profile web add dsh-sync-plugin
+dsh plugin --profile web add dsh-chatsync
 ```
 
 等终端显示安装结果、重新出现可输入命令的提示符。若出现错误，先看下方[常见问题](#遇到问题)，不要接着往下做。
@@ -124,7 +124,7 @@ gh auth status
 | 设置里找不到「同步」 | 确认安装命令执行成功；重启 DSH 进程后再刷新网页 |
 | 只有本地快照 / 上传失败 | 先检查第 3 步的登录状态，再看同步页的错误详情；自动建仓失败后可等约一分钟重试 |
 | 新电脑没有原来的会话 | 先原电脑同步，再新电脑同步，核对仓库地址和分支一致；完成后重启新电脑上的 DSH |
-| 网络错误、需要代理，或仍然失败 | 查看[完整排障](docs/getting-started.md#常见问题)；需要反馈时[提交问题](https://github.com/dpskk2/dsh-sync-plugin/issues/new/choose)，附错误提示，隐藏密钥与私人内容 |
+| 网络错误、需要代理，或仍然失败 | 查看[完整排障](docs/getting-started.md#常见问题)；需要反馈时[提交问题](https://github.com/dpskk2/dsh-chatsync/issues/new/choose)，附错误提示，隐藏密钥与私人内容 |
 
 <details>
 <summary>版本要求与更多资料</summary>
@@ -136,7 +136,7 @@ gh auth status
 需要升级插件时，在终端运行下面这一行，完成后重启 DSH：
 
 ```text
-dsh plugin --profile web update dsh-sync-plugin
+dsh plugin --profile web update dsh-chatsync
 ```
 
 </details>

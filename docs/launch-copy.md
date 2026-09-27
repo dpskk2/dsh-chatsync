@@ -18,18 +18,18 @@
 
 在台式机上用 DSH 做了一半，换到笔记本还得搬会话、项目文件和配置？
 
-我做了 DSH Sync：通过自己的 GitHub 仓库，把 DeepSeek Harness 的会话、附件、设置和工作区文件同步到另一台电脑。支持手动和自动同步，也可以只同步会话与设置。
+我做了 DSH 接着聊：通过自己的 GitHub 仓库，把 DeepSeek Harness 的会话、附件、设置和工作区文件同步到另一台电脑。支持手动和自动同步，也可以只同步会话与设置。
 
 安装：
 
 ```sh
-dsh plugin --profile web add dsh-sync-plugin
+dsh plugin --profile web add dsh-chatsync
 ```
 
 重启 DSH，在同一系统用户下登录 GitHub CLI，然后点侧栏「⟳ 同步」。完整教程包含第二台电脑的接入和双向验证。
 
 适合个人多台电脑交替使用；建议用私有仓库，API 密钥在每台机器单独配置。
 
-项目：https://github.com/dpskk2/dsh-sync-plugin
+项目：https://github.com/dpskk2/dsh-chatsync
 
 欢迎反馈首次安装卡在哪一步，或你最想同步的内容。

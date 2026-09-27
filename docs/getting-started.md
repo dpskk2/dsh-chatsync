@@ -109,4 +109,4 @@ SSH 地址示例：`git@github.com:你的用户名/dsh-sync.git`。需先自行�
 | 新电脑模型无法使用 / 插件缺失 | 重新配置该机器的 API 密钥，安装插件或项目依赖；配置同步不等于依赖安装 |
 | 工作区文件太多 / 不想上传代码 | 首次同步前关闭「同步工作区文件」，或设置工作区排除规则；关闭不会删除远端已有分支 |
 
-仍未解决时，[提交问题](https://github.com/dpskk2/dsh-sync-plugin/issues/new/choose)，附插件版本、DSH / Node.js 版本、系统、复现步骤和脱敏后的错误。不要贴完整会话、凭据、私有仓库内容或带令牌的 URL。
+仍未解决时，[提交问题](https://github.com/dpskk2/dsh-chatsync/issues/new/choose)，附插件版本、DSH / Node.js 版本、系统、复现步骤和脱敏后的错误。不要贴完整会话、凭据、私有仓库内容或带令牌的 URL。

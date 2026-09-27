@@ -1,7 +1,7 @@
 # awesome-dsh-plugin 收录投稿文件
 #
 # 用法:把这个文件内容复制到 awesome-dsh-plugin 仓库的
-#   data/plugins/dpskk2__dsh-sync-plugin.yml
+#   data/plugins/dpskk2__dsh-chatsync.yml
 # 然后发一个 PR(一个 PR 只加这一个文件)。
 # 官方指南:https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/contributing.md
 #
@@ -13,8 +13,8 @@
 #  - 记得在 GitHub 仓库设置里添加 topic: dsh-plugin(还有 dsh、deepseek-harness)
 #  - 建议:发布到 npm(仓库 package.json 的 repository 已指回本仓库,自动关联)
 
-url: https://github.com/dpskk2/dsh-sync-plugin
-name: dpskk2/dsh-sync-plugin
+url: https://github.com/dpskk2/dsh-chatsync
+name: dpskk2/dsh-chatsync
 category: session
 description:
   en: Pick up on another computer by syncing DSH sessions, attachments, settings and workspace files through your own GitHub repository.

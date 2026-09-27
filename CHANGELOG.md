@@ -54,7 +54,7 @@
 
 - 引入按文件类型处理的合并引擎：会话日志并集、配置字段合并、普通文件冲突取本机并尝试保留远端备份。
 
-此处整理原 README 中的版本摘要，不是完整版本历史；包括 0.12.3 在内的其他提交见 [Git 历史](https://github.com/dpskk2/dsh-sync-plugin/commits/main/)。当前行为与边界以[同步说明](docs/sync-content.md)为准。
+此处整理原 README 中的版本摘要，不是完整版本历史；包括 0.12.3 在内的其他提交见 [Git 历史](https://github.com/dpskk2/dsh-chatsync/commits/main/)。当前行为与边界以[同步说明](docs/sync-content.md)为准。
 
 ### 0.12.5 补充回归
 

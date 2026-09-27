@@ -2,7 +2,7 @@
 
 [返回 README](../README.md) · [配置参考](configuration.md)
 
-本文按当前源码的默认行为说明。旧版设计过程见 [合并引擎历史设计](https://github.com/dpskk2/dsh-sync-plugin/blob/main/docs/merge-engine-refactor.md)，不应拿历史草案当作现行功能保证。
+本文按当前源码的默认行为说明。旧版设计过程见 [合并引擎历史设计](https://github.com/dpskk2/dsh-chatsync/blob/main/docs/merge-engine-refactor.md)，不应拿历史草案当作现行功能保证。
 
 ## 两类数据
 

@@ -3,8 +3,8 @@
 需要 Node.js（建议 24）和 Git。项目采用原生 ESM，无运行时 npm 依赖，无需构建。
 
 ```sh
-git clone https://github.com/dpskk2/dsh-sync-plugin.git
-cd dsh-sync-plugin
+git clone https://github.com/dpskk2/dsh-chatsync.git
+cd dsh-chatsync
 npm test
 npm pack --dry-run
 ```

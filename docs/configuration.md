@@ -49,9 +49,9 @@
 | `minCommitIntervalSeconds` | `120` | 自动提交节流；手动按钮可强制提交 |
 | `autoPullOnStart` | `true` | 自动模式启动时触发同步 |
 | `autoPushOnExit` | `true` | 自动模式正常退出时尝试提交与推送；强制结束进程不保证执行 |
-| `commitMessage` | `"dsh-sync-plugin: auto snapshot"` | 快照提交消息 |
-| `gitUserName` | `"dsh-sync-plugin"` | 同步仓库的 Git 提交名 |
-| `gitUserEmail` | `"dsh-sync-plugin@localhost"` | Git 提交邮箱，不用于登录 |
+| `commitMessage` | `"dsh-chatsync: auto snapshot"` | 快照提交消息 |
+| `gitUserName` | `"dsh-chatsync"` | 同步仓库的 Git 提交名 |
+| `gitUserEmail` | `"dsh-chatsync@localhost"` | Git 提交邮箱，不用于登录 |
 | `repoName` | `"dsh-sync"` | 自动建仓 / 复用的仓库名 |
 | `repoOwner` | `""` | 自动建仓账号，空值取 `gh` 登录账号 |
 | `repoDescription` | `""` | 自动新建仓库时的描述 |

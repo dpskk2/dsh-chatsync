@@ -1,13 +1,13 @@
 <div align="center">
 
-# DSH Sync
+# DSH ChatSync
 
 ### Pick up where you left off.
 
 Bring your DeepSeek Harness (DSH) **conversations, attachments, settings and project files** to your other computers.
 Your data stays in your own private GitHub repository.
 
-[![npm](https://img.shields.io/npm/v/dsh-sync-plugin?color=2563eb)](https://www.npmjs.com/package/dsh-sync-plugin)
+[![npm](https://img.shields.io/npm/v/dsh-chatsync?color=2563eb)](https://www.npmjs.com/package/dsh-chatsync)
 [![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
 
 [First-time setup](#first-time-setup) · [Another computer](#another-computer) · [Troubleshooting](#troubleshooting) · [中文](README.md)
@@ -45,7 +45,7 @@ Paste commands into that window, **not the DSH chat box or your browser's addres
 Install the plugin:
 
 ```text
-dsh plugin --profile web add dsh-sync-plugin
+dsh plugin --profile web add dsh-chatsync
 ```
 
 Wait for the installation result and the input prompt to return. If it reports an error, use [Troubleshooting](#troubleshooting) before proceeding.
@@ -122,7 +122,7 @@ The dedicated credentials file is excluded, but secrets you put in conversations
 | No Sync section in settings | Check the plugin installation succeeded, restart the DSH process, then refresh the page |
 | Local snapshot only or upload failure | Check sign-in, then read the error in sync settings. After failed automatic repository setup, wait about a minute before retrying |
 | Conversations missing on the new computer | Sync the original computer first, then the new one; check matching repository and branch, then restart DSH |
-| Network / proxy problem or still stuck | Read the [troubleshooting guide](docs/getting-started.md#常见问题) (Chinese), or [report an issue](https://github.com/dpskk2/dsh-sync-plugin/issues/new/choose) with redacted errors |
+| Network / proxy problem or still stuck | Read the [troubleshooting guide](docs/getting-started.md#常见问题) (Chinese), or [report an issue](https://github.com/dpskk2/dsh-chatsync/issues/new/choose) with redacted errors |
 
 <details>
 <summary>Requirements and more</summary>
@@ -134,7 +134,7 @@ The plugin uses DSH's `web` profile and declares DSH ≥ `0.1.5-rc.3`. Node.js �
 To update, run this line in a terminal, then restart DSH:
 
 ```text
-dsh plugin --profile web update dsh-sync-plugin
+dsh plugin --profile web update dsh-chatsync
 ```
 
 </details>

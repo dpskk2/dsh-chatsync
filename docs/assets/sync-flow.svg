@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
-  <title id="title">DSH Sync · 换台电脑，接着做</title>
+  <title id="title">DSH 接着聊 · 换台电脑，接着做</title>
   <desc id="desc">流程示意，非界面截图。电脑 A 和电脑 B 通过自己的 GitHub 私有仓库交换会话、设置与工作区文件。支持手动或定时同步。</desc>
   <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#101f3d"/><stop offset="1" stop-color="#102b32"/></linearGradient></defs>
   <rect width="1200" height="360" rx="24" fill="url(#bg)"/>

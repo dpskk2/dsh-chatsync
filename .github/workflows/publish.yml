@@ -1,4 +1,4 @@
-name: Publish to npm
+name: Publish to npm and GitHub Releases
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   id-token: write   # npm Trusted Publishing (OIDC):无需 NPM_TOKEN / 2FA,发布身份由 GitHub OIDC 提供
 
 jobs:
@@ -31,6 +31,11 @@ jobs:
             exit 1
           fi
 
+      - name: Prepare release notes and source archive
+        run: |
+          node scripts/release-notes.mjs
+          git archive --format=zip --prefix="dsh-chatsync-${GITHUB_REF_NAME}/" --output="dsh-chatsync-${GITHUB_REF_NAME}-source.zip" HEAD
+
       - name: Skip if version already on npm (idempotent)
         run: |
           PKG="$(node -p 'require("./package.json").version')"
@@ -48,3 +53,16 @@ jobs:
       - name: Publish to npm (Trusted Publishing / OIDC)
         if: env.ALREADY_PUBLISHED != 'true'
         run: npm publish --provenance
+
+      - name: Publish GitHub Release with source and changelog
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="$GITHUB_REF_NAME"
+          ARCHIVE="dsh-chatsync-${TAG}-source.zip"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ARCHIVE" --clobber
+            gh release edit "$TAG" --notes-file release-notes.md
+          else
+            gh release create "$TAG" "$ARCHIVE" --verify-tag --title "$TAG" --notes-file release-notes.md
+          fi

@@ -6,6 +6,44 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { SyncEngine } from '../lib/sync.js';
 
+test('divergent session logs bypass Git text merging and retain both original histories', { timeout: 60_000 }, async (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-session-divergence-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const remote = path.join(root, 'remote.git');
+  execFileSync('git', ['init', '--bare', remote], { stdio: 'ignore' });
+  const make = name => {
+    const home = path.join(root, name);
+    fs.mkdirSync(home);
+    fs.writeFileSync(path.join(home, 'dsh-sync.json'), JSON.stringify({ remote, autoRepo: false, workspaceSync: false, mode: 'manual' }));
+    const engine = new SyncEngine(home);
+    engine.verifyPrivateRemote = async () => ({ ok: true });
+    return engine;
+  };
+  const a = make('a'), b = make('b');
+  const rel = 'sessions/example/session-11111111-1111-1111-1111-111111111111/session.jsonl';
+  const base = [{ type: 'session', version: 4 }, ...Array.from({ length: 12 }, (_, seq) => ({ type: 'event', seq, time: seq, data: { value: 'base' } }))];
+  const encode = rows => rows.map(JSON.stringify).join('\n') + '\n';
+  const write = (engine, rows) => { fs.mkdirSync(path.dirname(path.join(engine.home, rel)), { recursive: true }); fs.writeFileSync(path.join(engine.home, rel), encode(rows)); };
+  write(a, base);
+  assert.equal((await a.syncOnce('test', { forceCommit: true })).error, undefined);
+  assert.equal((await b.syncOnce('test', { forceCommit: true })).error, undefined);
+  const rowsA = structuredClone(base), rowsB = structuredClone(base);
+  rowsA[1].data.value = 'device A'; rowsB[12].data.value = 'device B';
+  write(a, rowsA); write(b, rowsB);
+  assert.equal((await a.syncOnce('test', { forceCommit: true })).error, undefined);
+  const result = await b.syncOnce('test', { forceCommit: true });
+  assert.equal(result.error, undefined, JSON.stringify(result));
+  assert.equal(result.sessionWarnings?.length, 1, JSON.stringify(result));
+  assert.equal(result.sessionWarnings[0].reason, 'divergent-session-history');
+  assert.equal(fs.readFileSync(path.join(b.home, rel), 'utf8'), encode(rowsB));
+  for (const [ref, original] of [[result.sessionWarnings[0].localHead, rowsB], [result.sessionWarnings[0].remoteHead, rowsA]]) {
+    assert.equal(execFileSync('git', ['show', `${ref}:${rel}`], { cwd: b.home, encoding: 'utf8' }), encode(original));
+  }
+  assert.equal(result.backupPushed, true);
+  assert.equal((await a.syncOnce('test', { forceCommit: true })).error, undefined);
+  assert.equal(fs.readFileSync(path.join(a.home, rel), 'utf8'), encode(rowsB));
+});
+
 test('two isolated DSH homes exchange files through a real Git remote', { timeout: 60_000 }, async (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-two-device-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -22,6 +60,7 @@ test('two isolated DSH homes exchange files through a real Git remote', { timeou
   };
   const a = makeDevice('a');
   const b = makeDevice('b');
+  fs.writeFileSync(path.join(a.home, '.credentials.yaml'), 'test-only: never-upload\n');
   fs.writeFileSync(path.join(a.home, 'skills', 'from-a.txt'), 'first device\n');
   const upload = await a.syncOnce('test', { forceCommit: true });
   assert.equal(upload.error, undefined, JSON.stringify(upload));
@@ -29,6 +68,8 @@ test('two isolated DSH homes exchange files through a real Git remote', { timeou
   const download = await b.syncOnce('test', { forceCommit: true });
   assert.equal(download.error, undefined, JSON.stringify(download));
   assert.equal(fs.readFileSync(path.join(b.home, 'skills', 'from-a.txt'), 'utf8'), 'first device\n');
+  assert.equal(fs.existsSync(path.join(b.home, '.credentials.yaml')), false);
+  assert.equal(execFileSync('git', ['ls-files', '--', '.credentials.yaml'], { cwd: a.home, encoding: 'utf8' }), '');
   fs.writeFileSync(path.join(b.home, 'skills', 'from-b.txt'), 'second device\n');
   const back = await b.syncOnce('test', { forceCommit: true });
   assert.equal(back.error, undefined, JSON.stringify(back));

@@ -64,8 +64,8 @@
 
 这是高级功能。插件提供补丁应用机制，**安装插件本身不代表附带某个 DSH 修复补丁**。
 
-补丁放在 `<DSH_HOME>/patches/<补丁名>/`，由 `patch.json` 和完整的目标文件内容组成。清单字段包括 `package`（目标包）、`target`（包内相对路径）、`payload`（补丁文件）、`packageVersion`（录制版本）、`marker`（补丁标记）、`enabled`。
+补丁放在 `<DSH_HOME>/patches/<补丁名>/`，由 `patch.json` 和完整的目标文件内容组成。清单字段包括 `package`（目标包）、`target`（包内相对路径）、`payload`（补丁文件）、`packageVersion`（录制版本）、`marker`（补丁标记）、`enabled`、`disabledPackageVersions`（仅对列出的安装版本停用）。
 
-引擎在启动及同步后检查内容：已一致则跳过，与原始备份一致时可重新应用；上游文件已经变化时可能提示重新录制。补丁修改本机安装目录，通常重启 DSH 后生效。仅使用自己信任的补丁。
+引擎在启动及同步后检查内容：已一致则跳过，与原始备份一致时可重新应用；上游文件已经变化时可能提示重新录制。仅带旧标记不再允许覆盖；无原始备份且无明确录制版本也不会自动应用。“与补丁文件一致”不表示已经验证所有 DSH 版本。补丁修改本机安装目录，通常重启 DSH 后生效。仅使用自己信任的补丁。
 
 实现见 [lib/patches.js](../lib/patches.js)；隔离验证运行 `node patch-version-agnostic-test.mjs`。

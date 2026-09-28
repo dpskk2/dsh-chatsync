@@ -5,7 +5,7 @@
  *        original-lib-index.js)逐字节一致 → 应套用(applied),不再 needs-refresh。
  * 场景2:版本不符且内容偏离录制原始版(上游文件真的变了)→ needs-refresh,不盲写。
  * 场景3:目标已是当前 payload → 幂等 already。
- * 场景4:目标带旧补丁 marker → 补丁自身升级 updated,覆盖为最新 payload。
+ * 场景4:目标仅带旧补丁 marker → 暂停覆盖,要求重新审核。
  * 场景5:无备份 + 版本匹配 → 首次套用:自动捕获规范名备份 original-index.js,再打补丁;
  *        随后把安装版本改成不符且内容仍等于该备份 → 仍按「已应用」套用(规范名同样生效)。
  *
@@ -51,6 +51,10 @@ try {
   assert.strictEqual(fs.readFileSync(targetFile, "utf8"), "UPSTREAM-CHANGED-CONTENT", "needs-refresh 时不得覆盖目标文件");
   passed++;
   console.log("场景2 通过:内容真变 →", formatApplyResults([r2])[0]);
+  const disabled = applyPatchToTargets(home, { ...manifest, disabledPackageVersions: ['1.0.0'] });
+  assert.strictEqual(disabled.targets[0].status, 'disabled-version');
+  assert.strictEqual(fs.readFileSync(targetFile, 'utf8'), 'UPSTREAM-CHANGED-CONTENT');
+  passed++;
 
   // 场景3:目标已是当前 payload → 幂等 already
   fs.writeFileSync(targetFile, "PATCHED-CONTENT", "utf8");
@@ -59,19 +63,23 @@ try {
   passed++;
   console.log("场景3 通过:幂等 →", formatApplyResults([r3])[0]);
 
-  // 场景4:目标带旧补丁 marker → 补丁自身升级 updated
+  // 场景4:标记不是基线证明,不得覆盖。
   fs.writeFileSync(targetFile, "OLD PATCH fake patch marker V1", "utf8");
   const r4 = applyPatchToTargets(home, manifest);
-  assert.strictEqual(r4.targets[0].status, "updated", "带 marker 旧补丁应覆盖升级,实际=" + r4.targets[0].status);
-  assert.strictEqual(fs.readFileSync(targetFile, "utf8"), "PATCHED-CONTENT");
+  assert.strictEqual(r4.targets[0].status, "needs-review");
+  assert.strictEqual(fs.readFileSync(targetFile, "utf8"), "OLD PATCH fake patch marker V1");
   passed++;
-  console.log("场景4 通过:旧补丁升级 →", formatApplyResults([r4])[0]);
+  console.log("场景4 通过:旧补丁不盲目覆盖 →", formatApplyResults([r4])[0]);
 
   // 场景5:无备份 + 版本匹配 → 首次套用(自动捕获规范名备份 original-index.js);
   //       之后版本不符但内容仍等于该备份 → 依然套用(规范名路径的版本无关也生效)
   const m2 = { ...manifest, packageVersion: "1.0.0" }; // 与安装版本一致
   fs.rmSync(path.join(patchDir, "original-lib-index.js"), { force: true });
   fs.writeFileSync(targetFile, "ORIGINAL-CONTENT", "utf8");
+  const unversioned = applyPatchToTargets(home, { ...manifest, packageVersion: undefined });
+  assert.strictEqual(unversioned.targets[0].status, 'needs-refresh');
+  assert.strictEqual(fs.readFileSync(targetFile, 'utf8'), 'ORIGINAL-CONTENT');
+  passed++;
   const r5a = applyPatchToTargets(home, m2);
   assert.strictEqual(r5a.targets[0].status, "applied", "首次套用应成功,实际=" + r5a.targets[0].status);
   assert.ok(fs.existsSync(path.join(patchDir, "original-index.js")), "首次套用应自动捕获规范名备份");

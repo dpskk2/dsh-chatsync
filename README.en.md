@@ -20,6 +20,17 @@ For alternating between your own computers: sync on the first, retrieve on the n
 - **Set up separately:** model API keys, other plugins and project dependencies on each computer.
 - **Only need your chats?** Project files are included by default. Turn off **同步工作区文件** before your first sync to exclude them.
 
+## What it does
+
+Beyond syncing, the plugin handles a few things that make switching computers effortless:
+
+- **Sessions stay grouped:** each conversation remembers its workspace, and that mapping syncs along with it — the sidebar grouping is identical on the other computer, with nothing stranded in "ungrouped".
+- **Sync manually or automatically:** click **⟳ 同步** in the sidebar, or enable auto-sync (every 5 minutes, on session activity, and on exit) under Settings → Sync → Preferences.
+- **Manage sessions:** the **归档会话** (Archived) section lists all sessions (including archived and ghost), with preview, unarchive and permanent delete.
+- **Conflicts resolve themselves:** when both computers changed data, session logs union-merge, settings merge field-by-field, and same-name files keep the local version with a remote backup — no manual decisions.
+- **Grouping self-repairs:** sessions pulled from sync are registered back into their workspace; if the sidebar still shows "ungrouped", DSH restarts automatically after sync to rebuild the index (can be turned off under **Advanced: auto-restart**). Supports the DSH 0.1.7-rc.x session format.
+- **Patch hosting (advanced):** put node_modules patches under `.dsh/patches/` to sync them across machines; they are applied on startup and after every sync.
+
 ## First-time setup
 
 ### 1. Install and sign in

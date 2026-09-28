@@ -4,11 +4,11 @@
 
 ## 环境准备
 
-**第一次接触终端或 GitHub？先按 [README 的第一次使用步骤](../README.md#第一次使用)操作。** 那里从下载工具、打开终端开始，逐步说明粘贴命令、浏览器授权和成功检查。本页补充安装检查、已有仓库连接和排障。
+本页提供完整的安装、授权和排障步骤；只需要快速开始时，查看 [README](../README.md#第一次使用)。
 
 插件界面用于 DSH 的 `web` profile，包声明宿主 DSH ≥ `0.1.5-rc.3`。已在该版本完成本地安装、bundle 组合和 Web 启动检查；这是保守的发布下限，尚未完成所有更高版本的双机兼容验证。请先确认 DSH Web 能正常打开。包声明 Node.js ≥ 20，但压缩会话的解析和合并还依赖运行时的 Zstandard 支持；建议使用 Node.js 24。跨操作系统路径组合尚无完整兼容矩阵。
 
-如果工具还没装，优先用 README 中的下载入口。已熟悉 Windows 终端的用户，也可以在 PowerShell 中逐行执行以下安装命令，每行按 Enter，等待完成后再执行下一行：
+准备一个 [GitHub 账号](https://github.com/signup)，安装 [Git](https://git-scm.com/downloads/) 和 [GitHub CLI](https://cli.github.com/)。它们是两个不同的工具，GitHub CLI 通过终端里的 `gh` 命令使用。已熟悉 Windows 终端的用户，也可以在 PowerShell 中逐行执行以下安装命令，每行按 Enter，等待完成后再执行下一行：
 
 ```powershell
 winget install --id Git.Git -e
@@ -23,7 +23,34 @@ gh --version
 dsh --version
 ```
 
-检查通过后，回到 README 完成插件安装和账号登录。登录命令启动的是一次授权流程，要完成浏览器中的验证码和授权，再回终端检查结果；不能在它等待输入时直接粘贴下一条命令。所有安装和登录操作都应在运行 DSH 的同一个系统用户下完成。
+### 安装插件与登录 GitHub
+
+Windows 可从开始菜单打开 PowerShell，无需管理员权限；macOS / Linux 使用终端。以下命令在终端执行，不是在 DSH 聊天框中输入。所有安装和登录操作都应在运行 DSH 的同一个系统用户下完成。
+
+先安装插件，等待安装成功、终端重新出现输入提示符：
+
+```sh
+dsh plugin --profile web add @dpskk2/dsh-chatsync
+```
+
+再启动 GitHub 授权：
+
+```sh
+gh auth login --hostname github.com --git-protocol https --web
+```
+
+1. 如果询问是否让 Git 使用此账号（`Authenticate Git ...`），选择 `Yes`。
+2. 记下终端显示的一次性验证码，按提示打开浏览器；未自动打开时，使用终端给出的网址。
+3. 登录 GitHub，输入终端里的验证码并授权 GitHub CLI。该验证码不是模型 API 密钥。
+4. 回到终端，等待登录完成后再执行下一条命令。
+
+检查登录状态：
+
+```sh
+gh auth status
+```
+
+输出应包含 `Logged in to github.com account` 和你要使用的用户名。只在浏览器登录 GitHub 不代表终端授权已完成。
 
 重启 DSH 是停止并重新启动应用进程，然后刷新网页；不是只关掉网页标签。用终端启动时，可回到运行 DSH 的窗口按 Ctrl+C 停止，再使用原来的启动命令；使用启动器时按启动器的退出和启动方式操作。请先结束正在生成的回复。
 
@@ -101,7 +128,7 @@ SSH 地址示例：`git@github.com:你的用户名/dsh-sync.git`。需先自行�
 | 安装后没有按钮 | 确认安装到 `web` profile；重启 DSH 并刷新浏览器；检查启动日志中插件是否加载 |
 | 未检测到 Git | 在 DSH 所用的系统用户下运行 `git --version`；安装后重启 DSH，刷新 PATH |
 | 显示“本地快照”，没有仓库地址 | 执行 `gh auth status`；检查同名仓库；约 60 秒后重试，或手动填写 `remote` |
-| 认证失败 | 按 [README 登录步骤](../README.md#第一次使用)重新授权并检查用户名；自定义 Git / SSH 地址检查对应凭据。插件不会替你弹登录窗口 |
+| 认证失败 | 按[安装插件与登录 GitHub](#安装插件与登录-github)重新授权并检查用户名；自定义 Git / SSH 地址检查对应凭据。插件不会替你弹登录窗口 |
 | 网络超时 / 无法连接 GitHub | 检查网络；需要代理时在配置里设置 `proxy`，见[配置参考](configuration.md) |
 | A 有会话，B 看不到 | 先 A 同步，再 B 同步；核对仓库与分支；检查工作区错误；重启 B 的 DSH 加载索引 |
 | 会话在“未分组”里 | 同步后重启 DSH；自动重启修复是高级选项，依赖本机环境，不能保证所有环境可用 |

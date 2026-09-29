@@ -18,12 +18,12 @@
 | `storages/workspace.json` | 同步工作区登记和会话归属 |
 | `storages/session_projcache/` | 目录当前会同步；不要与排除的同名单个 `.json` 文件混淆 |
 | `settings.yaml` | 同步模型、界面等配置；支持的配置内容按字段合并 |
-| `profiles/web/` 配置与锁文件 | 同步，但排除依赖和插件市场本地状态 |
-| `patches/` | 同步用户提供的补丁，应用行为见[补丁管理](configuration.md#补丁管理) |
+| `profiles/web/`、`profiles/desktop/` 配置与锁文件 | 同步，但排除依赖和插件市场本地状态；两端插件需要分别安装 |
+| `patches/` | 同步用户提供的补丁；当前补丁机制只应用到独立安装的 Web 运行时，不修改桌面端安装包，见[补丁管理](configuration.md#补丁管理) |
 | `dsh-sync.json`、`.gitignore` | 同步；其中的代理等设置也可能影响另一台机器 |
 | `.credentials.yaml` | 排除专用凭据文件 |
 | `**/node_modules/`、`.pnpm-store/` | 排除依赖与缓存 |
-| `cache/`、`logs/`、`**/*.log`、`profiles/web/.dsh-market/` | 排除可再生状态 |
+| `cache/`、`logs/`、`**/*.log`、两个 profile 的 `.dsh-market/`、桌面端 `.plugin-manager/` | 排除可再生状态 |
 | `.anonymous-user-id`、`.dshw-size.json`、`.dshw-usage.json` | 排除机器本地标识与窗口 / 用量状态 |
 | `.dsh-sync.state.json`、`workspace-repos/` | 排除同步引擎的本地状态与影子仓库 |
 | `storages/workspace-local-paths.json` | 排除「换位置」产生的本机路径覆盖 |

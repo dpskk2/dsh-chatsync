@@ -5,5 +5,6 @@
 - `npm test`：38 个测试通过；补丁回归脚本的 8 个断言通过。
 - 本机桌面 profile 安装包含本次修复源码的临时插件包后，状态接口报告 `hostKind: desktop`、`restartAvailable: true`。临时包沿用 0.12.12 版本号，不等同于正式 0.12.13 发布包。
 - 调用桌面端重启接口，计划任务返回成功。桌面主程序与 Desktop Host 启动了新进程；独立 Web 进程保持运行。重启后桌面端仍加载该插件和重启脚本。
+- Web profile 安装本次源码包并重新启动服务后，状态接口报告 `hostKind: web`、`restartAvailable: true`。调用 Web 重启接口，Web 进程由 PID 15952 更新为 8632，Desktop Host PID 7164 保持不变，计划任务返回 0。随后恢复 profile 的版本依赖写法，避免同步本机临时包路径。
 - Web / Desktop 宿主识别、桌面端仅允许手动重启、双宿主同步锁有自动测试覆盖。
 - 未在两台物理电脑之间执行实网同步验收；未对任务栏窗口焦点和命令行窗口是否闪现进行目视检查。正式发布前仍须按 `CONTRIBUTING.md` 完成发布验证与发布后核查。

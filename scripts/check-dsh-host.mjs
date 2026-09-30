@@ -36,7 +36,8 @@ async function boot(home) {
     });
     return response.json();
   };
-  for (let i = 0; i < 80; i++) {
+  // A fresh profile may need more than 20 seconds to initialize on Windows.
+  for (let i = 0; i < 240; i++) {
     try { const status = await request('status'); if (status.ok) return { child, request, status }; } catch {}
     if (child.exitCode !== null) break;
     await new Promise(resolve => setTimeout(resolve, 250));
@@ -51,7 +52,8 @@ try {
     const installed = path.join(profile, 'node_modules/@dpskk2/dsh-chatsync');
     fs.mkdirSync(path.dirname(installed), { recursive: true });
     fs.symlinkSync(repo, installed, process.platform === 'win32' ? 'junction' : 'dir');
-    fs.writeFileSync(path.join(profile, 'package.json'), JSON.stringify({ name: 'chatsync-test-profile', private: true, dependencies: { '@dpskk2/dsh-chatsync': '0.12.12' }, dsh: { profile: { bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', '@dpskk2/dsh-chatsync'] } } }));
+    const version = JSON.parse(fs.readFileSync(path.join(repo, 'package.json'), 'utf8')).version;
+    fs.writeFileSync(path.join(profile, 'package.json'), JSON.stringify({ name: 'chatsync-test-profile', private: true, dependencies: { '@dpskk2/dsh-chatsync': version }, dsh: { profile: { bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', '@dpskk2/dsh-chatsync'] } } }));
     fs.writeFileSync(path.join(profile, 'cordis.yml'), '[]\n');
     fs.writeFileSync(path.join(profile, 'cordis.patch.yml'), '[]\n');
     fs.writeFileSync(path.join(home, 'dsh-sync.json'), JSON.stringify({ mode: 'manual', autoRepo: false, remote: '', workspaceSync: false, autoPullOnStart: false, autoPushOnExit: false, patches: false }));

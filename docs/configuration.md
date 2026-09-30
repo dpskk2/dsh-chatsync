@@ -18,7 +18,7 @@
 | `intervalSeconds` | `300` | 自动同步周期，实际至少 30 秒 |
 | `proxy` | `""` | Git 代理，如 `http://127.0.0.1:7890`；不是 DSH 全局网络代理 |
 | `autoRepo` | `true` | `remote` 空时尝试通过 `gh` 创建 / 复用仓库；只做本地快照需设为 `false` |
-| `autoRestartAfterRepair` | `false` | 补登记会话后尝试自动重启 DSH；依赖本机重启环境，浏览器会短暂断开 |
+| `autoRestartAfterRepair` | `false` | Web 端补登记会话后尝试自动重启 Web 服务；桌面端同步后会提示手动重启桌面应用 |
 | `workspaceBase` | `""` | 工作区统一落盘目录；配置会同步，两台机器路径不同时优先用「换位置」 |
 
 只同步会话与设置，不同步项目文件：

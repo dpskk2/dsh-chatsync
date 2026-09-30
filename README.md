@@ -28,7 +28,7 @@
 - **两种同步方式**：手动点侧栏「⟳ 同步」；或在设置 → 同步 → 同步偏好 开启自动同步（每 5 分钟一次、响应会话活动、退出 DSH 时自动提交推送）。
 - **会话管理**：设置面板「归档会话」可查看全部会话（含已归档、幽灵），预览、取消归档、彻底删除。
 - **冲突处理**：会话日志仅原样接续可确认的追加记录；同一会话发生分叉时保留当前一侧，双方原件保存在 Git 历史并显示恢复位置。设置按字段合并，普通文件冲突通常保留本机版本。
-- **分组自动修复**：同步拉回的新会话会自动登记回对应工作区；若侧栏仍显示「未分组」，可手动重启 DSH 重建索引；自动重启默认关闭，开启后仍依赖本机 Windows 重启脚本。v4 日志识别及验证范围见[兼容验证记录](docs/release-0.12.12-validation.md)。
+- **分组自动修复**：同步拉回的新会话会自动登记回对应工作区；若侧栏仍显示「未分组」，可手动重启 DSH 重建索引；自动重启默认关闭，仅适用于 Web 端，开启后仍依赖本机 Windows 重启脚本；桌面端需手动确认重启。`session.v4.jsonl.zstd` 日志识别及验证范围见[兼容验证记录](docs/release-0.12.12-validation.md)。
 - **补丁托管（高级）**：把 node_modules 补丁放进 `.dsh/patches/` 随仓库同步，启动和每次同步后自动套用。
 
 ## 第一次使用
@@ -91,6 +91,6 @@ dsh plugin --profile web update @dpskk2/dsh-chatsync
 - 代理、自定义仓库和其他设置：查看[配置参考](docs/configuration.md)。
 - 仍有问题：[提交反馈](https://github.com/dpskk2/dsh-chatsync/issues/new/choose)，附错误信息并隐藏私人内容和密钥。
 
-支持 DSH `web` profile，声明要求 DSH ≥ `0.1.5-rc.3`、Node.js ≥20；建议 Node.js 24。实际测试范围见[验证记录](docs/release-0.12.5-validation.md)。
+支持 DSH `web` profile，声明要求 DSH ≥ `0.1.5-rc.3`、Node.js ≥20；建议 Node.js 24。已验证 DSH Web `0.2.0-rc.1`；实际测试范围见[验证记录](docs/release-0.12.12-validation.md)。
 
 [更新记录](CHANGELOG.md) · [开发与验证](CONTRIBUTING.md)

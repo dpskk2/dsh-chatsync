@@ -79,6 +79,8 @@ The dedicated credentials file is excluded, but secrets written into conversatio
 
 ## Updates and help
 
+The complete source ZIP contains all version-controlled files at the release tag, including tests, development check scripts and documentation. It excludes Git history, dependencies and local files outside the repository. The npm package follows the `files` list in `package.json`: runtime code, the desktop restart script and selected documentation; tests and development check scripts are excluded. Bundled validation records document historical checks, not additional real-device validation of the current version. See the [0.12.13 validation record](docs/release-0.12.13-validation.md) for the current scope.
+
 Each new version includes Chinese release notes and a complete source ZIP on [GitHub Releases](https://github.com/dpskk2/dsh-chatsync/releases). To download the source, open a release and select `dsh-chatsync-vVERSION-source.zip` under **Assets**. Use the installation steps above or the update command below to install or update the plugin.
 
 To update the plugin, run this command and restart DSH:

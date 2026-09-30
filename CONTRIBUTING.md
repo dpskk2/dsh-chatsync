@@ -8,6 +8,12 @@
 
 标签触发的发布流程会先检查版本和日志，再运行测试并发布 npm，最后创建或更新 GitHub Release，将对应版本日志写入正文并上传完整源码 ZIP（含受版本控制的测试和文档）。日志缺失会阻止发布。手动重试时必须选择对应版本标签；npm 已存在的版本会跳过 npm 发布，继续补齐 Release。发布后核实正文和源码附件均可访问。
 
+## 源码与安装包边界
+
+Release 的源码 ZIP 由 `git archive` 打包对应标签下全部受版本控制的文件，与 `package.json` 的 `files` 无关；不包含 Git 历史、依赖或仓库外脚本。npm 包仅包含 `files` 选定内容及 npm 自动包含的包元数据等文件，不包含 `tests/`、`patch-version-agnostic-test.mjs`、`scripts/check-dsh-host.mjs`、`scripts/check-dsh-sessions.mjs` 或发布脚本。下述开发验证及验证记录中的检查命令应在 clone 或解压源码 ZIP 后运行，不能直接在 npm 安装目录运行 `npm test`。
+
+保留随包提供的历史验证记录，以保证 README 的相对链接可用；这些记录不作为当前版本的新增验证结论。调整 `files` 时检查 `npm pack --dry-run` 的实际文件列表和随包文档的相对链接。
+
 ## 验证
 
 需要 Node.js（建议 24）和 Git。项目采用原生 ESM，无运行时 npm 依赖，无需构建。

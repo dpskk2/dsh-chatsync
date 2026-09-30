@@ -81,6 +81,8 @@ gh auth login --hostname github.com --git-protocol https --web
 
 每个新版本都会在 [GitHub Releases](https://github.com/dpskk2/dsh-chatsync/releases) 提供中文更新说明和对应版本的完整源码 ZIP。需要下载源码时，打开版本页面，在 **Assets** 中选择 `dsh-chatsync-v版本号-source.zip`；安装和更新插件请使用下方命令及前面的安装步骤。
 
+这里的“完整源码 ZIP”指对应标签下全部受版本控制的文件，包含 `tests/`、开发检查脚本和文档，不包含 Git 历史、依赖或仓库外的本机文件。npm 包按 `package.json` 的 `files` 清单提供运行时代码、桌面重启脚本及选定文档，不包含测试和开发检查脚本；两者用途和内容范围不同。随 npm 包提供的验证记录是历史验证证据，不代表当前版本新增了同等范围的实机验证；当前版本见 [0.12.13 验证记录](docs/release-0.12.13-validation.md)。
+
 更新插件后重启 DSH：
 
 ```sh

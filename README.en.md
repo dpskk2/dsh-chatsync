@@ -28,7 +28,7 @@ Beyond syncing, the plugin handles a few things that make switching computers ef
 - **Sync manually or automatically:** click **⟳ 同步** in the sidebar, or enable auto-sync (every 5 minutes, on session activity, and on exit) under Settings → Sync → Preferences.
 - **Manage sessions:** the **归档会话** (Archived) section lists all sessions (including archived and ghost), with preview, unarchive and permanent delete.
 - **Conflict handling:** append-only session histories are preserved verbatim. Divergent sessions retain one side, with both originals in Git history and recovery references shown in sync details. Settings merge field-by-field; ordinary file conflicts usually keep the local version.
-- **Grouping self-repairs:** sessions pulled from sync are registered back into their workspace; if the sidebar still shows "ungrouped", restart DSH to rebuild the index. Automatic restart is off by default and requires a local Windows restart script. See the [compatibility checks](docs/release-0.12.12-validation.md) for v4 coverage.
+- **Grouping self-repairs:** sessions pulled from sync are registered back into their workspace; if the sidebar still shows "ungrouped", restart DSH to rebuild the index. Automatic restart is off by default, applies only to Web, and requires a local Windows restart script; Desktop requires manual restart confirmation. See the [compatibility checks](docs/release-0.12.12-validation.md) for `session.v4.jsonl.zstd` coverage.
 - **Patch hosting (advanced):** put node_modules patches under `.dsh/patches/` to sync them across machines; they are applied on startup and after every sync.
 
 ## First-time setup
@@ -93,6 +93,6 @@ dsh plugin --profile web update @dpskk2/dsh-chatsync
 - Proxies, custom repositories and other settings: see [Configuration](docs/configuration.md).
 - Still stuck? [Report an issue](https://github.com/dpskk2/dsh-chatsync/issues/new/choose) with error details, removing private content and keys.
 
-The linked guides are in Chinese. The plugin uses DSH's `web` profile and declares DSH ≥ `0.1.5-rc.3` and Node.js ≥20; Node.js 24 is recommended. See the [validation record](docs/release-0.12.5-validation.md) for tested environments.
+The linked guides are in Chinese. The plugin uses DSH's `web` profile and declares DSH ≥ `0.1.5-rc.3` and Node.js ≥20; Node.js 24 is recommended. DSH Web `0.2.0-rc.1` has been tested. See the [validation record](docs/release-0.12.12-validation.md) for tested environments.
 
 [Changelog](CHANGELOG.md) · [Development](CONTRIBUTING.md)

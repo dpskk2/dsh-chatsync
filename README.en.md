@@ -18,60 +18,70 @@ For alternating between your own computers: sync on the first, retrieve on the n
 
 - **Synced:** conversations, attachments, model and interface settings, and workspace project files.
 - **Set up separately:** model API keys, other plugins and project dependencies on each computer.
-- **Only need your chats?** Project files are included by default. Turn off **同步工作区文件** before your first sync to exclude them.
-
-## What it does
-
-Beyond syncing, the plugin handles a few things that make switching computers effortless:
-
-- **Sessions stay grouped:** each conversation remembers its workspace, and that mapping syncs along with it — the sidebar grouping is identical on the other computer, with nothing stranded in "ungrouped".
-- **Sync manually or automatically:** click **⟳ 同步** in the sidebar, or enable auto-sync (every 5 minutes, on session activity, and on exit) under Settings → Sync → Preferences.
-- **Manage sessions:** the **归档会话** (Archived) section lists all sessions (including archived and ghost), with preview, unarchive and permanent delete.
-- **Conflict handling:** append-only session histories are preserved verbatim. Divergent sessions retain one side, with both originals in Git history and recovery references shown in sync details. Settings merge field-by-field; ordinary file conflicts usually keep the local version.
-- **Grouping self-repairs:** sessions pulled from sync are registered back into their workspace; if the sidebar still shows "ungrouped", restart DSH to rebuild the index. Automatic restart is off by default, applies only to Web, and requires a local Windows restart script; Desktop requires manual restart confirmation. See the [compatibility checks](docs/release-0.12.12-validation.md) for `session.v4.jsonl.zstd` coverage.
-- **Patch hosting (advanced):** put node_modules patches under `.dsh/patches/` to sync them across machines; they are applied on startup and after every sync.
+- **Bring your projects along:** sync workspace project files as well as conversations, so you can keep chatting and working on another computer.
 
 ## First-time setup
 
-### 1. Install and sign in
+Before you start: DSH opens normally, [Git](https://git-scm.com/downloads/) and [GitHub CLI](https://cli.github.com/) are installed, and GitHub is reachable.
 
-Make sure DSH Web works and both [Git](https://git-scm.com/downloads/) and [GitHub CLI](https://cli.github.com/) are installed. You also need a GitHub account and network access to GitHub.
+### ① Install the plugin
 
-Install the plugin in a terminal (PowerShell on Windows):
+Run the command for your host in PowerShell; install separately if you use both.
+
+**Web:**
 
 ```sh
 dsh plugin --profile web add @dpskk2/dsh-chatsync
 ```
 
-Then sign in to GitHub, following the prompts to complete browser authorization:
+**Desktop (default Windows installation):**
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add @dpskk2/dsh-chatsync
+```
+
+Open Desktop once, then fully quit it (including its tray icon) before installing. For custom installation paths or errors, see the [desktop installation guide](docs/getting-started.md#桌面端桌面应用).
+
+### ② Sign in to GitHub
 
 ```sh
 gh auth login --hostname github.com --git-protocol https --web
 ```
 
-Need help with installation or authorization? See the [detailed setup guide](docs/getting-started.md#环境准备) (Chinese).
+Complete browser authorization. Choose **Yes** when asked to authenticate Git with this account.
 
-### 2. Sync for the first time
+### ③ Sync on your original computer
 
-Restart DSH, refresh the web page, and open **设置 → 同步** (Settings → Sync):
+Restart DSH, open **设置 → 同步** (Settings → Sync), and click **立即同步** (Sync now). The default setup creates or reuses a private GitHub repository automatically.
 
-1. Check the sync scope. For conversations, attachments and settings only, turn off **同步工作区文件** and save preferences.
-2. Keep the default connection settings and click **立即同步** (Sync now). The plugin tries to create or reuse a private repository named `dsh-sync` in your account; no manual repository setup is needed.
-3. Wait for a successful upload and check that no workspace sync failed. **A local snapshot alone means your data has not been uploaded.**
+**Note:** turn off **同步工作区文件** and save first if you do not need project files. A local snapshot alone means nothing has been uploaded yet.
 
-Using a specific repository? Follow the [custom repository guide](docs/getting-started.md#手动连接仓库) to enter its URL and branch, then sync.
+### ④ Retrieve on your new computer
 
-### 3. Switch computers
+Repeat ①② with the **same GitHub account**, restart DSH, and sync. After retrieval succeeds, restart again and configure local model API keys to continue your conversations.
 
-First, confirm that the original computer synced successfully. On the new computer, install the same tools and plugin, sign in with the **same GitHub account**, restart DSH, and sync. The default setup will try to reuse the same repository.
-
-After retrieval succeeds, restart DSH again and configure your model API keys to continue your conversations. Install other plugins and project dependencies as needed. For a custom repository, use the same URL and branch as the original computer. [Migration and project paths](docs/getting-started.md#第二台电脑).
+**Note:** install other plugins and project dependencies separately. For a custom repository, use the same URL and branch on both computers.
 
 ## Everyday use
 
-**Sync before starting and after finishing.** Click **⟳ 同步** in the sidebar and confirm the upload succeeded before switching computers.
+**Sync before starting and after finishing; confirm success before switching computers.** Click **⟳ 同步** in the sidebar. To automate syncing, enable it under **设置 → 同步 → 同步偏好** and save.
 
-You can also enable automatic syncing under **设置 → 同步 → 同步偏好** and save. It defaults to five-minute intervals and responds to session activity. DSH must stay running with network access.
+## Detailed instructions
+
+The linked guides are in Chinese.
+
+- **Installation and troubleshooting:** [tools, Desktop setup, the two dsh commands and common issues](docs/getting-started.md).
+- **Switching computers:** [retrieval, project paths and dependencies](docs/getting-started.md#第二台电脑).
+- **Sync settings:** [automatic sync, intervals, proxies and custom repositories](docs/configuration.md).
+- **Sync scope:** [included data and exclusion rules](docs/sync-content.md).
+
+### Features and limits
+
+- **Workspace grouping:** syncs conversation-to-workspace mappings and attempts to repair missing registrations; prompts for a restart when the sidebar needs refreshing.
+- **Automatic sync:** off by default. When enabled, defaults to five-minute intervals and responds to session activity. Startup sync is bidirectional; normal exit attempts to save and upload. DSH must stay running with network access. See [Configuration](docs/configuration.md).
+- **Conflict handling:** confirmed append-only histories are preserved verbatim. Divergent sessions retain one side, with both originals in Git history and recovery references in sync details. Settings merge field by field; ordinary file conflicts usually keep the local version.
+- **Restart repair:** on Windows, instructions and actions follow the host: Web restarts its service; Desktop closes and reopens the app. Automatic restart is on by default; explicit opt-outs are preserved. Detected session activity pauses it; unknown activity requires manual confirmation. See [restart requirements](docs/configuration.md#会话生成中与重启守卫).
+- **Patch hosting (advanced):** `.dsh/patches/` syncs with the repository. Web checks and applies patches on startup and after syncing; Desktop does not apply these Web runtime patches.
 
 ## Data and privacy
 
@@ -79,7 +89,7 @@ The dedicated credentials file is excluded, but secrets written into conversatio
 
 ## Updates and help
 
-The complete source ZIP contains all version-controlled files at the release tag, including tests, development check scripts and documentation. It excludes Git history, dependencies and local files outside the repository. The npm package follows the `files` list in `package.json`: runtime code, the desktop restart script and selected documentation; tests and development check scripts are excluded. Bundled validation records document historical checks, not additional real-device validation of the current version. See the [0.12.13 validation record](docs/release-0.12.13-validation.md) for the current scope.
+The complete source ZIP contains all version-controlled files at the release tag, including tests, development check scripts and documentation. It excludes Git history, dependencies and local files outside the repository. The npm package follows the `files` list in `package.json`: runtime code, the desktop restart script and selected documentation; tests and development check scripts are excluded. Bundled validation records document historical checks, not additional real-device validation of the current version. See the [0.20.0 validation record](docs/release-0.20.0-validation.md) for the current scope.
 
 Each new version includes Chinese release notes and a complete source ZIP on [GitHub Releases](https://github.com/dpskk2/dsh-chatsync/releases). To download the source, open a release and select `dsh-chatsync-vVERSION-source.zip` under **Assets**. Use the installation steps above or the update command below to install or update the plugin.
 
@@ -89,10 +99,16 @@ To update the plugin, run this command and restart DSH:
 dsh plugin --profile web update @dpskk2/dsh-chatsync
 ```
 
+On the desktop app, update through its bundled command runtime instead (quit the app first):
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update @dpskk2/dsh-chatsync
+```
+
 - Installation errors, missing Sync controls, failed uploads or missing conversations: see [Troubleshooting](docs/getting-started.md#常见问题).
 - Proxies, custom repositories and other settings: see [Configuration](docs/configuration.md).
 - Still stuck? [Report an issue](https://github.com/dpskk2/dsh-chatsync/issues/new/choose) with error details, removing private content and keys.
 
-The linked guides are in Chinese. The plugin uses DSH's `web` profile and declares DSH ≥ `0.1.5-rc.3` and Node.js ≥20; Node.js 24 is recommended. DSH Web `0.2.0-rc.1` has been tested. See the [validation record](docs/release-0.12.12-validation.md) for tested environments.
+The linked guides are in Chinese. The plugin supports DSH's `web` profile and the desktop app's `desktop` profile, and declares DSH ≥ `0.1.5-rc.3` and Node.js ≥20; Node.js 24 is recommended. DSH Web `0.2.0-rc.1` has been tested. See the [validation record](docs/release-0.12.12-validation.md) for tested environments.
 
 [Changelog](CHANGELOG.md) · [Development](CONTRIBUTING.md)

@@ -26,6 +26,12 @@
 dsh plugin --profile web add @dpskk2/dsh-chatsync
 ```
 
+桌面版（DeepSeek Harness 桌面应用）用 `desktop` profile，需要单独安装（先完全退出桌面应用）：
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add @dpskk2/dsh-chatsync
+```
+
 重启 DSH，在同一系统用户下登录 GitHub CLI，然后点侧栏「⟳ 同步」。完整教程包含第二台电脑的接入和双向验证。
 
 适合个人多台电脑交替使用；建议用私有仓库，API 密钥在每台机器单独配置。

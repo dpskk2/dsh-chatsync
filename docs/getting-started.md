@@ -6,7 +6,7 @@
 
 本页提供完整的安装、授权和排障步骤；只需要快速开始时，查看 [README](../README.md#第一次使用)。
 
-插件界面用于 DSH 的 `web` profile，包声明宿主 DSH ≥ `0.1.5-rc.3`。已在该版本完成本地安装、bundle 组合和 Web 启动检查；这是保守的发布下限，尚未完成所有更高版本的双机兼容验证。请先确认 DSH Web 能正常打开。包声明 Node.js ≥ 20，但压缩会话的解析和合并还依赖运行时的 Zstandard 支持；建议使用 Node.js 24。跨操作系统路径组合尚无完整兼容矩阵。
+插件界面用于 DSH 的 `web` profile 和桌面版的 `desktop` profile，包声明宿主 DSH ≥ `0.1.5-rc.3`。已在该版本完成本地安装、bundle 组合和 Web 启动检查；这是保守的发布下限，尚未完成所有更高版本的双机兼容验证。请先确认 DSH Web 或桌面版能正常打开。包声明 Node.js ≥ 20，但压缩会话的解析和合并还依赖运行时的 Zstandard 支持；建议使用 Node.js 24。跨操作系统路径组合尚无完整兼容矩阵。
 
 准备一个 [GitHub 账号](https://github.com/signup)，安装 [Git](https://git-scm.com/downloads/) 和 [GitHub CLI](https://cli.github.com/)。它们是两个不同的工具，GitHub CLI 通过终端里的 `gh` 命令使用。已熟悉 Windows 终端的用户，也可以在 PowerShell 中逐行执行以下安装命令，每行按 Enter，等待完成后再执行下一行：
 
@@ -27,7 +27,7 @@ dsh --version
 
 Windows 可从开始菜单打开 PowerShell，无需管理员权限；macOS / Linux 使用终端。以下命令在终端执行，不是在 DSH 聊天框中输入。所有安装和登录操作都应在运行 DSH 的同一个系统用户下完成。
 
-先安装插件，等待安装成功、终端重新出现输入提示符：
+按使用的端安装插件；以下命令仅安装到 Web profile（默认 `~/.dsh/profiles/web`），桌面用户使用下方[桌面端安装](#桌面端桌面应用)命令。两个端都使用时分别安装。等待安装成功、终端重新出现输入提示符：
 
 ```sh
 dsh plugin --profile web add @dpskk2/dsh-chatsync
@@ -53,6 +53,35 @@ gh auth status
 输出应包含 `Logged in to github.com account` 和你要使用的用户名。只在浏览器登录 GitHub 不代表终端授权已完成。
 
 重启 DSH 是停止并重新启动应用进程，然后刷新网页；不是只关掉网页标签。用终端启动时，可回到运行 DSH 的窗口按 Ctrl+C 停止，再使用原来的启动命令；使用启动器时按启动器的退出和启动方式操作。请先结束正在生成的回复。
+
+### 桌面端（桌面应用）
+
+桌面版（DeepSeek Harness 桌面应用）使用保留给 Electron 的 `desktop` profile，默认安装到 `~/.dsh/profiles/desktop`，和 Web 端是两套独立的插件依赖。npm 全局安装的 `dsh` 命令会拒绝该 profile（报 `error: profile "desktop" is managed exclusively by the Electron application`），请改用桌面应用自带的命令运行时。下方使用 Windows 默认安装路径；自定义安装位置时替换应用目录，自定义 `DSH_HOME` 时 profile 位于对应数据目录下：
+
+```powershell
+# 1) 先打开一次桌面版，让它初始化 profiles/desktop
+# 2) 完全退出桌面应用（含托盘图标），再执行：
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add @dpskk2/dsh-chatsync
+# 3) 重新打开桌面版
+```
+
+`add` 本身会补装该 profile 缺失的依赖。从另一台电脑同步过来的 `profiles/desktop` 只有依赖清单和锁文件、没有 `node_modules`；如果桌面版启动日志报 `cannot resolve profile bundle ...`，或桌面端看不到同步入口，先单独补装一次依赖：
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop install
+```
+
+更新时把 `add` 换成 `update`。桌面 profile 默认保留 pnpm 的 24 小时供应链冷却策略，安装刚发布的版本会报 `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`，此时在命令末尾加单次开关 `--config.minimumReleaseAge=0`（只对这次命令生效，不改动 profile 配置）。
+
+安装后可用同一运行时检查依赖：
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop list
+```
+
+确认列表包含 `@dpskk2/dsh-chatsync`，再重新打开桌面应用，到「设置 → 同步」确认入口。列表只证明安装依赖可解析，不能代替界面加载检查。
+
+在 PowerShell 中可用 `Get-Command dsh -All` 检查命令来源。若指向 npm 全局安装的 `dsh`，不能用它管理 desktop profile，请使用上面的桌面运行时完整路径。
 
 ## 第一台电脑
 
@@ -110,7 +139,7 @@ SSH 地址示例：`git@github.com:你的用户名/dsh-sync.git`。需先自行�
 
 ### 依赖如何恢复
 
-会话和附件无需安装依赖。模型需要在 DSH 中重新配置本机的 API 密钥；插件按原插件的安装说明重新安装，例如 `dsh plugin --profile web add 插件包名`。项目依赖请进入实际工作区文件夹，按项目 README 和锁文件选择安装工具；不要在所有项目中统一运行同一种安装命令。
+会话和附件无需安装依赖。模型需要在 DSH 中重新配置本机的 API 密钥；插件按原插件的安装说明重新安装，例如 Web 端 `dsh plugin --profile web add 插件包名`，桌面端 `& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add 插件包名`（见[桌面端安装](#桌面端桌面应用)）。项目依赖请进入实际工作区文件夹，按项目 README 和锁文件选择安装工具；不要在所有项目中统一运行同一种安装命令。
 
 ### 换机完成检查表
 
@@ -125,14 +154,17 @@ SSH 地址示例：`git@github.com:你的用户名/dsh-sync.git`。需先自行�
 
 | 现象 | 下一步 |
 | --- | --- |
-| 安装后没有按钮 | 确认安装到 `web` profile；重启 DSH 并刷新浏览器；检查启动日志中插件是否加载 |
+| 安装后没有按钮 | Web 用户确认安装到 `web` profile，重启 Web 服务并刷新浏览器；桌面用户确认安装到 `desktop` profile，退出并重新打开桌面应用；检查对应端启动日志中插件是否加载 |
+| 桌面端没有同步入口 / 启动日志报 `cannot resolve profile bundle` | 桌面 profile 的依赖要单独装：用桌面应用自带的命令运行时执行 `plugin --profile desktop install`，再重启桌面应用，见[桌面端安装](#桌面端桌面应用) |
+| 桌面端安装报 `error: profile "desktop" is managed exclusively by the Electron application` | 该 profile 只由桌面应用管理，不能使用 npm 全局 `dsh`；改用桌面版自带的命令运行时，见[桌面端安装](#桌面端桌面应用) |
+| 安装报 `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION` | 目标版本还在 pnpm 的 24 小时供应链冷却期内；在安装命令末尾加 `--config.minimumReleaseAge=0` 后重试 |
 | 未检测到 Git | 在 DSH 所用的系统用户下运行 `git --version`；安装后重启 DSH，刷新 PATH |
 | 显示“本地快照”，没有仓库地址 | 执行 `gh auth status`；检查同名仓库；约 60 秒后重试，或手动填写 `remote` |
 | 认证失败 | 按[安装插件与登录 GitHub](#安装插件与登录-github)重新授权并检查用户名；自定义 Git / SSH 地址检查对应凭据。插件不会替你弹登录窗口 |
 | 网络超时 / 无法连接 GitHub | 检查网络；需要代理时在配置里设置 `proxy`，见[配置参考](configuration.md) |
 | A 有会话，B 看不到 | 先 A 同步，再 B 同步；核对仓库与分支；检查工作区错误；重启 B 的 DSH 加载索引 |
-| 会话在“未分组”里 | 同步后重启 DSH；自动重启修复是高级选项，依赖本机环境，不能保证所有环境可用 |
-| 切换自动模式后没自动同步 | 设置页保存后立即生效，默认等待最多 300 秒；可先点立即同步；确认 `enabled` 没设为 `false`，宿主加载参数没有覆盖模式 |
+| 会话在“未分组”里 | 同步后重启 DSH；设置页会给出「立即重启」。自动重启修复是高级选项：开启后补好未分组会话即自动重启（Web 与桌面端都支持），只在该开关开启且当前没有会话正在生成时执行；检测到生成中时不打断对话，改由左下角浮层引导手动重启 |
+| 切换自动模式后没自动同步 | 设置页保存后立即生效，默认等待最多 300 秒；可先点立即同步；确认「允许自动同步」是打开的、同步间隔没填得过长，且宿主加载参数没有覆盖模式 |
 | 新电脑模型无法使用 / 插件缺失 | 重新配置该机器的 API 密钥，安装插件或项目依赖；配置同步不等于依赖安装 |
 | 工作区文件太多 / 不想上传代码 | 首次同步前关闭「同步工作区文件」，或设置工作区排除规则；关闭不会删除远端已有分支 |
 

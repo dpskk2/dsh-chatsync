@@ -35,6 +35,44 @@ test('desktop restart requires the explicit manual confirmation path', () => {
   }
 });
 
+/* 桌面端自动重启(0.12.15):同步后自查补登记会话的自动重启不再只认 Web 端 —— 桌面端也把
+   allowForce 传给宿主重启脚本(脚本自己校验「发起者是 Desktop Host、要关的是 Desktop 主进程」)。
+   本文件的安全约束:临时 home 里没有 restart-dsh-web.ps1,而桌面重启脚本一旦被调度就会真的关应用,
+   因此这里只断言判定形状与非桌面宿主的 allowForce 关闭,绝不让用例走到调度成功路径。 */
+test('auto restart after repair covers both hosts and only forces the desktop host', () => {
+  if (process.platform !== 'win32') return;
+  const originalArgv = process.argv;
+  try {
+    /* 非宿主(standalone/CLI):即使开了开关也不自动重启 */
+    process.argv = ['node.exe', 'lib\\cli.mjs', 'sync'];
+    const cli = new SyncEngine('C:\\unused');
+    assert.equal(cli.autoRestartHost(), null);
+    assert.equal(cli.scheduleRestartAfterRepair({ autoRestartAfterRepair: true }), false);
+
+    /* Web 宿主:重启脚本在 <home> 下,这里刻意用临时 home(没有脚本)避免真的重启 */
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-restart-host-'));
+    try {
+      process.argv = ['node.exe', 'C:\\Users\\tanos\\AppData\\Roaming\\npm\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js', 'web'];
+      const web = new SyncEngine(home);
+      assert.equal(web.autoRestartHost(), null, '临时 home 没有 restart-dsh-web.ps1,不应认为可自动重启');
+      assert.equal(web.webRestartAvailable(), false);
+      assert.equal(web.scheduleRestartAfterRepair({ autoRestartAfterRepair: true }), false);
+    } finally {
+      assert.equal(path.dirname(path.resolve(home)), path.resolve(os.tmpdir()));
+      fs.rmSync(home, { recursive: true, force: true });
+    }
+
+    /* 桌面宿主:能否自动重启取决于随包分发的桌面重启脚本是否存在 */
+    process.argv = ['DeepSeek Harness.exe', 'C:\\Programs\\DeepSeek Harness\\resources\\app.asar\\dsh\\node_modules\\@deepseek-ai\\dsh-desktop-host\\lib\\index.js', 'C:\\Programs\\dsh', 'C:\\Users\\tanos\\.dsh\\profiles\\desktop'];
+    const desktop = new SyncEngine('C:\\unused');
+    assert.equal(desktop.webRestartAvailable(), false);
+    assert.equal(desktop.autoRestartHost(), desktop.desktopRestartAvailable() ? 'desktop' : null);
+    assert.match(desktop.desktopRestartScript(), /restart-dsh-desktop\.ps1$/);
+  } finally {
+    process.argv = originalArgv;
+  }
+});
+
 test('two host engines cannot sync the same DSH home at once', async () => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-cross-host-lock-'));
   try {

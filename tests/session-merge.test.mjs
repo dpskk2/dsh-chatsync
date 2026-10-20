@@ -1,11 +1,57 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as zlib from 'node:zlib';
-import { mergeSessionLog, decodeZstdFrames, decodeZstdFirstFrame } from '../lib/merge.js';
+import { mergeSessionLog, validateSessionLog, decodeZstdFrames, decodeZstdFirstFrame } from '../lib/merge.js';
 const { zstdCompressSync } = zlib;
 
 const header = { type: 'session', version: 4, id: 'test' };
 const encode = (rows) => Buffer.from(rows.map(JSON.stringify).join('\n') + '\n');
+
+const packed = (type = 'text-chunks', seq0 = 1) => ({ type, seq0, time0: 100,
+  data: { turn: 0, step: 0, index: 0, dt: [2],
+    ...(type === 'tool-call-chunks' ? { id: 'call-1', name: 'tool', args: ['{', '}'] } : { texts: ['a', 'b'] }) } });
+const legacyRows = (version, row = packed()) => [{ ...header, version }, { type: 'event', seq: 0 }, row, { type: 'event', seq: 3 }];
+
+test('released v0/v1 packed rows count every event and preserve original multi-frame bytes', () => {
+  for (const version of [0, 1]) for (const type of ['text-chunks', 'reasoning-chunks', 'tool-call-chunks']) {
+    const rows = legacyRows(version, packed(type));
+    const prefix = zstdCompressSync(encode(rows.slice(0, -1)));
+    const full = Buffer.concat([prefix, zstdCompressSync(encode(rows.slice(-1)))]);
+    assert.equal(validateSessionLog(full).ok, true);
+    assert.deepEqual(mergeSessionLog(prefix, full).value, full);
+    assert.deepEqual(mergeSessionLog(full, prefix).value, full);
+    assert.equal(validateSessionLog(full.subarray(0, full.length - 2)).ok, false);
+    const divergent = encode(legacyRows(version, { ...packed(type), time0: 101 }));
+    assert.equal(mergeSessionLog(full, divergent).reason, 'divergent-session-history');
+  }
+});
+
+test('legacy packed rows reject gaps, overlaps and malformed envelopes even for identical inputs', () => {
+  for (const seq0 of [0, 2, -1, 1.5]) {
+    const bytes = encode(legacyRows(0, packed('text-chunks', seq0)));
+    assert.equal(validateSessionLog(bytes).ok, false);
+    assert.equal(mergeSessionLog(bytes, bytes).ok, false);
+  }
+  const mutations = [
+    row => { row.seq = 1; }, row => { row.seq0 = '1'; }, row => { row.time0 = NaN; },
+    row => { row.data.texts = []; }, row => { row.data.texts[1] = 1; },
+    row => { row.data.dt = []; }, row => { row.data.dt = [0.5]; },
+    row => { row.time0 = Number.MAX_SAFE_INTEGER; }, row => { row.data.turn = -1; },
+    row => { row.data.extra = true; }, row => { row.data = null; },
+  ];
+  for (const mutate of mutations) {
+    const row = packed(); mutate(row);
+    const bytes = encode(legacyRows(0, row));
+    assert.equal(mergeSessionLog(bytes, bytes).ok, false);
+  }
+  for (const version of [2, 3, 4]) assert.equal(validateSessionLog(encode(legacyRows(version))).ok, false);
+  const rows = legacyRows(0); rows.at(-1).seq = 2;
+  assert.equal(validateSessionLog(encode(rows)).reason, 'session-seq-gap');
+  for (const change of [row => { row.data.id = ''; }, row => { row.data.name = 3; }, row => { row.data.args = ['{']; }]) {
+    const row = packed('tool-call-chunks'); change(row);
+    assert.equal(validateSessionLog(encode(legacyRows(1, row))).ok, false);
+  }
+});
 
 test('append-only histories retain bytes, references and event order', () => {
   const base = [header, { type: 'chunk', seq: 0, time: 2 }];

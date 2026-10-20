@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">ChatSync</title>
+  <desc id="desc">透明底色上的蓝色与薄荷绿电脑、聊天气泡及双向箭头，表示跨电脑同步会话。</desc>
+  <defs>
+    <linearGradient id="blue" x1="24" y1="76" x2="116" y2="150" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#80c7ff"/>
+      <stop offset="1" stop-color="#537cff"/>
+    </linearGradient>
+    <linearGradient id="mint" x1="140" y1="104" x2="232" y2="178" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#62e4cc"/>
+      <stop offset="1" stop-color="#23b7b6"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M68 51c43-31 108-20 132 21m-1-23 1 23-23-2" stroke="#5795ff"/>
+    <path d="M188 211c-43 31-108 20-132-21m1 23-1-23 23 2" stroke="#30c9b2"/>
+  </g>
+  <g fill="url(#blue)">
+    <rect x="22" y="76" width="94" height="74" rx="13"/>
+    <rect x="61" y="146" width="16" height="19" rx="3"/>
+    <rect x="43" y="161" width="52" height="9" rx="4.5"/>
+  </g>
+  <g fill="url(#mint)">
+    <rect x="140" y="104" width="94" height="74" rx="13"/>
+    <rect x="179" y="174" width="16" height="19" rx="3"/>
+    <rect x="161" y="189" width="52" height="9" rx="4.5"/>
+  </g>
+  <g fill="#fff">
+    <path d="M50 94h38a8 8 0 0 1 8 8v17a8 8 0 0 1-8 8H67l-13 9v-9h-4a8 8 0 0 1-8-8v-17a8 8 0 0 1 8-8Z"/>
+    <path d="M168 122h38a8 8 0 0 1 8 8v17a8 8 0 0 1-8 8h-21l-13 9v-9h-4a8 8 0 0 1-8-8v-17a8 8 0 0 1 8-8Z"/>
+  </g>
+  <g fill="#659aff">
+    <circle cx="59" cy="111" r="4"/>
+    <circle cx="79" cy="111" r="4"/>
+  </g>
+  <g fill="#33c6b5">
+    <circle cx="177" cy="139" r="4"/>
+    <circle cx="197" cy="139" r="4"/>
+  </g>
+</svg>

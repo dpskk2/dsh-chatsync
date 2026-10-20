@@ -10,7 +10,7 @@ function host(t, overrides = {}, inspect = () => {}) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-config-api-'));
   const routes = new Map(), cleanup = [];
   t.after(() => { cleanup.reverse().forEach(fn => fn()); fs.rmSync(home, { recursive: true, force: true }); });
-  fs.writeFileSync(path.join(home, 'dsh-sync.json'), JSON.stringify({ mode: 'manual', autoRepo: false, autoPullOnStart: false, autoPushOnExit: false }));
+  fs.writeFileSync(path.join(home, 'dsh-sync.json'), JSON.stringify({ mode: 'manual', autoRepo: false, autoPullOnStart: false, autoPushOnExit: false, enabled: true }));
   inspect(home);
   apply({
     webServer: { register(route) { routes.set(route.path, route.handler); return () => routes.delete(route.path); } },
@@ -18,7 +18,7 @@ function host(t, overrides = {}, inspect = () => {}) {
     effect(fn) { cleanup.push(fn()); },
     logger: { info() {}, warn() {}, debug() {} },
   }, { home, patches: false, ...overrides });
-  return async (endpoint, body) => {
+  const request = async (endpoint, body) => {
     const req = new EventEmitter(); req.method = body ? 'POST' : 'GET';
     const result = new Promise(resolve => {
       routes.get('/dsh-sync/api/' + endpoint)(req, { writeHead() {}, end(value) { resolve(JSON.parse(value)); } });
@@ -26,15 +26,85 @@ function host(t, overrides = {}, inspect = () => {}) {
     if (body) { req.emit('data', JSON.stringify(body)); req.emit('end'); }
     return result;
   };
+  request.routes = routes;
+  return request;
 }
 
-test('real config route enables and disables the running scheduler without restarting host', async t => {
+test('legacy mode changes do not control lifecycle automation; master switch does',async t=>{
+  const request=host(t);
+  assert.equal((await request('status')).auto,true);
+  assert.equal((await request('config',{mode:'auto'})).auto,true);
+  assert.equal((await request('config',{mode:'manual'})).auto,true);
+  assert.equal((await request('config',{enabled:false})).auto,false);
+});
+
+test('only GitHub connections are saved; invalid addresses preserve the old config', async t => {
   const request = host(t);
-  assert.equal((await request('status')).auto, false);
-  assert.equal((await request('config', { mode: 'auto' })).auto, true);
-  assert.equal((await request('status')).auto, true);
-  assert.equal((await request('config', { mode: 'manual' })).auto, false);
-  assert.equal((await request('status')).auto, false);
+  const saved = await request('config', {remote:'https://github.com/alice/data.git',branch:'main',autoRepo:false});
+  assert.equal(saved.ok,true);
+  for(const remote of ['https://gitcode.com/alice/data','https://gitee.com/alice/data','https://token@github.com/alice/data','https://github.com.evil/alice/data']) {
+    assert.equal((await request('config',{remote})).ok,false);
+    assert.equal((await request('config')).config.remote,saved.config.remote);
+  }
+});
+
+test('one automatic API field saves both legacy flags and reports host overrides', async t => {
+  const request=host(t);
+  assert.equal((await request('config')).config.automatic,true);
+  const on=await request('config',{automatic:true,intervalSeconds:1200});
+  assert.equal(on.auto,true); assert.equal(on.config.mode,'auto'); assert.equal(on.config.enabled,true);
+  const off=await request('config',{automatic:false});
+  assert.equal(off.auto,false); assert.equal(off.config.mode,'manual'); assert.equal(off.config.enabled,false);
+  for(const automatic of [null,'yes',1]) assert.equal((await request('config',{automatic})).ok,false);
+  assert.equal((await request('config',{automatic:true,mode:'manual'})).ok,false);
+  const forced=host(t,{mode:'auto',enabled:false});
+  assert.equal((await forced('config',{automatic:true})).config.automatic,false);
+});
+
+test('read-only preview and doctor do not initialize data, recovery rejects arbitrary paths', async t => {
+  let home;
+  const request = host(t, {}, dir => { home = dir; });
+  const before = fs.readdirSync(home);
+  assert.equal((await request('preview')).initialized, false);
+  assert.equal((await request('doctor')).repositoryInitialized, false);
+  assert.deepEqual((await request('recovery')).records, []);
+  assert.equal((await request('preview', { fetch: true })).ok, false);
+  assert.equal((await request('recovery/preview', { id: '../outside' })).ok, false);
+  assert.equal((await request('recovery/restore', { id: '../outside', side: 'remote' })).ok, false);
+  assert.equal((await request('conflict/preview', { path: '../outside', copy: '../secret' })).ok, false);
+  assert.deepEqual(fs.readdirSync(home), before);
+});
+
+test('update route reports the running version and rejects mutation requests', async t => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const current = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
+  const newer = (Number(current.split('.')[0]) + 1) + '.0.0';
+  globalThis.fetch = async url => ({ ok: true, json: async () => url.includes('registry.npmjs.org')
+    ? { version: newer } : { tag_name: 'v' + newer, body: '新版本更新内容' } });
+  const request = host(t);
+  const result = await request('update');
+  assert.equal(result.ok, true);
+  assert.equal(result.currentVersion, JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version);
+  assert.equal(result.available, true);
+  assert.equal(result.notes, '新版本更新内容');
+  assert.match(result.command, /plugin --profile (web|desktop) update @dpskk2\/dsh-chatsync/);
+  assert.equal((await request('update', { install: true })).ok, false);
+});
+
+test('content range API rejects nonboolean fields and persists the effective selection', async t => {
+  let home;
+  const request = host(t, {}, dir => { home = dir; });
+  const before = fs.readFileSync(path.join(home, 'dsh-sync.json'));
+  assert.equal((await request('config', { contentScope: { sessions: 'false' } })).ok, false);
+  assert.deepEqual(fs.readFileSync(path.join(home, 'dsh-sync.json')), before);
+  const selected = { sessions: true, attachments: false, settings: false };
+  const saved = await request('config', { contentScope: selected });
+  assert.equal(saved.ok, true);
+  assert.deepEqual(saved.config.contentScope, selected);
+  assert.equal((await request('doctor')).repositoryInitialized, false);
+  assert.equal((await request('preview')).initialized, false);
+  assert.equal(fs.existsSync(path.join(home, '.chatsync-local')), false);
 });
 
 test('restart repair is enabled by default and preserves an explicit opt-out', async t => {
@@ -97,7 +167,7 @@ test('config response reports effective host overrides, not just saved preferenc
   const result = await request('config', { mode: 'auto' });
   assert.equal(result.saved.mode, 'auto');
   assert.equal(result.config.mode, 'manual');
-  assert.equal(result.auto, false);
+  assert.equal(result.auto, true, 'legacy mode does not disable lifecycle automation');
 });
 
 /* 「自动调度是什么意思」的另一半:界面必须能改它的开关与周期(原先只能手改 dsh-sync.json)。 */
@@ -154,3 +224,5 @@ test('status reports active sessions with the projection title for the restart g
   assert.ok(entry, 'status 应带上 activeSessions: ' + JSON.stringify(status.activeSessions));
   assert.equal(entry.name, '0.20.1文本修正');
 });
+
+test('removed independent backup routes are not registered', t => { const request=host(t);assert.equal([...request.routes.keys()].some(route=>route.includes('webdav')),false); });

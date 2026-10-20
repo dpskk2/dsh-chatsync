@@ -19,5 +19,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: npm test
+      - name: Verify sync and upgrade compatibility
+        run: npm test
       - run: npm pack --dry-run

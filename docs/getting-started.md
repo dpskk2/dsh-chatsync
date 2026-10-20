@@ -1,171 +1,51 @@
-# 安装、换机与排障
+# 安装与日常使用
 
-[返回 README](../README.md) · [配置参考](configuration.md)
+当前交付为 **0.20.1 本地版**，没有发布 npm / GitHub。不要把插件市场或 npm 的已有版本当成本次交付包。Web 与 Desktop 分别安装并重新打开。
 
-## 环境准备
+## 1. 安装本地包
 
-本页提供完整的安装、授权和排障步骤；只需要快速开始时，查看 [README](../README.md#第一次使用)。
-
-插件界面用于 DSH 的 `web` profile 和桌面版的 `desktop` profile，包声明宿主 DSH ≥ `0.1.5-rc.3`。已在该版本完成本地安装、bundle 组合和 Web 启动检查；这是保守的发布下限，尚未完成所有更高版本的双机兼容验证。请先确认 DSH Web 或桌面版能正常打开。包声明 Node.js ≥ 20，但压缩会话的解析和合并还依赖运行时的 Zstandard 支持；建议使用 Node.js 24。跨操作系统路径组合尚无完整兼容矩阵。
-
-准备一个 [GitHub 账号](https://github.com/signup)，安装 [Git](https://git-scm.com/downloads/) 和 [GitHub CLI](https://cli.github.com/)。它们是两个不同的工具，GitHub CLI 通过终端里的 `gh` 命令使用。已熟悉 Windows 终端的用户，也可以在 PowerShell 中逐行执行以下安装命令，每行按 Enter，等待完成后再执行下一行：
+先解压完整源码 ZIP，把同批提供的 `dpskk2-dsh-chatsync-0.20.1.tgz` 放到源码目录的 `outputs/` 下。桌面端可在源码目录打开 PowerShell，运行随源码提供的备份安装脚本：
 
 ```powershell
-winget install --id Git.Git -e
-winget install --id GitHub.cli -e
+.\scripts\install-local-desktop.ps1 -PackagePath .\outputs\dpskk2-dsh-chatsync-0.20.1.tgz -OutputDirectory .\outputs\install-0.20.1
 ```
 
-安装后关闭并重新打开终端。先分别运行以下命令，每行都应返回版本号。若提示找不到命令，先解决对应工具的安装问题：
+安装记录目录必须是新的，避免覆盖回滚材料。脚本使用 Desktop 自带的 DSH 命令，只安装包并核对版本；安装后从菜单完全退出桌面应用，再重新打开，以加载新源码。
 
-```sh
-git --version
-gh --version
-dsh --version
-```
-
-### 安装插件与登录 GitHub
-
-Windows 可从开始菜单打开 PowerShell，无需管理员权限；macOS / Linux 使用终端。以下命令在终端执行，不是在 DSH 聊天框中输入。所有安装和登录操作都应在运行 DSH 的同一个系统用户下完成。
-
-按使用的端安装插件；以下命令仅安装到 Web profile（默认 `~/.dsh/profiles/web`），桌面用户使用下方[桌面端安装](#桌面端桌面应用)命令。两个端都使用时分别安装。等待安装成功、终端重新出现输入提示符：
-
-```sh
-dsh plugin --profile web add @dpskk2/dsh-chatsync
-```
-
-再启动 GitHub 授权：
-
-```sh
-gh auth login --hostname github.com --git-protocol https --web
-```
-
-1. 如果询问是否让 Git 使用此账号（`Authenticate Git ...`），选择 `Yes`。
-2. 记下终端显示的一次性验证码，按提示打开浏览器；未自动打开时，使用终端给出的网址。
-3. 登录 GitHub，输入终端里的验证码并授权 GitHub CLI。该验证码不是模型 API 密钥。
-4. 回到终端，等待登录完成后再执行下一条命令。
-
-检查登录状态：
-
-```sh
-gh auth status
-```
-
-输出应包含 `Logged in to github.com account` 和你要使用的用户名。只在浏览器登录 GitHub 不代表终端授权已完成。
-
-重启 DSH 是停止并重新启动应用进程，然后刷新网页；不是只关掉网页标签。用终端启动时，可回到运行 DSH 的窗口按 Ctrl+C 停止，再使用原来的启动命令；使用启动器时按启动器的退出和启动方式操作。请先结束正在生成的回复。
-
-### 桌面端（桌面应用）
-
-桌面版（DeepSeek Harness 桌面应用）使用保留给 Electron 的 `desktop` profile，默认安装到 `~/.dsh/profiles/desktop`，和 Web 端是两套独立的插件依赖。npm 全局安装的 `dsh` 命令会拒绝该 profile（报 `error: profile "desktop" is managed exclusively by the Electron application`），请改用桌面应用自带的命令运行时。下方使用 Windows 默认安装路径；自定义安装位置时替换应用目录，自定义 `DSH_HOME` 时 profile 位于对应数据目录下：
+Web 端在同一位置安装本地包：
 
 ```powershell
-# 1) 先打开一次桌面版，让它初始化 profiles/desktop
-# 2) 完全退出桌面应用（含托盘图标），再执行：
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add @dpskk2/dsh-chatsync
-# 3) 重新打开桌面版
+dsh plugin --profile web add "file:./outputs/dpskk2-dsh-chatsync-0.20.1.tgz"
 ```
 
-`add` 本身会补装该 profile 缺失的依赖。从另一台电脑同步过来的 `profiles/desktop` 只有依赖清单和锁文件、没有 `node_modules`；如果桌面版启动日志报 `cannot resolve profile bundle ...`，或桌面端看不到同步入口，先单独补装一次依赖：
+然后重新启动 Web 宿主。仅命令退出成功不等于正在运行的宿主已经加载新版本；可在同步状态接口或更新信息中核对 `currentVersion`，并检查实际宿主类型与状态。
 
-```powershell
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop install
-```
+## 2. 第一次设置
 
-更新时把 `add` 换成 `update`。桌面 profile 默认保留 pnpm 的 24 小时供应链冷却策略，安装刚发布的版本会报 `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`，此时在命令末尾加单次开关 `--config.minimumReleaseAge=0`（只对这次命令生效，不改动 profile 配置）。
+进入「设置 → 同步」：
 
-安装后可用同一运行时检查依赖：
+1. **连接仓库。** 登录 GitHub，创建或选择自己的私有仓库。两台电脑填写相同地址和分支，地址中不要写令牌。当前仅支持 GitHub。
+2. **选择内容。** 会话、聊天附件、可共享设置、项目文件分别选择，修改即时保存。首次连接默认先手动使用；已有明确开关保留。
+3. **首次同步。** 点击「立即同步」。如有预览，核对范围和配置变化后「确认并继续」。等待完成，失败时查看实际错误重试。
 
-```powershell
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop list
-```
+未连接仓库时不会在启动或退出自动建仓；手动同步可按已保存的自动建仓选择创建或复用私有仓库。只生成本地快照不等于已经上传。
 
-确认列表包含 `@dpskk2/dsh-chatsync`，再重新打开桌面应用，到「设置 → 同步」确认入口。列表只证明安装依赖可解析，不能代替界面加载检查。
+## 3. 日常使用
 
-在 PowerShell 中可用 `Get-Command dsh -All` 检查命令来源。若指向 npm 全局安装的 `dsh`，不能用它管理 desktop profile，请使用上面的桌面运行时完整路径。
+设置完成后直接进入「日常同步」，状态和按钮位于最上方。只有需要调整时才展开「同步设置」；连接位于其「连接与高级选项」。
 
-## 第一台电脑
+自动同步只有启动和正常退出两个时机。总开关关闭仍可手动同步；启动失败可重试或本次离线。桌面端需从菜单完全退出，关闭窗口到托盘不会触发退出上传。断网、强退和立即关机可能无法完成上传。
 
-1. 检查要上传的[同步范围](sync-content.md)。只需要会话与设置时，先关闭「同步工作区文件」。
-2. 默认自动建仓使用登录账号下的 `dsh-sync`。已有同名仓库时，插件会确认它是私有仓库；公开仓库或可见性无法确认时不会连接或上传。
-3. 点「⟳ 同步」。插件尝试创建或复用仓库，成功后把地址写入配置。
-4. 确认设置页显示仓库地址、同步成功，且工作区没有失败。首次上传时间取决于数据量和网络，不保证两分钟内完成。
+运行中可取消手动同步。网络阶段会停止，本地写入先安全结束；已完成的传输不撤回，下一次重新核对剩余内容。
 
-自动建仓失败时会退回本地快照。**本地快照成功不等于上传成功。**登录或网络问题修复后再试；自动建仓尝试之间至少间隔约 60 秒。
+## 4. 换台电脑接着使用
 
-## 手动连接仓库
+在另一台电脑安装同一批包，连接同一个私有仓库，取回后打开已有会话、附件和项目文件检查。再新增一句对话并同步，回原电脑取回核对。
 
-适用于自定义 GitHub 仓库或 SSH。请先创建一个私有仓库（新建时可不添加 README、许可证或 `.gitignore`），安装并登录 `gh` 以便插件确认私有状态，再配置可用的 Git 凭据。其他 Git 服务和不安装 `gh` 的远端暂不支持云端上传。
+「交接与换机检查」提供设备回执与检查步骤。本机成功或回执出现都不代替上述实际使用检查。API 密钥、插件及项目依赖仍需在各电脑单独配置。
 
-**推荐直接在设置页完成：** 打开「设置 → 同步 → 连接同步仓库」，填写仓库地址与同步分支（默认 `main`），点「保存连接设置」，再点「立即同步」。保存只写入配置，实际同步时才检查仓库权限与私有状态。同步进行中不能保存配置，请等待完成后再试。
+## 需要找回内容时
 
-[新建 GitHub 仓库](https://github.com/new) · [GitHub CLI 登录帮助](https://cli.github.com/manual/gh_auth_login)
+展开「需要找回冲突内容？」预览双方原件。项目文件恢复前备份；会话分叉另存为独立会话，不直接覆盖正在使用的日志。未知损坏保持原件，支持范围和停机修复见[配置与恢复](configuration.md)。
 
-只做本地快照时，清空仓库地址并关闭「地址留空时自动创建或复用私有仓库」。这不会删除云端已有的数据。
-
-下列文件配置方式供高级用户使用：
-
-配置文件是 DSH 数据目录里的 `dsh-sync.json`：
-
-| 环境 | 默认路径 |
-| --- | --- |
-| Windows | `%USERPROFILE%\.dsh\dsh-sync.json`，通常为 `C:\Users\你的用户名\.dsh\dsh-sync.json` |
-| macOS / Linux | `~/.dsh/dsh-sync.json` |
-| 自定义数据目录 | `$DSH_HOME/dsh-sync.json` |
-
-文件不存在时创建；已有配置时只合并需要的字段，保留其他设置：
-
-```json
-{
-  "remote": "https://github.com/你的用户名/dsh-sync.git",
-  "autoRepo": false,
-  "mode": "manual"
-}
-```
-
-SSH 地址示例：`git@github.com:你的用户名/dsh-sync.git`。需先自行配置 SSH 密钥与主机信任。不要把访问令牌写进仓库 URL；同步配置本身也在同步范围内。
-
-保存并重启 DSH，再点同步。两台电脑的 `remote` 和 `branch` 必须一致。手工指定地址也会在上传前查询 GitHub 仓库可见性；查不到或不是私有仓库时同步报错，不上传。
-
-## 第二台电脑
-
-1. 安装相同的工具和插件，在该机器上登录 GitHub。登录必须在运行 DSH 的同一系统用户下完成。
-2. 第一台使用默认仓库时，同账号可自动复用；使用自定义仓库时，在「连接同步仓库」填写完全相同的地址与分支并保存。
-3. 点同步并检查结果，完成后重启 DSH。
-4. 单独配置 API 密钥。已同步的模型配置只是配置，不代表凭据也已配置。
-5. 按需重新安装所需插件及项目依赖。插件同步清单和锁文件，不传输 `node_modules`。
-6. 同步结果出现「本机新创建的工作区」时，检查路径，必要时点「换位置」。跨系统、不同盘符等场景尤其需要确认。
-
-已有本地会话的第二台电脑会参与双向合并，并非只下载。重要资料建议先另存副本。
-
-### 依赖如何恢复
-
-会话和附件无需安装依赖。模型需要在 DSH 中重新配置本机的 API 密钥；插件按原插件的安装说明重新安装，例如 Web 端 `dsh plugin --profile web add 插件包名`，桌面端 `& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add 插件包名`（见[桌面端安装](#桌面端桌面应用)）。项目依赖请进入实际工作区文件夹，按项目 README 和锁文件选择安装工具；不要在所有项目中统一运行同一种安装命令。
-
-### 换机完成检查表
-
-- [ ] 两台设置页的仓库地址和分支一致，上次同步没有失败。
-- [ ] A 的测试会话、附件能在 B 打开；B 新建的测试会话也能同步回 A。
-- [ ] 启用工作区同步时，B 能打开项目文件；修改测试文件后能同步回 A。
-- [ ] B 重启后会话归属正确，模型可用，所需插件和项目依赖已安装。
-
-无需先把仓库克隆到 `.dsh`，也无需删除第二台已有的数据目录。
-
-## 常见问题
-
-| 现象 | 下一步 |
-| --- | --- |
-| 安装后没有按钮 | Web 用户确认安装到 `web` profile，重启 Web 服务并刷新浏览器；桌面用户确认安装到 `desktop` profile，退出并重新打开桌面应用；检查对应端启动日志中插件是否加载 |
-| 桌面端没有同步入口 / 启动日志报 `cannot resolve profile bundle` | 桌面 profile 的依赖要单独装：用桌面应用自带的命令运行时执行 `plugin --profile desktop install`，再重启桌面应用，见[桌面端安装](#桌面端桌面应用) |
-| 桌面端安装报 `error: profile "desktop" is managed exclusively by the Electron application` | 该 profile 只由桌面应用管理，不能使用 npm 全局 `dsh`；改用桌面版自带的命令运行时，见[桌面端安装](#桌面端桌面应用) |
-| 安装报 `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION` | 目标版本还在 pnpm 的 24 小时供应链冷却期内；在安装命令末尾加 `--config.minimumReleaseAge=0` 后重试 |
-| 未检测到 Git | 在 DSH 所用的系统用户下运行 `git --version`；安装后重启 DSH，刷新 PATH |
-| 显示“本地快照”，没有仓库地址 | 执行 `gh auth status`；检查同名仓库；约 60 秒后重试，或手动填写 `remote` |
-| 认证失败 | 按[安装插件与登录 GitHub](#安装插件与登录-github)重新授权并检查用户名；自定义 Git / SSH 地址检查对应凭据。插件不会替你弹登录窗口 |
-| 网络超时 / 无法连接 GitHub | 检查网络；需要代理时在配置里设置 `proxy`，见[配置参考](configuration.md) |
-| A 有会话，B 看不到 | 先 A 同步，再 B 同步；核对仓库与分支；检查工作区错误；重启 B 的 DSH 加载索引 |
-| 会话在“未分组”里 | 同步后重启 DSH；设置页会给出「立即重启」。自动重启修复是高级选项：开启后补好未分组会话即自动重启（Web 与桌面端都支持），只在该开关开启且当前没有会话正在生成时执行；检测到生成中时不打断对话，改由左下角浮层引导手动重启 |
-| 切换自动模式后没自动同步 | 设置页保存后立即生效，默认等待最多 300 秒；可先点立即同步；确认「允许自动同步」是打开的、同步间隔没填得过长，且宿主加载参数没有覆盖模式 |
-| 新电脑模型无法使用 / 插件缺失 | 重新配置该机器的 API 密钥，安装插件或项目依赖；配置同步不等于依赖安装 |
-| 工作区文件太多 / 不想上传代码 | 首次同步前关闭「同步工作区文件」，或设置工作区排除规则；关闭不会删除远端已有分支 |
-
-仍未解决时，[提交问题](https://github.com/dpskk2/dsh-chatsync/issues/new/choose)，附插件版本、DSH / Node.js 版本、系统、复现步骤和脱敏后的错误。不要贴完整会话、凭据、私有仓库内容或带令牌的 URL。
+[同步范围](sync-content.md) · [本版验证记录](release-0.20.1-validation.md)

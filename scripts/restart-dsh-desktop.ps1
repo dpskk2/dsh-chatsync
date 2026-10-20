@@ -1,9 +1,13 @@
-# Runs outside the Electron process tree through Task Scheduler.
+﻿# Runs outside the Electron process tree through Task Scheduler.
 # HostPid must be the Desktop Host that requested the restart.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][int]$HostPid,
     [switch]$AllowForce,
+    [string]$SyncHome,
+    [string]$SyncCli,
+    [string]$SyncConfig,
+    [string]$TaskName,
     [switch]$DryRun
 )
 
@@ -66,7 +70,33 @@ try {
         throw 'Desktop is still running; relaunch was cancelled'
     }
 
-    $started = Start-Process -FilePath $exe -WorkingDirectory (Split-Path -Parent $exe) -WindowStyle Normal -PassThru
+    # Offline sync starts only after the verified host tree is gone.
+    if ($SyncCli) {
+        if (-not $SyncHome -or -not (Test-Path -LiteralPath $SyncCli -PathType Leaf)) { throw 'Missing offline sync source' }
+        if (-not (Wait-Exited $HostPid 30)) { throw 'Desktop Host is still alive; offline sync cancelled' }
+        $env:ELECTRON_RUN_AS_NODE = '1'
+        $env:DSH_HOME = $SyncHome
+        if ($SyncConfig) { $env:DSH_SYNC_OVERRIDES_FILE = $SyncConfig }
+        $syncStartedAt = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+        # Electron is a Windows GUI executable: a bare invocation may return
+        # before its CLI finishes. Do not relaunch a host until it has exited.
+        $syncProcess = Start-Process -FilePath $exe -ArgumentList @(('"' + $SyncCli + '"'), '--startup-offline') -WindowStyle Hidden -Wait -PassThru
+        $syncExit = $syncProcess.ExitCode
+        if ($syncExit -ne 0) {
+            $statusFile = Join-Path $SyncHome '.dsh-sync-status.json'
+            $lastStatus = $null
+            try { $lastStatus = Get-Content -LiteralPath $statusFile -Raw | ConvertFrom-Json } catch { }
+            if (-not $lastStatus -or $lastStatus.at -lt $syncStartedAt) {
+                @{ at = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds(); source = 'startup-offline';
+                   result = @{ error = "关闭后同步未完成（退出码 $syncExit），请重试并检查日志。" } } |
+                    ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $statusFile -Encoding UTF8
+            }
+        }
+        Remove-Item Env:ELECTRON_RUN_AS_NODE
+        Remove-Item Env:DSH_SYNC_OVERRIDES_FILE -ErrorAction SilentlyContinue
+        Write-Log "Offline startup sync exit code: $syncExit"
+    }
+    $started = Start-Process -FilePath $exe -WorkingDirectory (Split-Path -Parent $exe) -WindowStyle Hidden -PassThru
     Write-Log "Started Desktop main PID $($started.Id)"
     $ready = $false
     for ($i = 0; $i -lt 45; $i++) {
@@ -81,7 +111,21 @@ try {
     Write-Log "Desktop Host restarted as PID $($child.ProcessId)"
     exit 0
 } catch {
+    if ($SyncHome) {
+        $statusFile = Join-Path $SyncHome '.dsh-sync-status.json'
+        @{ at = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds(); source = 'startup-offline';
+           result = @{ error = "关闭后同步失败：$($_.Exception.Message)" } } |
+            ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $statusFile -Encoding UTF8
+    }
     Write-Log "Restart failed: $($_.Exception.Message)"
     Write-Error $_
     exit 1
+} finally {
+    if ($SyncConfig -and [IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($SyncConfig)) -eq [IO.Path]::GetTempPath().TrimEnd('\') -and
+        [IO.Path]::GetFileName($SyncConfig) -match '^dsh-startup-config-\d+-\d+\.json$') {
+        Remove-Item -LiteralPath $SyncConfig -Force -ErrorAction SilentlyContinue
+    }
+    if ($TaskName -and $TaskName -match '^DSH-Sync-Startup-\d+-\d+$') {
+        & schtasks.exe /delete /tn $TaskName /f | Out-Null
+    }
 }

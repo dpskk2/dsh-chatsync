@@ -16,7 +16,7 @@ function text(node) {
 
 // Load the shipped browser bundle through its normal slot registration contract.
 // Only React hooks and HTTP transport are replaced; no user data or Git is accessed.
-function harness(fetchImpl, componentName = 'SyncPreferences', { timers = true } = {}) {
+function harness(fetchImpl, componentName = 'SyncPreferences', { timers = true, confirm = () => false } = {}) {
   let hooks = [], cursor = 0, effects = [], bundle;
   const slots = new Map();
   const react = {
@@ -35,8 +35,8 @@ function harness(fetchImpl, componentName = 'SyncPreferences', { timers = true }
     useMemo: (fn) => fn(),
     useCallback: (fn) => fn,
   };
-  vm.runInNewContext(source, {
-    window: { __ModuleLoader__: { load(def) { bundle = def.factory((name) => { assert.equal(name, 'react'); return react; }); } } },
+  vm.runInNewContext(source.replace('module.exports = {', 'module.exports = { testComponents: { SyncPreferences, ConnectionSettings, HandoffCard, RecoveryCenter, LocalPreview, RecoveryItem, TransferReview, StartupSyncOverlay, CancelSyncButton, FootSyncButton },'), {
+    window: { confirm, __ModuleLoader__: { load(def) { bundle = def.factory((name) => { assert.equal(name, 'react'); return react; }); } } },
     fetch: fetchImpl,
     setTimeout, clearTimeout,
     /* 设置分节内的状态轮询是 3s setInterval:测试里不真起定时器,避免进程被挂住 */
@@ -47,9 +47,7 @@ function harness(fetchImpl, componentName = 'SyncPreferences', { timers = true }
   /* 设置分节本身就是一个组件(Section),直接用槽位注册到的组件;
      子组件(SyncPreferences / ConnectionSettings)仍按名字从分节树里取。 */
   const root = slots.get('dsh-sync-manage');
-  const Preferences = componentName === 'Section'
-    ? root
-    : all(root({})).find((n) => n.type?.name === componentName).type;
+  const Preferences = componentName === 'Section' ? root : bundle.testComponents[componentName];
   hooks = []; cursor = 0; effects = [];
   return {
     render(props = {}) { cursor = 0; return Preferences({ busy: false, ...props }); },
@@ -57,77 +55,158 @@ function harness(fetchImpl, componentName = 'SyncPreferences', { timers = true }
   };
 }
 const response = (data) => Promise.resolve({ json: async () => data });
-const initial = { mode: 'manual', workspaceSync: true, enabled: true };
+const initial = { mode: 'manual', workspaceSync: true, enabled: true, intervalSeconds: 300 };
 
-test('load preferences, save the selected mode and scope, and explain immediate activation', async () => {
-  const requests = [];
-  let refreshed = false;
-  const h = harness((url, options) => {
-    assert.equal(url, '/dsh-sync/api/config');
-    if (!options) return response({ ok: true, config: initial });
-    requests.push(JSON.parse(options.body));
-    return response({ ok: true });
-  });
-  let tree = h.render();
-  assert.match(text(tree), /正在读取偏好/);
-  await h.effects();
-  tree = h.render();
-  all(tree).find((n) => n.type === 'select').props.onChange({ target: { value: 'auto' } });
-  tree = h.render();
-  /* 按标签文字找「同步工作区文件」勾选框(不依赖控件顺序) */
-  const workspaceBox = all(tree).find((n) => n.type === 'label'
-    && (n.children || []).some((c) => c && c.type === 'input' && c.props.type === 'checkbox')
-    && text(n).includes('同步工作区文件'));
-  assert.ok(workspaceBox, '应能找到「同步工作区文件」勾选框');
-  (workspaceBox.children || []).find((c) => c && c.type === 'input').props.onChange({ target: { checked: false } });
-  tree = h.render({ onSaved: () => { refreshed = true; } });
-  await tree.props.onSubmit({ preventDefault() {} });
-  assert.deepEqual(requests, [{ mode: 'auto', workspaceSync: false, enabled: true }]);
-  assert.equal(refreshed, true);
-  assert.match(text(h.render()), /已保存.*立即生效/);
+test('settings and sidebar cancellation stays disabled until the server confirms stopping and targets the observed run', async () => {
+  for (const component of ['Section', 'FootSyncButton']) {
+    let finishRun, finishCancel, cancelled = false;
+    const calls = [];
+    const h = harness((url, options) => {
+      if (url.endsWith('/run')) return new Promise(resolve => { finishRun = resolve; });
+      if (url.endsWith('/cancel')) { calls.push(JSON.parse(options.body)); return new Promise(resolve => { finishCancel = resolve; }); }
+      if (url.endsWith('/progress')) return response({ running: !cancelled, runId: cancelled ? null : 'observed-run', canCancel: !cancelled });
+      return response(url.endsWith('/status') ? { ok: true, remote: 'https://github.com/u/data' } : { ok: true, config: initial, conflicts: [] });
+    }, component, { timers: false });
+    h.render(); await h.effects();
+    const runButton = all(h.render()).find(n => n.type === 'button' && (text(n).includes('立即同步') || n.props['aria-label'] === '同步 DSH 会话数据'));
+    const running = runButton.props.onClick({ currentTarget: null }); await tick(); await tick();
+    const card = all(h.render()).find(n => n.type.name === 'CancelSyncButton'); assert.ok(card);
+    const view = harness(() => response({}), 'CancelSyncButton', { timers: false });
+    const button = view.render(card.props); assert.equal(button.props.disabled, false); assert.match(text(button), /取消同步/);
+    const stopping = button.props.onClick({ currentTarget: null });
+    await button.props.onClick({ currentTarget: null }); assert.deepEqual(calls, [{ runId: 'observed-run' }]);
+    const pending = view.render(all(h.render()).find(n => n.type.name === 'CancelSyncButton').props);
+    assert.equal(pending.props.disabled, true); assert.match(text(pending), /正在停止/);
+    cancelled = true;
+    finishRun({ json: async () => ({ ok: false, summary: '已取消', detail: { cancelled: true } }) });
+    finishCancel({ json: async () => ({ ok: true, message: '已停止' }) });
+    await stopping; await running; await tick(); await tick();
+    assert.ok(!all(h.render()).find(n => n.type.name === 'CancelSyncButton'));
+  }
 });
 
-/* 自动同步周期必须来自实际配置(intervalSeconds),不能再写死「每 5 分钟」。 */
-test('auto-sync interval is shown from the effective configuration', async () => {
-  const h = harness(() => response({ ok: true, config: { ...initial, mode: 'auto', intervalSeconds: 1800 } }));
-  h.render(); await h.effects();
-  assert.match(text(h.render()), /每 30 分钟/);
-  assert.match(text(h.render()), /定时同步一次/);
-});
-
-/* 「自动调度是什么意思」的实际答案必须在界面上:开关在哪、三件事分别是什么、间隔可改。
-   实测配置为 manual + enabled:false,原先只有一句「自动调度未运行」却没有任何入口。 */
-test('scheduling can be turned on and its interval edited from the preferences form', async () => {
-  const requests = [];
-  const config = { mode: 'manual', workspaceSync: true, enabled: false, intervalSeconds: 300 };
+test('content changes save immediately, failed saves return to the confirmed selection', async () => {
+  let fail = true, saved, current = { ...initial };
   const h = harness((_url, options) => {
-    if (!options) return response({ ok: true, config });
-    requests.push(JSON.parse(options.body));
-    return response({ ok: true, config: { ...config, ...JSON.parse(options.body) } });
+    if (!options) return response({ ok: true, config: current });
+    saved = JSON.parse(options.body);
+    if (fail) return response({ ok: false, error: 'fixture save failed' });
+    current = { ...current, ...saved };
+    return response({ ok: true, config: current });
   });
   h.render(); await h.effects();
-  let tree = h.render();
-  assert.match(text(tree), /允许自动同步/);
-  assert.match(text(tree), /当前自动同步已关闭/);
-  assert.match(text(tree), /自动同步的触发时机/);
-  /* 打开「允许自动同步」 */
-  all(tree).filter((n) => n.type === 'input')[0].props.onChange({ target: { checked: true } });
-  tree = h.render();
-  await tree.props.onSubmit({ preventDefault() {} });
-  assert.deepEqual(requests[0], { mode: 'manual', workspaceSync: true, enabled: true });
-  assert.doesNotMatch(text(h.render()), /当前自动同步已关闭/);
+  await all(h.render()).find(n => n.props['aria-label'] === '聊天附件').props.onChange({ target: { checked: false } });
+  assert.equal(saved.contentScope.attachments, false);
+  assert.match(text(h.render()), /fixture save failed/);
+  assert.equal(all(h.render()).find(n => n.props['aria-label'] === '聊天附件').props.checked, true);
+  fail = false;
+  await all(h.render()).find(n => n.props['aria-label'] === '聊天附件').props.onChange({ target: { checked: false } });
+  assert.equal(all(h.render()).find(n => n.props['aria-label'] === '聊天附件').props.checked, false);
+  assert.match(text(h.render()), /已保存/);
+});
 
-  /* 切到自动模式:开关自动打开,并出现间隔输入(默认 5 分钟),改 20 分钟后保存为秒 */
-  tree = h.render();
-  all(tree).find((n) => n.type === 'select').props.onChange({ target: { value: 'auto' } });
-  tree = h.render();
-  const interval = all(tree).find((n) => n.type === 'input' && n.props.type === 'number');
-  assert.ok(interval, '自动模式下应出现同步间隔输入框');
-  assert.equal(interval.props.value, '5');
-  interval.props.onChange({ target: { value: '20' } });
-  tree = h.render();
-  await tree.props.onSubmit({ preventDefault() {} });
-  assert.deepEqual(requests[1], { mode: 'auto', workspaceSync: true, enabled: true, intervalSeconds: 1200 });
+test('manual transfer requires explicit preview confirmation and sends only its current ID', async () => {
+    const requests = []; let detail = null;
+    const h = harness((url, options) => {
+      if (url.endsWith('/run')) {
+        requests.push(JSON.parse(options.body));
+        detail = requests.length === 1 ? { needsReview: true, review: { id: 'current-preview', summary: '本次删除较多' } } : {};
+        return response({ ok: requests.length > 1, detail });
+      }
+      return response(url.endsWith('/status') ? { ok: true, remote: 'https://github.com/u/data', lastDetail: detail } : { ok: true, config: initial, conflicts: [] });
+    }, 'Section', { timers: false, confirm: () => { throw Error('must show inline preview'); } });
+    h.render(); await h.effects();
+    const button = all(h.render()).find(n => n.type === 'button' && text(n).includes('立即同步'));
+    await button.props.onClick({ currentTarget: null }); await tick(); await tick();
+    assert.equal(requests.length, 1);
+    const card = all(h.render()).find(n => n.type.name === 'TransferReview');
+    assert.equal(card.props.review.summary, '本次删除较多');
+    const view = harness(() => response({}), 'TransferReview', { timers: false });
+    const tree = view.render(card.props); assert.match(text(tree), /本次删除较多/);
+    await all(tree).find(n => n.type === 'button').props.onClick(); await tick(); await tick();
+    assert.equal(requests.length, 2); assert.equal(requests[1].approval, 'current-preview');
+    assert.equal(all(h.render()).find(n => n.type.name === 'TransferReview').props.review, null);
+});
+
+test('startup review is visible with confirm and offline actions and no browser prompt', async () => {
+  const requests = [];
+  const startup = { required: true, phase: 'review', message: '等待确认', review: { id: 'exact-id', summary: '准备上传配置' } };
+  const h = harness((url, options) => {
+    if (url.endsWith('/startup')) { requests.push(JSON.parse(options.body)); startup.phase = 'ready'; return response({ ok: true }); }
+    return response({ ok: true, startup });
+  }, 'StartupSyncOverlay', { timers: false, confirm: () => { throw Error('hidden prompt'); } });
+  h.render(); await h.effects();
+  const tree = h.render(), card = all(tree).find(n => n.type.name === 'TransferReview');
+  assert.equal(card.props.review.summary, '准备上传配置');
+  assert.ok(all(tree).find(n => n.type === 'button' && text(n) === '本次离线使用'));
+  assert.ok(!all(tree).find(n => n.type === 'button' && text(n) === '重试同步'));
+  await card.props.onConfirm();
+  assert.deepEqual(requests, [{ action: 'confirm', approval: 'exact-id' }]); assert.equal(h.render(), null);
+});
+
+test('handoff card only claims peer receipt when evidence exists and distinguishes merged versions', () => {
+  const h = harness(() => response({}), 'HandoffCard');
+  const base = { deviceName: '设备 A', uploaded: { scope: { main: 'a'.repeat(40) } }, peers: [] };
+  assert.match(text(h.render({ handoff: base })), /尚未收到另一台/);
+  const tree = h.render({ handoff: { ...base, peers: [{ deviceId: 'b', deviceName: '设备 B', appliedAt: 1, exactMain: false, workspaceComplete: false }] } });
+  assert.match(text(tree), /并入自己的版本/);
+  assert.match(text(tree), /项目文件尚未全部确认/);
+});
+
+test('local preview handles errors without claiming remote coverage', async () => {
+  let fail = true;
+  const h = harness(() => response(fail ? { ok: false, error: 'preview failed' } : { ok: true, hint: '本地状态', scopes: [{ kind:'main', added:2, modified:1, deleted:3 }] }), 'LocalPreview');
+  await all(h.render()).find(n => n.type === 'button').props.onClick();
+  assert.match(text(h.render()), /preview failed/);
+  fail = false; await all(h.render()).find(n => n.type === 'button').props.onClick();
+  assert.match(text(h.render()), /新增 2，修改 1，删除 3/);
+  assert.match(text(h.render()), /未连接远端/);
+  assert.doesNotMatch(text(h.render()), /preview failed/);
+});
+
+test('switches save only their changed fields without a save button or setup navigation', async () => {
+  const requests = []; let current = { ...initial }, refreshed = 0, continued = 0;
+  const h = harness((_url, options) => {
+    if (!options) return response({ ok: true, config: current });
+    const patch = JSON.parse(options.body); requests.push(patch);
+    current = { ...current, ...patch }; return response({ ok: true, config: current });
+  });
+  const props = { onChanged: () => refreshed++, onSaved: () => continued++ };
+  h.render(props); await h.effects();
+  await all(h.render(props)).find(n => n.props['aria-label'] === '自动同步').props.onClick();
+  await all(h.render(props)).find(n => n.props['aria-label'] === '项目文件').props.onChange({ target: { checked: false } });
+  assert.deepEqual(requests, [{ automatic: false }, { workspaceSync: false }]);
+  assert.equal(refreshed, 2); assert.equal(continued, 0);
+  const tree = h.render(props);
+  assert.equal(tree.type, 'div');
+  assert.ok(!all(tree).some(n => n.props.type === 'submit'));
+  assert.match(text(tree), /已保存/);
+  assert.match(text(tree), /上传或附加到对话的图片、文件/);
+  assert.match(text(tree), /项目文件夹中的文件，含生成到此处的 Word、Excel/);
+  assert.doesNotMatch(text(tree), /修改后需保存|当前自动同步已关闭|始终使用已保存/);
+});
+
+test('legacy auto mode never exposes periodic or idle upload controls', async () => {
+  const h=harness(()=>response({ok:true,config:{...initial,mode:'auto',intervalSeconds:30}}));
+  h.render();await h.effects();const tree=h.render();
+  assert.equal(all(tree).filter(n=>n.props.type==='number').length,0);
+  assert.doesNotMatch(text(tree),/后台检查|空闲后|每.*分钟/);
+  assert.ok(all(tree).find(n=>n.props['aria-label']==='启动时先同步').props.checked);
+  assert.ok(all(tree).find(n=>n.props['aria-label']==='退出时保存上传').props.checked);
+});
+
+test('one immediate master switch respects explicit pauses regardless of legacy mode',async()=>{
+  for(const mode of ['manual','auto'])for(const enabled of [false,true]){
+    const requests=[];let current={...initial,mode,enabled};
+    const h=harness((_url,options)=>{if(options){const patch=JSON.parse(options.body);requests.push(patch);current={...current,...patch};}return response({ok:true,config:current});});
+    h.render();await h.effects();const tree=h.render();
+    assert.equal(all(tree).filter(n=>n.props.role==='switch').length,1);
+    assert.equal(all(tree).find(n=>n.props.role==='switch').props['aria-checked'],enabled);
+    assert.equal(all(tree).filter(n=>n.props.type==='checkbox').length,6);
+    assert.deepEqual(requests,[]);
+    await all(tree).find(n=>n.props.role==='switch').props.onClick();
+    assert.deepEqual(requests,[{automatic:!enabled}]);
+  }
 });
 
 test('connection form saves a custom repository and explains that saving is not verification', async () => {  let saved;
@@ -143,7 +222,7 @@ test('connection form saves a custom repository and explains that saving is not 
   tree = h.render();
   await tree.props.onSubmit({ preventDefault() {} });
   assert.deepEqual(saved, { remote: 'https://github.com/alice/existing.git', branch: 'main', autoRepo: true });
-  assert.match(text(h.render()), /保存不会验证登录/);
+  assert.match(text(h.render()), /连接已保存/);
   assert.ok(all(tree).filter(n => n.type === 'a').every(n => n.props.href.startsWith('https://') && n.props.rel.includes('noopener')));
 });
 
@@ -186,7 +265,7 @@ test('failed config loading offers a working retry', async () => {
   all(tree).find((n) => n.type === 'button').props.onClick();
   h.render(); await h.effects();
   tree = h.render();
-  assert.ok(all(tree).some((n) => n.type === 'select'));
+  assert.ok(all(tree).some(n => n.props.role === 'switch'));
   assert.equal(calls, 2);
 });
 
@@ -196,20 +275,17 @@ test('a malformed success response is a recoverable load error', async () => {
   assert.match(text(h.render()), /无法读取同步偏好/);
 });
 
-test('save failure preserves the selected values without claiming success', async () => {
+test('failed immediate toggles show the actual persisted value and the error', async () => {
   const h = harness((_url, options) => response(options ? { ok: false, error: '磁盘只读' } : { ok: true, config: initial }));
   h.render(); await h.effects();
-  let tree = h.render();
-  all(tree).find((n) => n.type === 'select').props.onChange({ target: { value: 'auto' } });
-  tree = h.render();
-  await tree.props.onSubmit({ preventDefault() {} });
-  tree = h.render();
-  assert.equal(all(tree).find((n) => n.type === 'select').props.value, 'auto');
+  await all(h.render()).find(n => n.props['aria-label'] === '自动同步').props.onClick();
+  const tree = h.render();
+  assert.equal(all(tree).find(n => n.props['aria-label'] === '自动同步').props['aria-checked'], true);
   assert.match(text(tree), /磁盘只读/);
   assert.doesNotMatch(text(tree), /已保存/);
 });
 
-test('syncing blocks config submission and disabled scheduling is visible', async () => {
+test('syncing blocks immediate settings writes', async () => {
   let posts = 0;
   const h = harness((_url, options) => {
     if (options) posts++;
@@ -217,29 +293,30 @@ test('syncing blocks config submission and disabled scheduling is visible', asyn
   });
   h.render(); await h.effects();
   const tree = h.render({ busy: true });
-  assert.equal(all(tree).find((n) => n.type === 'fieldset').props.disabled, true);
-  await tree.props.onSubmit({ preventDefault() {} });
+  assert.equal(all(tree).find(n => n.type === 'fieldset').props.disabled, true);
+  await all(tree).find(n => n.props.role === 'switch').props.onClick();
   assert.equal(posts, 0);
-  /* 关闭自动同步时界面必须说明「现在只手动同步」,并给出打开开关的位置 */
-  assert.match(text(tree), /当前自动同步已关闭/);
-  assert.match(text(tree), /允许自动同步/);
+  assert.equal(all(tree).find(n => n.props.role === 'switch').props['aria-checked'], false);
 });
 
-test('pending saves disable controls and cannot be submitted again', async () => {
-  let finish, posts = 0;
+test('pending immediate saves prevent same-tick duplicate writes and report their pending state', async () => {
+  let finish, posts = 0; const pending = [];
   const h = harness((_url, options) => {
     if (!options) return response({ ok: true, config: initial });
     posts++;
-    return new Promise((resolve) => { finish = () => resolve({ json: async () => ({ ok: true }) }); });
+    return new Promise(resolve => { finish = () => resolve({ json: async () => ({ ok: true, config: { ...initial, automatic: true } }) }); });
   });
-  h.render(); await h.effects();
-  const saving = h.render().props.onSubmit({ preventDefault() {} });
-  const tree = h.render();
-  assert.equal(all(tree).find((n) => n.type === 'fieldset').props.disabled, true);
-  await tree.props.onSubmit({ preventDefault() {} });
+  const props = { onSavingChange: value => pending.push(value) };
+  h.render(props); await h.effects();
+  const button = all(h.render(props)).find(n => n.props.role === 'switch');
+  const saving = button.props.onClick();
+  await button.props.onClick();
   assert.equal(posts, 1);
+  assert.equal(all(h.render(props)).find(n => n.type === 'fieldset').props.disabled, true);
+  assert.deepEqual(pending, [true]);
   finish(); await saving;
-  assert.equal(all(h.render()).find((n) => n.type === 'fieldset').props.disabled, false);
+  assert.deepEqual(pending, [true, false]);
+  assert.equal(all(h.render(props)).find(n => n.type === 'fieldset').props.disabled, false);
 });
 
 /* 遗留冲突副本区:分层合并引擎上线后同步不再生成冲突拷贝,服务端也没有
@@ -255,6 +332,7 @@ test('legacy conflict copies are read-only and never call a resolution endpoint'
     throw new Error('unexpected request: ' + url);
   }, 'Section', { timers: false });
   h.render(); await h.effects(); await h.effects();
+  all(h.render()).find(n => n.props['data-sync-recovery']).props.onToggle({ currentTarget: { open: true } });
   const tree = h.render();
   const buttons = all(tree).filter((n) => n.type === 'button').map((n) => text(n));
   assert.equal(buttons.includes('保留本机'), false);
@@ -282,37 +360,149 @@ test('patch status stays out of the sync status line', async () => {
   assert.match(text(tree), /本机补丁状态/);
 });
 
-test('onboarding orders connection, scope, transfer and verification, with navigable steps', async () => {
-  const h = harness(url => response(url.endsWith('/status')
-    ? { ok: true, remote: '', autoRepo: true }
-    : url.endsWith('/conflicts') ? { ok: true, conflicts: [] } : { ok: true, config: initial }), 'Section', { timers: false });
+test('unsupported old repository is shown without silently converting it', async () => {
+  const h=harness(()=>response({ok:true, config:{remote:'https://gitee.com/alice/data.git',branch:'main',autoRepo:false}}),'ConnectionSettings');
   h.render(); await h.effects();
-  let tree = h.render();
-  const sections = tree.children.filter(n => n && (n.type?.name === 'ConnectionSettings' || n.type?.name === 'SyncPreferences' || n.props?.id === 'dss-run' || n.props?.id === 'dss-result'));
-  assert.deepEqual(sections.map(n => n.type?.name || n.props.id), ['ConnectionSettings', 'SyncPreferences', 'dss-run', 'dss-result']);
-  const nav = all(tree).find(n => n.props?.['aria-label'] === '同步设置步骤');
-  const steps = all(nav).filter(n => n.type === 'button');
-  assert.equal(steps.length, 4);
-  assert.ok(all(tree).some(n => n.props?.role === 'status' && n.props?.['aria-label'] === '下一步引导'));
-  assert.ok(all(tree).some(n => n.props?.role === 'status' && n.props?.['aria-label'] === '当前同步状态'));
-  assert.equal(steps[0].props['aria-current'], 'step');
-  steps[3].props.onClick();
-  tree = h.render();
-  assert.doesNotMatch(text(tree), /本机同步已完成/);
-  assert.match(text(tree), /还没有本次运行的同步结果/);
+  assert.match(text(h.render()), /本版仅连接 GitHub；原配置保留/);
+  assert.equal(all(h.render()).find(n=>n.type==='input').props.value,'https://gitee.com/alice/data.git');
+  assert.equal(all(h.render()).some(n=>n.props.type==='password'),false);
 });
 
-test('verification distinguishes local snapshots, failures and one-device success', async () => {
-  for (const [status, expected] of [
-    [{ remote: '', lastOk: true, lastSyncAt: 1 }, /已保存本地快照，尚未上传云端/],
-    [{ remote: 'https://github.com/u/data.git', lastOk: false, lastSyncAt: 1 }, /本次同步未完成/],
-    [{ remote: 'https://github.com/u/data.git', lastOk: true, lastSyncAt: 1 }, /还需在另一台电脑完成下面的验证/],
-  ]) {
-    const h = harness(url => response(url.endsWith('/status') ? { ok: true, ...status }
-      : url.endsWith('/conflicts') ? { ok: true, conflicts: [] } : { ok: true, config: initial }), 'Section', { timers: false });
+test('first setup shows only the current step and saving advances', async () => {
+  const h=harness(url=>response(url.endsWith('/status') ? {ok:true,remote:''} : {ok:true,config:initial,conflicts:[]}), 'Section',{timers:false});
+  h.render(); await h.effects();
+  let tree=h.render();
+  assert.ok(all(tree).some(n=>n.type?.name==='ConnectionSettings'));
+  assert.ok(!all(tree).some(n=>n.type?.name==='SyncPreferences'));
+  const nav=all(tree).find(n=>n.props['aria-label']==='同步设置步骤');
+  assert.equal(all(nav).filter(n=>n.type==='button').length,3);
+  all(tree).find(n=>n.type?.name==='ConnectionSettings').props.onSaved();
+  tree=h.render();
+  assert.ok(!all(tree).some(n=>n.type?.name==='ConnectionSettings'));
+  all(tree).find(n=>n.type?.name==='SyncPreferences').props.onSaved();
+  tree=h.render();
+  assert.ok(all(tree).some(n=>n.props.id==='dss-run'));
+  assert.ok(!all(tree).some(n=>n.props.id==='dss-result'));
+});
+
+test('daily sync is the default for configured users after restart, success or failure', async () => {
+  for(const lastOk of [null,true,false]) {
+    const h=harness(url=>response(url.endsWith('/status') ? {ok:true,remote:'https://github.com/u/data',lastOk,lastSyncAt:1} : {ok:true,config:initial,conflicts:[]}), 'Section',{timers:false});
     h.render(); await h.effects();
-    const result = all(h.render()).find(n => n.props?.id === 'dss-result');
-    assert.match(text(result), expected);
-    assert.doesNotMatch(text(result), /双向同步已完成/);
+    let tree=h.render();
+    assert.ok(all(tree).some(n=>n.props.id==='dss-run'));
+    assert.ok(!all(tree).some(n=>n.type?.name==='ConnectionSettings'));
+    assert.ok(!all(tree).some(n=>n.props['aria-label']==='同步设置步骤'));
+    assert.ok(!all(tree).some(n=>n.type?.name==='RecoveryCenter'));
+    assert.ok(!all(tree).some(n=>n.type?.name==='LocalPreview'));
+    all(tree).find(n=>n.props['data-sync-settings']).props.onToggle({currentTarget:{open:true}});
+    tree=h.render();
+    assert.ok(all(tree).some(n=>n.type?.name==='ConnectionSettings'));
+    assert.ok(all(tree).some(n=>n.type?.name==='SyncPreferences'));
+    assert.ok(!all(tree).some(n=>n.type?.name==='ContentScopeSettings'));
+    assert.ok(all(tree).some(n=>n.props.id==='dss-run'), 'settings disclosure never replaces daily sync');
   }
+});
+
+test('handoff disclosure never equates one-device success with two-device completion', async () => {
+  for(const [status,expected] of [
+    [{remote:'https://github.com/u/data',lastOk:false,lastSyncAt:1},/本次同步未完成/],
+    [{remote:'https://github.com/u/data',lastOk:true,lastSyncAt:1},/仍需在另一台电脑打开会话和附件核对/]
+  ]){
+    const h=harness(url=>response(url.endsWith('/status') ? {ok:true,...status} : {ok:true,config:initial,conflicts:[]}), 'Section',{timers:false});
+    h.render(); await h.effects();
+    all(h.render()).find(n=>n.props['data-sync-handoff']).props.onToggle({currentTarget:{open:true}});
+    const result=all(h.render()).find(n=>n.props['data-sync-handoff']);
+    assert.match(text(result),expected);
+    assert.doesNotMatch(text(result),/双向同步已完成/);
+  }
+});
+
+test('startup and exit choices save independently without an interval setting',async()=>{
+  const requests=[];let current={...initial,automatic:true,autoPullOnStart:true,autoPushOnExit:true};
+  const h=harness((_url,options)=>{if(options){const p=JSON.parse(options.body);requests.push(p);current={...current,...p};}return response({ok:true,config:current});});
+  h.render();await h.effects();
+  await all(h.render()).find(n=>n.props['aria-label']==='启动时先同步').props.onChange({target:{checked:false}});
+  await all(h.render()).find(n=>n.props['aria-label']==='退出时保存上传').props.onChange({target:{checked:false}});
+  assert.deepEqual(requests,[{autoPullOnStart:false},{autoPushOnExit:false}]);
+  assert.equal(all(h.render()).filter(n=>n.props.type==='number').length,0);
+});
+
+test('lost save response is reconciled with the committed configuration', async () => {
+  let current = { ...initial };
+  const h = harness((_url, options) => {
+    if (!options) return response({ ok: true, config: current });
+    current = { ...current, ...JSON.parse(options.body) };
+    return Promise.reject(new Error('response lost'));
+  });
+  h.render(); await h.effects();
+  await all(h.render()).find(n => n.props.role === 'switch').props.onClick();
+  assert.equal(all(h.render()).find(n => n.props.role === 'switch').props['aria-checked'], false);
+  assert.match(text(h.render()), /response lost/);
+  assert.doesNotMatch(text(h.render()), /已保存/);
+});
+
+test('unconfirmed save disables controls until a successful reread', async () => {
+  let reads = 0, offline = true;
+  const h = harness((_url, options) => {
+    if (options) return Promise.reject(new Error('offline'));
+    if (++reads > 1 && offline) return Promise.reject(new Error('offline'));
+    return response({ ok: true, config: initial });
+  });
+  h.render(); await h.effects();
+  await all(h.render()).find(n => n.props.role === 'switch').props.onClick();
+  assert.match(text(h.render()), /保存状态未知/);
+  assert.equal(all(h.render()).find(n => n.type === 'fieldset').props.disabled, true);
+  offline = false;
+  all(h.render()).find(n => n.type === 'button' && text(n) === '重新读取').props.onClick();
+  h.render(); await h.effects();
+  assert.equal(all(h.render()).find(n => n.type === 'fieldset').props.disabled, false);
+});
+
+test('host overrides are displayed without claiming the requested switch is enabled', async () => {
+  const h = harness((_url, options) => response({ ok: true, config: { ...initial, automatic: false } }));
+  h.render(); await h.effects();
+  await all(h.render()).find(n => n.props.role === 'switch').props.onClick();
+  assert.equal(all(h.render()).find(n => n.props.role === 'switch').props['aria-checked'], false);
+  assert.match(text(h.render()), /受宿主配置限制/);
+});
+
+test('setup choices save in place and Continue advances without an interval write', async () => {
+  let current = { ...initial, automatic: true }, advanced = 0; const requests = [];
+  const h = harness((_url, options) => {
+    if (!options) return response({ ok: true, config: current });
+    const patch = JSON.parse(options.body); requests.push(patch);
+    current = { ...current, ...patch }; return response({ ok: true, config: current });
+  });
+  const props = { setup: true, onSaved: () => advanced++ };
+  h.render(props); await h.effects();
+  await all(h.render(props)).find(n => n.props['aria-label'] === '项目文件').props.onChange({ target: { checked: false } });
+  assert.equal(advanced, 0);
+  await all(h.render(props)).find(n => n.type === 'button' && text(n) === '继续').props.onClick();
+  assert.equal(advanced, 1);
+  assert.deepEqual(requests, [{ workspaceSync: false }]);
+});
+
+test('pending preferences prevent connection writes and starting a transfer', async () => {
+  const requests = [];
+  const h = harness((url, options) => {
+    if (options) requests.push(url);
+    return response(url.endsWith('/status') ? { ok: true, remote: 'https://github.com/u/data' } : { ok: true, config: initial, conflicts: [] });
+  }, 'Section', { timers: false });
+  h.render(); await h.effects();
+  all(h.render()).find(n => n.props['data-sync-settings']).props.onToggle({currentTarget:{open:true}});
+  all(h.render()).find(n => n.type?.name === 'SyncPreferences').props.onSavingChange(true);
+  const tree = h.render();
+  assert.equal(all(tree).find(n => n.type === 'button' && text(n).includes('立即同步')).props.disabled,true);
+  assert.equal(all(tree).find(n => n.type?.name === 'ConnectionSettings').props.busy, true);
+  assert.deepEqual(requests, []);
+});
+
+test('legacy manual mode can enable lifecycle automation through the master switch',async()=>{
+  const requests=[];let current={...initial,enabled:false,automatic:false};
+  const h=harness((_url,options)=>{if(options){const p=JSON.parse(options.body);requests.push(p);current={...current,...p};}return response({ok:true,config:current});});
+  h.render();await h.effects();await all(h.render()).find(n=>n.props.role==='switch').props.onClick();
+  assert.deepEqual(requests,[{automatic:true}]);assert.equal(current.mode,'manual');
+  assert.equal(all(h.render()).find(n=>n.props.role==='switch').props['aria-checked'],true);
+  assert.doesNotMatch(text(h.render()),/自动操作已暂停/);
 });

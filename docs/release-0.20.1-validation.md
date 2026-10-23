@@ -1,6 +1,6 @@
 # 0.20.1 发布验证 · 2026-10-23
 
-本版包含会话安全应用与修复、范围与隐私保护、正常未分组与归档语义、同步设置及旋转图标修正。当前声明针对 Windows 本机检查，完整环境和逐场景结果见 [发布证据](../release-evidence/0.20.1/release-review.md)。
+本版包含会话安全应用与修复、范围与隐私保护、正常未分组与归档语义、同步设置及旋转图标修正。当前声明针对 Windows 本机检查，完整环境和逐场景结果见 [发布证据](https://github.com/dpskk2/dsh-chatsync/blob/v0.20.1/release-evidence/0.20.1/release-review.md)。
 
 ## 发布决定和边界
 

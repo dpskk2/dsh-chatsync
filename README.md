@@ -13,15 +13,15 @@
 [![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A524-43853d)](#兼容性)
 [![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
 
-[安装方式](#安装方式) · [更新方式](#更新方式) · [首次设置](#第一次设置) · [换台电脑](#换台电脑接着使用) · [详细指南](docs/getting-started.md) · [源码下载](https://github.com/dpskk2/dsh-chatsync/releases/latest) · [English](README.en.md)
+[安装方式](#安装方式) · [更新方式](#更新方式) · [首次设置](#第一次设置) · [换台电脑](#换台电脑接着使用) · [详细指南](docs/getting-started.md) · [发布与下载](https://github.com/dpskk2/dsh-chatsync/releases/latest) · [English](README.en.md)
 
 </div>
 
-## chatsync能做什么
+## chatsync 能做什么
 
 | 接着做的事 | 同步内容 |
 | --- | --- |
-| 接着聊 | 会话记录、聊天附件，以及会话与“工作区”的对应关系 |
+| 接着聊 | 会话记录、聊天附件，以及会话与「工作区」的对应关系 |
 | 接着做 | 项目文件夹中的文档、代码等文件 |
 | 少配一遍 | 模型、界面设置；密钥、代理和本机路径各机保留 |
 
@@ -29,9 +29,9 @@
 
 先准备能正常打开的 DSH、[Git](https://git-scm.com/downloads/) 和 [GitHub CLI](https://cli.github.com/)，以及可访问 GitHub 的网络。
 
-#### **推荐：DSH官方插件添加：** 打开「插件」→「添加插件」，输入 `chatsync`。
+**推荐：在 DSH 中安装。** 打开「插件」→「添加插件」，输入 `chatsync`。
 
-或使用 PowerShell 安装
+也可使用 PowerShell 安装：
 
 **Web 端：**
 
@@ -39,15 +39,15 @@
 dsh plugin --profile web add chatsync
 ```
 
-**Windows 桌面端（为dsh默认安装位置，自定义安装位置时调整命令中的路径）：**
+**Windows 桌面端：**
+
+以下命令适用于默认安装位置，自定义安装时请调整路径。
 
 ```powershell
 & "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add chatsync
 ```
 
 旧包名 `@dpskk2/dsh-chatsync` 继续提供同版本，原有安装可沿用，无需重复安装两个包名。
-
-</details>
 
 也可从 [GitHub Release](https://github.com/dpskk2/dsh-chatsync/releases/latest) 下载安装包，按[本地包安装指南](docs/getting-started.md#1-安装本地包)操作。
 
@@ -61,7 +61,9 @@ dsh plugin --profile web add chatsync
 dsh plugin --profile web update chatsync
 ```
 
-**Windows 桌面端（默认安装位置）：**
+**Windows 桌面端：**
+
+以下命令适用于默认安装位置，自定义安装时请调整路径。
 
 ```powershell
 & "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync
@@ -69,7 +71,7 @@ dsh plugin --profile web update chatsync
 
 ## 第一次设置
 
-安装后重启DSH，点击侧边栏「同步」，也可从「设置 → 同步」进入。
+安装后重启 DSH，点击侧边栏「同步」，也可从「设置 → 同步」进入。
 
 **① 登录 GitHub**
 
@@ -95,25 +97,25 @@ gh auth login --hostname github.com --git-protocol https --web
 
 ## 日常使用
 
-侧边栏点击「同步」→「立即同步」
+点击侧边栏「同步」→「立即同步」。
 
-开启自动同步后，就会在启动和正常退出时运行。
+开启自动同步后，会在启动和正常退出时运行。
 
-同步设置和备份地址管理常驻显示。启动后台同步期间可新建会话、工作区并编辑草稿；旧会话尚未完成核对时，发送会提示等待，文字与附件保留，核对后由你再次发送。
+启动同步期间可正常新建会话、工作区和编辑草稿。旧会话若提示等待，请在核对完成后再次发送；文字与附件会保留。
 
 ## 冲突与修复
 
 - **查看冲突内容：** 选择文件，点击「查看内容」对比双方原件。项目文件可选择版本恢复，会话分叉可另存为独立会话。
-- **会话与数据修复：** 在同步页打开处理页面，查看检查结果、预览方案并确认；需要停机的修复会提示完全退出，原件和备份保留。
-- **分组检查：** 正常未分组和归档会话不会自动修复；项目登记异常或存在同步归属丢失证据时才提示检查。
+- **会话与数据修复：** 在同步页打开处理页面，查看检查结果、预览方案并确认；需要退出 DSH 的修复会明确提示，原件和备份会保留。
+- **分组检查：** 会话分组异常时，可在同步页查看检查结果与处理方案。
 
 [冲突与恢复](docs/configuration.md#冲突原件与项目文件恢复) · [历史数据修复与会话分支](docs/data-repair-0.20.1.md)
 
 ## 数据与隐私
 
-同步前检查未上传历史中的敏感内容与会话完整性。本机凭据、锁、缓存及运行状态不参与传输；聊天、附件或项目文件中写入的密钥仍需自行处理，可用[排除规则](docs/sync-content.md)控制范围。
+聊天、附件或项目文件中写入的密钥等敏感信息需自行处理，可用[排除规则](docs/sync-content.md)控制同步范围。本机凭据、锁、缓存及运行状态不参与传输。
 
-会话仅接续可确认的完整追加记录，分叉保留独立版本，不强行混排。远端删除不会直接删除本机会话。重要资料请另留备份。[同步与恢复边界](docs/configuration.md)
+会话分叉会保留为独立版本。远端删除不会直接删除本机会话。重要资料请另留备份。[同步与恢复边界](docs/configuration.md)
 
 ## 兼容性
 
@@ -132,4 +134,4 @@ npm test
 npm pack --dry-run
 ```
 
-源码测试、安装包检查与真实宿主验证分别记录。[开发约定](https://github.com/dpskk2/dsh-chatsync/blob/main/CONTRIBUTING.md) · [更新日志](CHANGELOG.md) · [MIT License](LICENSE)
+[开发约定](https://github.com/dpskk2/dsh-chatsync/blob/main/CONTRIBUTING.md) · [更新日志](CHANGELOG.md) · [MIT License](LICENSE)

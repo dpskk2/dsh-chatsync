@@ -13,7 +13,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A524-43853d)](#兼容性)
 [![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
 
-[安装使用](#安装插件) · [首次设置](#第一次设置) · [换台电脑](#换台电脑接着使用) · [更新插件](#更新插件) · [详细指南](docs/getting-started.md) · [源码下载](https://github.com/dpskk2/dsh-chatsync/releases/latest) · [English](README.en.md)
+[安装方式](#安装方式) · [更新方式](#更新方式) · [首次设置](#第一次设置) · [换台电脑](#换台电脑接着使用) · [详细指南](docs/getting-started.md) · [源码下载](https://github.com/dpskk2/dsh-chatsync/releases/latest) · [English](README.en.md)
 
 </div>
 
@@ -21,18 +21,15 @@
 
 | 接着做的事 | 同步内容 |
 | --- | --- |
-| 接着聊 | 会话记录、聊天附件，以及会话与项目的对应关系 |
-| 接着做 | 项目文件夹中的文档、代码等文件，可在新电脑设置保存位置 |
-| 少配一遍 | 可共享的模型、界面与插件配置；密钥、代理和本机路径各机保留 |
-| 自己掌握数据 | 通过自己的 GitHub 私有仓库传输 |
+| 接着聊 | 会话记录、聊天附件，以及会话与“工作区”的对应关系 |
+| 接着做 | 项目文件夹中的文档、代码等文件 |
+| 少配一遍 | 模型、界面设置；密钥、代理和本机路径各机保留 |
 
-只想同步聊天，可关闭「项目文件」。关闭某类内容会暂停该类双向同步，远端已有内容保留。其他插件和项目依赖需在新电脑另装。[完整同步范围与排除规则](docs/sync-content.md)
-
-## 安装插件
+## 安装方式
 
 先准备能正常打开的 DSH、[Git](https://git-scm.com/downloads/) 和 [GitHub CLI](https://cli.github.com/)，以及可访问 GitHub 的网络。
 
-**在 DSH 界面安装：** 打开「插件」→「添加插件」，输入 `chatsync`。安装后重新启动 DSH；桌面端需完全退出，包含托盘。
+**推荐：DSH官方插件店：** 打开「插件」→「添加插件」，输入 `chatsync`。安装后重新启动 DSH；桌面端需完全退出。
 
 <details>
 <summary>使用 PowerShell 安装（Web / Windows 桌面端）</summary>
@@ -55,7 +52,29 @@ dsh plugin --profile web add chatsync
 
 也可从 [GitHub Release](https://github.com/dpskk2/dsh-chatsync/releases/latest) 下载安装包，按[本地包安装指南](docs/getting-started.md#1-安装本地包)操作。
 
-## 登录 GitHub
+## 更新方式
+
+**Web 端：**
+
+```powershell
+dsh plugin --profile web update chatsync
+```
+
+**Windows 桌面端（默认安装位置）：**
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync
+```
+
+如果原先安装的是 `@dpskk2/dsh-chatsync`，把命令中的 `chatsync` 换成原包名。插件更新提醒可关闭，不会自动安装更新。
+
+每个版本在 [GitHub Releases](https://github.com/dpskk2/dsh-chatsync/releases) 提供中文更新说明、安装包和完整源码 ZIP。安装插件使用包文件；研究或开发使用源码 ZIP，包含对应标签下受版本控制的源码、测试、脚本和文档，不含 Git 历史及依赖。
+
+## 第一次设置
+
+安装后重启DSH，点击侧边栏「同步」，也可从「设置 → 同步」进入。
+
+**① 登录 GitHub**
 
 在 PowerShell 中执行，按提示在浏览器完成授权：
 
@@ -63,26 +82,11 @@ dsh plugin --profile web add chatsync
 gh auth login --hostname github.com --git-protocol https --web
 ```
 
-如果询问是否让 Git 使用此账号，选择 **Yes**。两台电脑登录同一个 GitHub 账号，即可复用默认备份仓库。
+**② 备份地址** — 点击「使用默认备份并继续」。首次同步时自动创建或复用 `dsh-sync` 私有仓库；使用已有仓库则点击「使用其他仓库」。
 
-## 第一次设置
+**③ 选择内容** — 按需勾选，修改即时保存。首次连接先手动使用，之后可开启自动同步。
 
-重新打开 DSH，点击侧边栏「同步」，也可从「设置 → 同步」进入。
-
-**① 备份地址** — 点击「使用默认备份并继续」。首次同步时自动创建或复用 `dsh-sync` 私有仓库；使用已有仓库则点击「使用其他仓库」。
-
-**② 选择内容** — 按需勾选，修改即时保存。首次连接先手动使用，之后可开启自动同步。
-
-![选择同步内容](https://raw.githubusercontent.com/dpskk2/dsh-chatsync/main/docs/assets/readme/sync-scope.jpg)
-
-**③ 首次同步** — 点击「立即同步」，等待完成。确认上传成功后再换电脑；只生成本地快照不代表已经上传。
-
-<details>
-<summary>查看首次同步页面</summary>
-
-![首次同步页面](https://raw.githubusercontent.com/dpskk2/dsh-chatsync/main/docs/assets/readme/first-sync.jpg)
-
-</details>
+**④ 首次同步** — 点击「立即同步」，等待完成。确认上传成功后再换电脑；只生成本地快照不代表已经上传。
 
 ## 换台电脑接着使用
 
@@ -107,26 +111,6 @@ gh auth login --hostname github.com --git-protocol https --web
 - **分组检查：** 正常未分组和归档会话不会自动修复；项目登记异常或存在同步归属丢失证据时才提示检查。
 
 [冲突与恢复](docs/configuration.md#冲突原件与项目文件恢复) · [历史数据修复与会话分支](docs/data-repair-0.20.1.md)
-
-## 更新插件
-
-先阅读[更新日志](CHANGELOG.md)，然后按已安装的端更新。更新后重启 DSH；桌面端先完全退出，包含托盘，再执行命令。
-
-**Web 端：**
-
-```powershell
-dsh plugin --profile web update chatsync
-```
-
-**Windows 桌面端（默认安装位置）：**
-
-```powershell
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync
-```
-
-如果原先安装的是 `@dpskk2/dsh-chatsync`，把命令中的 `chatsync` 换成原包名。插件更新提醒可关闭，不会自动安装更新。
-
-每个版本在 [GitHub Releases](https://github.com/dpskk2/dsh-chatsync/releases) 提供中文更新说明、安装包和完整源码 ZIP。安装插件使用包文件；研究或开发使用源码 ZIP，包含对应标签下受版本控制的源码、测试、脚本和文档，不含 Git 历史及依赖。
 
 ## 数据与隐私
 

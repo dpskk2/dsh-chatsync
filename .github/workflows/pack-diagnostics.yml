@@ -1,0 +1,40 @@
+name: Package byte diagnostics
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Source ref
+        default: v0.20.1
+        required: true
+permissions:
+  contents: read
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - run: npm install --global npm@11.17.0 --ignore-scripts
+      - name: Capture exact package and file hashes
+        run: |
+          mkdir -p work/pack-debug
+          npm pack --ignore-scripts --json --pack-destination work/pack-debug > work/pack-debug/pack.json
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          import zlib from 'node:zlib';
+          const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+          const p=JSON.parse(fs.readFileSync('work/pack-debug/pack.json'))[0];
+          const b=fs.readFileSync('work/pack-debug/'+p.filename);
+          const r={versions:process.versions,packageSha256:sha(b),tarSha256:sha(zlib.gunzipSync(b)),files:p.files.map(f=>({...f,sourceSha256:sha(fs.readFileSync(f.path))}))};
+          fs.writeFileSync('work/pack-debug/diagnostics.json',JSON.stringify(r,null,2));
+          console.log(JSON.stringify({packageSha256:r.packageSha256,tarSha256:r.tarSha256}));
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-byte-diagnostics
+          path: work/pack-debug/

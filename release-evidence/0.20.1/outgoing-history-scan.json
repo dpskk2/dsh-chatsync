@@ -1,0 +1,13 @@
+{
+  "head": "5d62a5874ab4c8daa1fa5f2ef8120058cdb04bfc",
+  "findings": [],
+  "checked": 198,
+  "bytes": 2080612,
+  "batches": 1,
+  "limits": {
+    "fileBytes": 8388608,
+    "batchBytes": 8388608,
+    "batchObjects": 256,
+    "enumerationBytes": 33554432
+  }
+}

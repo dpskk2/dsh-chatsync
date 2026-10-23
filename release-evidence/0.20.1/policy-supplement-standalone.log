@@ -1,0 +1,21 @@
+✔ release checklist starts with all 24 mandatory items pending (0.852ms)
+✔ complete committed evidence for the exact candidate passes; adding evidence does not change source fingerprint (1798.2453ms)
+✔ pending, failed, skipped, interrupted and missing checks block release (6240.9326ms)
+✔ repeated evidence IDs cannot replace a missing runtime check (2634.4001ms)
+✔ uncommitted changes block release even if the index fingerprint is unchanged (2621.0204ms)
+✔ committed source changes invalidate previous evidence (1700.6434ms)
+✔ changed or missing candidate package blocks release (2551.6171ms)
+✔ missing, changed, empty or out-of-scope evidence blocks release (2629.7652ms)
+✔ wrong version, missing review details, future dates and absent artifacts block release (1674.0217ms)
+✔ explicit owner decision preserves unverified status and remains bound to candidate (2505.4363ms)
+✔ owner decision cannot excuse failed, missing, pending or skipped checks (4351.7641ms)
+✔ owner decision cannot bypass regression, automated tests, source review or failed installation (4272.9949ms)
+✔ unverified scenarios still require complete committed evidence and decision metadata (2282.3382ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35340.9002

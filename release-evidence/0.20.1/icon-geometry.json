@@ -1,0 +1,58 @@
+{
+  "ok": true,
+  "method": "Independent SVG endpoint-to-center arc calculation and component sizing at six sizes; no browser or daily Desktop visual acceptance claimed.",
+  "radius": 6,
+  "arcCenter": [
+    8,
+    7.999999999491873
+  ],
+  "rotationCenter": [
+    8,
+    8
+  ],
+  "centerError": 5.081268739104416e-10,
+  "sizes": [
+    {
+      "size": 12,
+      "square": true,
+      "origin": "50% 50%",
+      "box": "view-box",
+      "flex": "none"
+    },
+    {
+      "size": 16,
+      "square": true,
+      "origin": "50% 50%",
+      "box": "view-box",
+      "flex": "none"
+    },
+    {
+      "size": 20,
+      "square": true,
+      "origin": "50% 50%",
+      "box": "view-box",
+      "flex": "none"
+    },
+    {
+      "size": 24,
+      "square": true,
+      "origin": "50% 50%",
+      "box": "view-box",
+      "flex": "none"
+    },
+    {
+      "size": 32,
+      "square": true,
+      "origin": "50% 50%",
+      "box": "view-box",
+      "flex": "none"
+    },
+    {
+      "size": 48,
+      "square": true,
+      "origin": "50% 50%",
+      "box": "view-box",
+      "flex": "none"
+    }
+  ]
+}

@@ -76,7 +76,7 @@ npm test
 npm pack --dry-run
 ```
 
-Tests must run from the source archive or checkout, not the npm installation. Unit tests, local Git fixtures, real host checks and physical two-computer acceptance are distinct evidence levels. See [validation](docs/release-0.20.1-validation.md), [contributing](CONTRIBUTING.md), and the [changelog](CHANGELOG.md).
+Tests must run from the source archive or checkout, not the npm installation. Unit tests, local Git fixtures, real host checks and physical two-computer acceptance are distinct evidence levels. See [validation](docs/release-0.20.1-validation.md), [contributing](https://github.com/dpskk2/dsh-chatsync/blob/main/CONTRIBUTING.md), and the [changelog](CHANGELOG.md).
 
 License: [MIT](LICENSE)
 

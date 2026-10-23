@@ -36,10 +36,14 @@ jobs:
       - name: Prepare release notes and source archive
         run: |
           node scripts/release-notes.mjs
-          git archive --format=zip --prefix="dsh-chatsync-${GITHUB_REF_NAME}/" --output="dsh-chatsync-${GITHUB_REF_NAME}-source.zip" HEAD
+          git -c core.autocrlf=false archive --format=zip --prefix="dsh-chatsync-${GITHUB_REF_NAME}/" --output="dsh-chatsync-${GITHUB_REF_NAME}-source.zip" HEAD
 
-      - name: Verify sync and upgrade compatibility before publishing
-        run: npm test
+      - name: Verify release gates and update targets
+        # Full product regression is recorded in the candidate-bound evidence.
+        # Packaging-only retries do not repeat the full suite.
+        run: |
+          node --test tests/release-safety.test.mjs tests/updates.test.mjs
+          node patch-version-agnostic-test.mjs
 
       - name: Pack candidate and verify local safety evidence
         run: |

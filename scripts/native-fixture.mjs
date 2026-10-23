@@ -8,13 +8,13 @@ export const repo = fileURLToPath(new URL('..', import.meta.url));
 export function profile(home, extraBundles = [], kind = 'web') {
   if (!['web', 'desktop'].includes(kind)) throw new Error('Unknown isolated profile kind');
   const root = path.join(home, 'profiles', kind);
-  const link = path.join(root, 'node_modules/@dpskk2/dsh-chatsync');
+  const {name: packageName, version} = JSON.parse(fs.readFileSync(path.join(repo, 'package.json'), 'utf8'));
+  const link = path.join(root, 'node_modules', packageName);
   fs.mkdirSync(path.dirname(link), { recursive: true });
   fs.symlinkSync(repo, link, process.platform === 'win32' ? 'junction' : 'dir');
-  const version = JSON.parse(fs.readFileSync(path.join(repo, 'package.json'), 'utf8')).version;
   fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({ name: 'chatsync-isolated-test', private: true,
-    dependencies: { '@dpskk2/dsh-chatsync': version }, dsh: { profile: { bundles:
-      ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', ...extraBundles, '@dpskk2/dsh-chatsync'] } } }));
+    dependencies: { [packageName]: version }, dsh: { profile: { bundles:
+      ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', ...extraBundles, packageName] } } }));
   for (const file of ['cordis.yml', 'cordis.patch.yml']) fs.writeFileSync(path.join(root, file), '[]\n');
   fs.writeFileSync(path.join(home, 'dsh-sync.json'), JSON.stringify({ mode: 'manual', autoRepo: false, remote: '',
     workspaceSync: false, autoRestartAfterRepair: false, autoPullOnStart: false, autoPushOnExit: false, patches: false }));

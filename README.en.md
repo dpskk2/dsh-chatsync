@@ -1,5 +1,7 @@
 # ChatSync
 
+Requires DSH >= 0.2.0-rc.1 (Desktop 0.2.1-rc.2 or newer recommended) and Node.js >= 24. In Add Plugin, enter **chatsync**. The existing **@dpskk2/dsh-chatsync** package remains available for existing users.
+
 For damaged legacy logs, incorrect project membership, local path collisions, or divergent offline conversations, use the separate on-demand data check. Repairs are previewed, backed up, and applied after DSH exits; independent conversations remain separate branches. See the [repair and branch guide](docs/data-repair-0.20.1.md) (Chinese).
 
 Continue DeepSeek Harness sessions across Windows computers using your own **private GitHub repository**. Sync sessions, chat attachments, shareable settings and optional project files.

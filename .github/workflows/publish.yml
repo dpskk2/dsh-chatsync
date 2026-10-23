@@ -48,6 +48,8 @@ jobs:
           PACKAGE="$(node -p 'JSON.parse(require("fs").readFileSync("work/release/pack.json", "utf8"))[0].filename')"
           node scripts/check-release-safety.mjs --package "work/release/$PACKAGE"
           echo "RELEASE_PACKAGE=work/release/$PACKAGE" >> "$GITHUB_ENV"
+          node scripts/pack-short-name.mjs work/short-package --verify > work/release/short.json
+          echo "SHORT_PACKAGE=$(node -p 'JSON.parse(require("fs").readFileSync("work/release/short.json", "utf8")).file')" >> "$GITHUB_ENV"
 
       - name: Publish verified package to npm
         run: |
@@ -58,6 +60,12 @@ jobs:
           else
             npm publish "$RELEASE_PACKAGE" --ignore-scripts --provenance --access public
           fi
+          if npm view "chatsync@$PKG" version >/dev/null 2>&1; then
+            npm pack "chatsync@$PKG" --ignore-scripts --pack-destination /tmp
+            cmp "$SHORT_PACKAGE" "/tmp/$(basename "$SHORT_PACKAGE")"
+          else
+            npm publish "$SHORT_PACKAGE" --ignore-scripts --provenance --access public
+          fi
 
       - name: Publish GitHub Release with source and changelog
         env:
@@ -67,9 +75,10 @@ jobs:
           ARCHIVE="dsh-chatsync-${TAG}-source.zip"
           sha256sum "$ARCHIVE" > SHA256SUMS.txt
           (cd work/release && sha256sum "$(basename "$RELEASE_PACKAGE")") >> SHA256SUMS.txt
+          (cd "$(dirname "$SHORT_PACKAGE")" && sha256sum "$(basename "$SHORT_PACKAGE")") >> SHA256SUMS.txt
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$ARCHIVE" "$RELEASE_PACKAGE" SHA256SUMS.txt --clobber
+            gh release upload "$TAG" "$ARCHIVE" "$RELEASE_PACKAGE" "$SHORT_PACKAGE" SHA256SUMS.txt --clobber
             gh release edit "$TAG" --notes-file release-notes.md
           else
-            gh release create "$TAG" "$ARCHIVE" "$RELEASE_PACKAGE" SHA256SUMS.txt --verify-tag --title "$TAG" --notes-file release-notes.md
+            gh release create "$TAG" "$ARCHIVE" "$RELEASE_PACKAGE" "$SHORT_PACKAGE" SHA256SUMS.txt --verify-tag --title "$TAG" --notes-file release-notes.md
           fi

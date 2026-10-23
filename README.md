@@ -1,5 +1,7 @@
 # ChatSync
 
+本版最低支持 DSH **0.2.0-rc.1**，桌面端推荐 **0.2.1-rc.2 或更新版**；独立运行使用 Node.js 24 或更新版。这是本版验证范围的支持下限，不代表侧边栏接口从该版本才出现。插件管理 → 添加插件输入 **chatsync**；旧包名 **@dpskk2/dsh-chatsync** 继续提供同版本，已安装用户可沿用原包名。
+
 在两台 Windows 电脑之间同步 DeepSeek Harness 的会话、聊天附件、可共享设置和项目文件，通过你自己的 **GitHub 私有仓库**接着使用。
 
 **0.20.1** 通过 [GitHub Release](https://github.com/dpskk2/dsh-chatsync/releases/tag/v0.20.1) 提供安装包和完整源码。物理双机验收未通过（未执行），本次依用户决定先发布；也发布同版本 npm 包。[本地安装与使用](docs/getting-started.md) · [配置与恢复](docs/configuration.md) · [验证记录](docs/release-0.20.1-validation.md)

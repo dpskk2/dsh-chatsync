@@ -75,13 +75,21 @@
   },
   "homepage": "https://github.com/dpskk2/dsh-chatsync#readme",
   "engines": {
-    "node": ">=20",
-    "dsh": ">=0.1.5-rc.3"
+    "node": ">=24",
+    "dsh": ">=0.2.0-rc.1"
   },
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
     "./package.json": "./package.json"
   },
-  "icon": "./icon.png"
+  "icon": "./icon.png",
+  "peerDependencies": {
+    "@deepseek-ai/dsh": ">=0.2.0-rc.1"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh": {
+      "optional": true
+    }
+  }
 }

@@ -1,5 +1,7 @@
 # 安装与日常使用
 
+本版最低支持 DSH **0.2.0-rc.1**，桌面端推荐 **0.2.1-rc.2 或更新版**；独立运行使用 Node.js 24 或更新版。这是本版验证范围的支持下限，不代表侧边栏接口从该版本才出现。插件管理 → 添加插件输入 **chatsync**；旧包名 **@dpskk2/dsh-chatsync** 继续提供同版本，已安装用户可沿用原包名。
+
 **0.20.1** 从 [GitHub Release](https://github.com/dpskk2/dsh-chatsync/releases/tag/v0.20.1) 下载 tgz 安装包和源码 ZIP。npm 同步发布同版本。物理双机验收未通过（未执行），本次按用户决定先发布。Web 与 Desktop 分别安装并重新打开。
 
 ## 1. 安装本地包

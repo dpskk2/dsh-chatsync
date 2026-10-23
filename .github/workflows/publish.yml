@@ -65,7 +65,8 @@ jobs:
         run: |
           TAG="$GITHUB_REF_NAME"
           ARCHIVE="dsh-chatsync-${TAG}-source.zip"
-          sha256sum "$ARCHIVE" "$RELEASE_PACKAGE" > SHA256SUMS.txt
+          sha256sum "$ARCHIVE" > SHA256SUMS.txt
+          (cd work/release && sha256sum "$(basename "$RELEASE_PACKAGE")") >> SHA256SUMS.txt
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$ARCHIVE" "$RELEASE_PACKAGE" SHA256SUMS.txt --clobber
             gh release edit "$TAG" --notes-file release-notes.md

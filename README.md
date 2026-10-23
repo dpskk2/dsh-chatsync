@@ -135,4 +135,4 @@ npm test
 npm pack --dry-run
 ```
 
-源码测试、安装包检查与真实宿主验证分别记录。[开发约定](CONTRIBUTING.md) · [更新日志](CHANGELOG.md) · [MIT License](LICENSE)
+源码测试、安装包检查与真实宿主验证分别记录。[开发约定](https://github.com/dpskk2/dsh-chatsync/blob/main/CONTRIBUTING.md) · [更新日志](CHANGELOG.md) · [MIT License](LICENSE)

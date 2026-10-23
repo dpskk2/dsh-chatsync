@@ -1,12 +1,13 @@
 # 文档入口
 
-| 类别 | 入口 | 如何使用 |
+| 类别 | 入口 | 用途 |
 | --- | --- | --- |
-| 当前项目维护 | 根目录 `AGENTS.md`、`CONTRIBUTING.md`、[目录说明](project-layout.md)、根目录“当前版本说明.md” | 当前任务先看；用户当前指令优先 |
-| 使用与配置 | [快速开始](getting-started.md)、[配置参考](configuration.md)、[同步内容](sync-content.md)、[文件说明](dsh-file-catalog.md) | 结合当前实现核对，不从旧评审恢复已移除的交互 |
-| 发版安全 | [检查清单](release-safety-checklist.md)、`release-evidence/<版本>/manifest.json` | 当版每项取证；历史报告不能自动算通过 |
-| 历史设计选择 | `0.20.1-change-selection.md`、`0.20.1-recommended-scope.md`、`product-review.md`、`optimization-review.md`、`review-0.12.14.md` | 当时的选择/评审，不能要求用户重新做已完成的选择 |
-| 历史验收与本机修订 | `release-*-validation.md`、带日期的界面/修复记录、根目录 `ABLATION.md` | 只证明各自日期和构建；保留原有引用 |
-| 完整历史源码与中间产物 | 本机 `outputs/archive/` | 本机恢复材料；不属于 npm 或 GitHub 发行附件 |
+| 使用与配置 | [快速开始](getting-started.md)、[配置参考](configuration.md)、[同步内容](sync-content.md)、[文件说明](dsh-file-catalog.md)、[历史数据修复](data-repair-0.20.1.md) | 当前使用说明，随安装包提供 |
+| 版本验证 | [0.20.1](release-0.20.1-validation.md)、[0.20.0](release-0.20.0-validation.md) | README 和更新日志引用的实际验证范围；历史结果不代表新版已验收 |
+| 开发维护 | 根目录 AGENTS.md、[贡献指南](https://github.com/dpskk2/dsh-chatsync/blob/main/CONTRIBUTING.md)、[目录说明](https://github.com/dpskk2/dsh-chatsync/blob/main/docs/project-layout.md)、[合并设计](https://github.com/dpskk2/dsh-chatsync/blob/main/docs/merge-engine-refactor.md) | 源码仓库提供，不装入运行包 |
+| 发版安全 | [检查清单](https://github.com/dpskk2/dsh-chatsync/blob/main/docs/release-safety-checklist.md)、release-evidence/<版本>/ | 保留脱敏证据和发布决定，不装入运行包 |
+| 界面与宿主专项记录 | 带日期的界面、启动、修复记录 | 仅保留在源码仓库，按各自日期与构建解读 |
 
-对版本、实际安装、源码与证据的判断冲突时，保留原件并核对实际构建/文件哈希；不以目录名中的 `final`、同为 `0.20.1` 或文件日期较新作为通过证明。
+已经完成的功能选择清单、旧消融实验、旧评审、投稿草稿和早期 0.12.x 验证记录已从当前源码移除，可通过 Git 历史追溯。维护用测试、宿主检查和演示脚本仍有用途，保留在源码仓库；文件长期未修改不表示无用。
+
+安装包内容由 package.json 的 files 控制，运行 node scripts/check-package-contents.mjs 检查实际文件列表、运行入口和随包文档的相对链接。完整源码 ZIP 仍包含对应标签下全部受版本控制文件，方便复核和开发。

@@ -44,6 +44,7 @@ jobs:
         run: |
           node --test tests/release-safety.test.mjs tests/updates.test.mjs
           node patch-version-agnostic-test.mjs
+          node scripts/check-package-contents.mjs
 
       - name: Pack candidate and verify local safety evidence
         run: |

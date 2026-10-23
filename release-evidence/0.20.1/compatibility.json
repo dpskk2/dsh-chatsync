@@ -1,0 +1,30 @@
+{
+  "method": "Official installed DSH app-boot evaluatePluginCompatibility, explicit runtime versions",
+  "minimumDsh": ">=0.2.0-rc.1",
+  "node": ">=24",
+  "matrix": [
+    {
+      "version": "0.1.5-rc.3",
+      "accepted": false
+    },
+    {
+      "version": "0.1.7-rc.2",
+      "accepted": false
+    },
+    {
+      "version": "0.2.0-rc.1",
+      "accepted": true
+    },
+    {
+      "version": "0.2.0-rc.2",
+      "accepted": true
+    },
+    {
+      "version": "0.2.1-rc.2",
+      "accepted": true
+    }
+  ],
+  "sidebarApiExistsIn015rc3": true,
+  "shortInstallName": "chatsync",
+  "note": "Older sidebar API exists; minimum is the supported/tested release range, not first interface introduction."
+}

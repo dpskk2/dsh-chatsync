@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "root": "<TEMP>\\chatsync-desktop-native-tMZVDB",
+  "physicalMachines": 1,
+  "hostKind": "desktop",
+  "electronVersion": "44.7.0",
+  "nodeVersion": "24.21.0",
+  "dshVersion": "0.2.1-rc.2",
+  "remote": "local bare Git; private-repository validator substituted only in acceptance",
+  "concurrentHosts": false,
+  "electronWindowOpened": false,
+  "checks": [
+    "a: actual Desktop IPC ready, host identity, live-process repair refusal, public source/fork/readback, attachment, project, duplicate retry and three tools verified",
+    "b: actual Desktop IPC ready, host identity, live-process repair refusal, public source/fork/readback, attachment, project, duplicate retry and three tools verified",
+    "A upload → B read and add → A receive; both actual Desktop Hosts restart sequentially and publicly read identical four sessions, membership and attachment hashes"
+  ],
+  "homes": [
+    "<TEMP>\\chatsync-desktop-native-tMZVDB\\a",
+    "<TEMP>\\chatsync-desktop-native-tMZVDB\\b"
+  ],
+  "name": "chatsync",
+  "version": "0.20.1",
+  "packageSha256": "3d83756fabea13e99adb0a2d253d09ae992542cb1ec5c31e8dd10d3ef4f98776"
+}

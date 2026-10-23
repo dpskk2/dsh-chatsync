@@ -1,9 +1,9 @@
 {
   "version": "0.20.1",
   "build": "2026-10-23-release-0.20.1",
-  "sourceCommit": "5d62a5874ab4c8daa1fa5f2ef8120058cdb04bfc",
-  "sourceSha256": "af8fd09596d09ae7f1b914605fbf315bed586edaf821f9a49d5166a3a2180fbd",
-  "packageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
+  "sourceCommit": "a84868663a7106bdea47fd096ff6247a6c7f9aaa",
+  "sourceSha256": "19e738ca0ac9547e4514c608391a91147cf04e307a2e3b7b813cbf9bdedd02f8",
+  "packageSha256": "aae2625fb656928f5379b5e831ff5e5261d09f998673952362e9d437bebd8f16",
   "packageFileCount": 72,
   "installedFilesMatch": true,
   "forbidden": [],
@@ -203,8 +203,8 @@
   "files": [
     {
       "path": "CHANGELOG.md",
-      "sha256": "210090b5b68e16c15424a7b11138559292c09771211f8a88318f85daf4ef3dd5",
-      "installedSha256": "210090b5b68e16c15424a7b11138559292c09771211f8a88318f85daf4ef3dd5"
+      "sha256": "0a7e407478a7253afcf4368aaba7c7ebb475c271625611869490a37bb7510ed8",
+      "installedSha256": "0a7e407478a7253afcf4368aaba7c7ebb475c271625611869490a37bb7510ed8"
     },
     {
       "path": "CONTRIBUTING.md",
@@ -218,13 +218,13 @@
     },
     {
       "path": "README.en.md",
-      "sha256": "f356deaa0201020cedd3cbf8e5963a442db73c2b44c38edb522280a13ac00b4b",
-      "installedSha256": "f356deaa0201020cedd3cbf8e5963a442db73c2b44c38edb522280a13ac00b4b"
+      "sha256": "bceed7000e5e2f1c798dee4637401cdc4cc9516c04d57264864aeb8c8d3d3dc1",
+      "installedSha256": "bceed7000e5e2f1c798dee4637401cdc4cc9516c04d57264864aeb8c8d3d3dc1"
     },
     {
       "path": "README.md",
-      "sha256": "fe9f4fe171f91922560861f6c80345b92959151234b9a49cb68e1f8cd6bdd356",
-      "installedSha256": "fe9f4fe171f91922560861f6c80345b92959151234b9a49cb68e1f8cd6bdd356"
+      "sha256": "d723b5f15dddea833a69ba500f44a4715c50e60295e89e487bc3073242878ffa",
+      "installedSha256": "d723b5f15dddea833a69ba500f44a4715c50e60295e89e487bc3073242878ffa"
     },
     {
       "path": "cordis.patch.yml",
@@ -273,8 +273,8 @@
     },
     {
       "path": "docs/getting-started.md",
-      "sha256": "e8c941174df7d2096c9f09043b5f3b9af54335f70da99c11818bdbd65426b0a9",
-      "installedSha256": "e8c941174df7d2096c9f09043b5f3b9af54335f70da99c11818bdbd65426b0a9"
+      "sha256": "6daa84ac093d6152dda470489c7622fd3b0f0405ff0c17f0970bba660d1ac2d6",
+      "installedSha256": "6daa84ac093d6152dda470489c7622fd3b0f0405ff0c17f0970bba660d1ac2d6"
     },
     {
       "path": "docs/grouping-intent-20261023.md",
@@ -313,8 +313,8 @@
     },
     {
       "path": "docs/release-0.20.1-validation.md",
-      "sha256": "1629e77d21f5e8ad60cbd1279dd6a463cd67be7e00216e99f6b63f25ce3c6145",
-      "installedSha256": "1629e77d21f5e8ad60cbd1279dd6a463cd67be7e00216e99f6b63f25ce3c6145"
+      "sha256": "bbeccdd7253a51212a4cae7580c8cad84ac22937bbb81b2928375d09ba323711",
+      "installedSha256": "bbeccdd7253a51212a4cae7580c8cad84ac22937bbb81b2928375d09ba323711"
     },
     {
       "path": "docs/release-safety-checklist.md",
@@ -553,13 +553,18 @@
     },
     {
       "path": "package.json",
-      "sha256": "8a3237eb7df03983031e3da0aeefa3775c5da63bc0ae0dfbf9a048b0415e630b",
-      "installedSha256": "8a3237eb7df03983031e3da0aeefa3775c5da63bc0ae0dfbf9a048b0415e630b"
+      "sha256": "5439f9aa69fb884029080a8f01fab5e63c4b8a826abd473fe8ab309c180b39c1",
+      "installedSha256": "5439f9aa69fb884029080a8f01fab5e63c4b8a826abd473fe8ab309c180b39c1"
     },
     {
       "path": "scripts/restart-dsh-desktop.ps1",
       "sha256": "fa621f42d33baa973d4a63d20c31e89cd8b7c6c8edf6667138b92a2932c7493d",
       "installedSha256": "fa621f42d33baa973d4a63d20c31e89cd8b7c6c8edf6667138b92a2932c7493d"
     }
-  ]
+  ],
+  "equivalence": {
+    "executedPackageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
+    "runtimeFilesUnchanged": true,
+    "changes": "Supported version metadata and documentation only; separate short-name artifact has identity substitutions and its own native Host test."
+  }
 }

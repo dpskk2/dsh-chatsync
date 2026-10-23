@@ -1,0 +1,6 @@
+{
+  "ok": true,
+  "command": "& \"$env:LOCALAPPDATA\\Programs\\DeepSeek Harness\\resources\\runtime\\cli\\bin\\dsh.cmd\" plugin --profile desktop update chatsync",
+  "registry": "https://registry.npmjs.org/chatsync/latest",
+  "fixtureOnly": true
+}

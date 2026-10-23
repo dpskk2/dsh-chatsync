@@ -11,6 +11,12 @@
   "offlineGuard": "global process guard tested separately; apply test guard checks only the owned synthetic host has exited",
   "version": "0.20.1",
   "build": "2026-10-23-release-0.20.1",
-  "packageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
-  "sourceSha256": "af8fd09596d09ae7f1b914605fbf315bed586edaf821f9a49d5166a3a2180fbd"
+  "executedPackageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
+  "releasePackageSha256": "aae2625fb656928f5379b5e831ff5e5261d09f998673952362e9d437bebd8f16",
+  "equivalence": {
+    "executedPackageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
+    "runtimeFilesUnchanged": true,
+    "changes": "Supported version metadata and documentation only; separate short-name artifact has identity substitutions and its own native Host test."
+  },
+  "sourceSha256": "19e738ca0ac9547e4514c608391a91147cf04e307a2e3b7b813cbf9bdedd02f8"
 }

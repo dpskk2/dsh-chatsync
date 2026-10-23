@@ -2,6 +2,12 @@
 
 日期：2026-10-23（Asia/Shanghai）。构建：`2026-10-23-release-0.20.1`。源码指纹、包哈希、实际运行文件清单见 candidate-audit.json；证据哈希与逐项状态见 manifest.json。
 
+最终追加的版本与安装名称检查：最低支持 DSH 0.2.0-rc.1、Node.js 24；桌面端推荐 0.2.1-rc.2 或更新。使用实际官方 `evaluatePluginCompatibility` 核对拒绝 0.1.5-rc.3 / 0.1.7-rc.2，接受 0.2.0-rc.1 / 0.2.0-rc.2 / 0.2.1-rc.2。官方 0.1.5-rc.3 的侧边栏包已包含 `sidebar.panellist`，所以不能把所有低版本不显示都归因于缺少该接口；本次下限是本版支持和验证范围。参见 compatibility.json。
+
+按用户最后指令，新增无前缀的 **chatsync** npm 安装名称；原 `@dpskk2/dsh-chatsync` 保留，旧用户不必迁移。官方“添加插件”实际接受精确安装包名，关键词不能替代包名。短名包由同一源码生成，仅替换包名、挂载名、前端模块身份和更新检查目标；自身包含相同实现，无额外运行依赖。实际短名包的独立安装、Desktop Host 服务往返和冷启动读回见 short-name-desktop.json。用户只需在“添加插件”输入 chatsync。
+
+这些最后的版本元数据、文档和短名制品调整没有重复全量回归。主包全部 lib 文件与完整回归及原生宿主已验证的文件哈希一致，见 candidate-audit.json 的 equivalence；原生测试保留实际执行包哈希，与最终发布包哈希明确区分。短名的更新命令和注册身份另做针对性检查。完整回归记录不冒充新元数据下重新执行。
+
 ## 发布决定
 
 用户直接指令：“我暂时不希望做这个事情，可以登记为物理双机验收未通过。你理论上检查没问题就先发版”。另已明确要求同时发布 GitHub Release 和 npm。本次根据该决定，在源码审查、自动回归和候选包检查没有未解决失败的前提下，允许带未验证场景发布。
@@ -37,4 +43,4 @@
 
 ## 制品与发布
 
-工作流再次执行回归、按相同 Node/npm 和 Git 原始内容打包、核对 ownerDecision 与候选哈希，发布同一 tgz 至 npm，再创建 GitHub Release，附 tgz、标签完整源码 ZIP 和 SHA256SUMS。源码 ZIP 包括本目录脱敏证据。发布后核对 npm 实际下载字节、Release 标签/正文/附件及 ZIP 文件清单。
+工作流按相同 Node/npm 和 Git 原始内容打包、核对 ownerDecision 与两个候选包哈希，发布经核对的同版 npm 包，再创建 GitHub Release，附两个 tgz、标签完整源码 ZIP 和 SHA256SUMS。源码 ZIP 包括本目录脱敏证据。发布后核对 npm 实际下载字节、Release 标签/正文/附件及 ZIP 文件清单。

@@ -2,15 +2,16 @@
   "schemaVersion": 1,
   "version": "0.20.1",
   "build": "2026-10-23-release-0.20.1",
-  "sourceSha256": "af8fd09596d09ae7f1b914605fbf315bed586edaf821f9a49d5166a3a2180fbd",
-  "packageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
+  "sourceSha256": "19e738ca0ac9547e4514c608391a91147cf04e307a2e3b7b813cbf9bdedd02f8",
+  "packageSha256": "aae2625fb656928f5379b5e831ff5e5261d09f998673952362e9d437bebd8f16",
+  "shortPackageSha256": "3d83756fabea13e99adb0a2d253d09ae992542cb1ec5c31e8dd10d3ef4f98776",
   "ownerDecision": {
     "mode": "release-with-unverified-scenarios",
     "version": "0.20.1",
     "build": "2026-10-23-release-0.20.1",
-    "sourceSha256": "af8fd09596d09ae7f1b914605fbf315bed586edaf821f9a49d5166a3a2180fbd",
-    "packageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
-    "requestedAt": "2026-10-23T07:27:19.707Z",
+    "sourceSha256": "19e738ca0ac9547e4514c608391a91147cf04e307a2e3b7b813cbf9bdedd02f8",
+    "packageSha256": "aae2625fb656928f5379b5e831ff5e5261d09f998673952362e9d437bebd8f16",
+    "requestedAt": "2026-10-23T07:49:16.206Z",
     "requestedBy": "Repository owner, direct instruction in release chat",
     "instruction": "我暂时不希望做这个事情，可以登记为物理双机验收未通过。你理论上检查没问题就先发版",
     "reason": "Owner requests release based on source logic and local verification. Physical two-device acceptance has not passed (not performed); incomplete fault, native and full restore coverage remains unverified.",
@@ -34,7 +35,7 @@
     {
       "id": "data-loss/source-review",
       "status": "passed",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Trace the risk-specific entry, snapshot, merge, write, failure, receipt and recovery branches listed in release-review.md; compare independent test expectations.",
       "observed": "No definite release-blocking defect found in reviewed logic; limitations and original preservation paths are documented.",
@@ -42,18 +43,18 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         }
       ]
     },
     {
       "id": "data-loss/automated",
       "status": "passed",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Run scripts/check-runtime-regression.mjs and --desktop with GUI exit check and official format catalog enabled; require terminal 346/346 and 8 patch assertions.",
       "observed": "Both runtimes: 346 passed, 0 failed/cancelled/skipped; patch 8 assertions passed. Individual scenarios and limitations in review/logs.",
@@ -61,34 +62,34 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/standalone-result.json",
-          "sha256": "a25e6275ad3c74388ae52120dc90561902c829887d51504c2809ce03a6b231c0"
+          "sha256": "bc8a5c7e77a9de9e98adf5ae006e5cc282e785c3cdbdb7dc88bb21125dc3d24f"
         },
         {
           "path": "release-evidence/0.20.1/desktop-result.json",
-          "sha256": "c96fc8401621803952ab7184e10e9e21868d6b19bab9bbbecd9fd5b42e1e1f89"
+          "sha256": "f1fbb7e7e776894cb9e91c28af6bf0d95078535a4e54d186b626996e1f30da2a"
         },
         {
           "path": "release-evidence/0.20.1/policy-supplement-standalone.log",
-          "sha256": "7b793576bf93876ee7165c8edc4edf072d47413b1bc63f2c6a96cafc7d4d902b"
+          "sha256": "177b95e01e5ebd1cff6fbf29be12632fb3bdae19972c9263bb321075f7081f0b"
         },
         {
           "path": "release-evidence/0.20.1/policy-supplement-desktop.log",
-          "sha256": "516c215e85aa539842557802986d247565a54460e024253519653498cdef663e"
+          "sha256": "c7fca1a2c3400c46aa91dc137c93ef3a69a6a3b4773c7bd556279e990288eacf"
         }
       ]
     },
     {
       "id": "data-loss/fault-injection",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "Only documented subset covered; full checklist scenario matrix not verified. Explicitly accepted as unverified for this release; not an all-passed claim.",
@@ -96,18 +97,18 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         }
       ]
     },
     {
       "id": "data-loss/native-runtime",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "Only documented subset covered; full checklist scenario matrix not verified. Explicitly accepted as unverified for this release; not an all-passed claim.",
@@ -115,22 +116,22 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/candidate-desktop.json",
-          "sha256": "4fe92b0a819be8bad7c1fb8778362e66d8f0eb13afd7c66f371447b77ea80e44"
+          "sha256": "36060f71896aa566d2ff9558a7700c75bd00aeb6e8edf4993459cc4ed2b410cf"
         }
       ]
     },
     {
       "id": "corruption-spread/source-review",
       "status": "passed",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Trace the risk-specific entry, snapshot, merge, write, failure, receipt and recovery branches listed in release-review.md; compare independent test expectations.",
       "observed": "No definite release-blocking defect found in reviewed logic; limitations and original preservation paths are documented.",
@@ -138,18 +139,18 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         }
       ]
     },
     {
       "id": "corruption-spread/automated",
       "status": "passed",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Run scripts/check-runtime-regression.mjs and --desktop with GUI exit check and official format catalog enabled; require terminal 346/346 and 8 patch assertions.",
       "observed": "Both runtimes: 346 passed, 0 failed/cancelled/skipped; patch 8 assertions passed. Individual scenarios and limitations in review/logs.",
@@ -157,34 +158,34 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/standalone-result.json",
-          "sha256": "a25e6275ad3c74388ae52120dc90561902c829887d51504c2809ce03a6b231c0"
+          "sha256": "bc8a5c7e77a9de9e98adf5ae006e5cc282e785c3cdbdb7dc88bb21125dc3d24f"
         },
         {
           "path": "release-evidence/0.20.1/desktop-result.json",
-          "sha256": "c96fc8401621803952ab7184e10e9e21868d6b19bab9bbbecd9fd5b42e1e1f89"
+          "sha256": "f1fbb7e7e776894cb9e91c28af6bf0d95078535a4e54d186b626996e1f30da2a"
         },
         {
           "path": "release-evidence/0.20.1/policy-supplement-standalone.log",
-          "sha256": "7b793576bf93876ee7165c8edc4edf072d47413b1bc63f2c6a96cafc7d4d902b"
+          "sha256": "177b95e01e5ebd1cff6fbf29be12632fb3bdae19972c9263bb321075f7081f0b"
         },
         {
           "path": "release-evidence/0.20.1/policy-supplement-desktop.log",
-          "sha256": "516c215e85aa539842557802986d247565a54460e024253519653498cdef663e"
+          "sha256": "c7fca1a2c3400c46aa91dc137c93ef3a69a6a3b4773c7bd556279e990288eacf"
         }
       ]
     },
     {
       "id": "corruption-spread/fault-injection",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "Only documented subset covered; full checklist scenario matrix not verified. Explicitly accepted as unverified for this release; not an all-passed claim.",
@@ -192,18 +193,18 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         }
       ]
     },
     {
       "id": "corruption-spread/native-runtime",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "Only documented subset covered; full checklist scenario matrix not verified. Explicitly accepted as unverified for this release; not an all-passed claim.",
@@ -211,22 +212,22 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/candidate-desktop.json",
-          "sha256": "4fe92b0a819be8bad7c1fb8778362e66d8f0eb13afd7c66f371447b77ea80e44"
+          "sha256": "36060f71896aa566d2ff9558a7700c75bd00aeb6e8edf4993459cc4ed2b410cf"
         }
       ]
     },
     {
       "id": "privacy/source-review",
       "status": "passed",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Trace the risk-specific entry, snapshot, merge, write, failure, receipt and recovery branches listed in release-review.md; compare independent test expectations.",
       "observed": "No definite release-blocking defect found in reviewed logic; limitations and original preservation paths are documented.",
@@ -234,11 +235,11 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/outgoing-history-scan.json",
@@ -249,7 +250,7 @@
     {
       "id": "privacy/automated",
       "status": "passed",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Run scripts/check-runtime-regression.mjs and --desktop with GUI exit check and official format catalog enabled; require terminal 346/346 and 8 patch assertions.",
       "observed": "Both runtimes: 346 passed, 0 failed/cancelled/skipped; patch 8 assertions passed. Individual scenarios and limitations in review/logs.",
@@ -257,27 +258,27 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/standalone-result.json",
-          "sha256": "a25e6275ad3c74388ae52120dc90561902c829887d51504c2809ce03a6b231c0"
+          "sha256": "bc8a5c7e77a9de9e98adf5ae006e5cc282e785c3cdbdb7dc88bb21125dc3d24f"
         },
         {
           "path": "release-evidence/0.20.1/desktop-result.json",
-          "sha256": "c96fc8401621803952ab7184e10e9e21868d6b19bab9bbbecd9fd5b42e1e1f89"
+          "sha256": "f1fbb7e7e776894cb9e91c28af6bf0d95078535a4e54d186b626996e1f30da2a"
         },
         {
           "path": "release-evidence/0.20.1/policy-supplement-standalone.log",
-          "sha256": "7b793576bf93876ee7165c8edc4edf072d47413b1bc63f2c6a96cafc7d4d902b"
+          "sha256": "177b95e01e5ebd1cff6fbf29be12632fb3bdae19972c9263bb321075f7081f0b"
         },
         {
           "path": "release-evidence/0.20.1/policy-supplement-desktop.log",
-          "sha256": "516c215e85aa539842557802986d247565a54460e024253519653498cdef663e"
+          "sha256": "c7fca1a2c3400c46aa91dc137c93ef3a69a6a3b4773c7bd556279e990288eacf"
         },
         {
           "path": "release-evidence/0.20.1/outgoing-history-scan.json",
@@ -288,7 +289,7 @@
     {
       "id": "privacy/fault-injection",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "Only documented subset covered; full checklist scenario matrix not verified. Explicitly accepted as unverified for this release; not an all-passed claim.",
@@ -296,18 +297,18 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         }
       ]
     },
     {
       "id": "privacy/native-runtime",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "Only documented subset covered; full checklist scenario matrix not verified. Explicitly accepted as unverified for this release; not an all-passed claim.",
@@ -315,22 +316,22 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/candidate-desktop.json",
-          "sha256": "4fe92b0a819be8bad7c1fb8778362e66d8f0eb13afd7c66f371447b77ea80e44"
+          "sha256": "36060f71896aa566d2ff9558a7700c75bd00aeb6e8edf4993459cc4ed2b410cf"
         }
       ]
     },
     {
       "id": "upgrade-environments/source-review",
       "status": "passed",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Trace the risk-specific entry, snapshot, merge, write, failure, receipt and recovery branches listed in release-review.md; compare independent test expectations.",
       "observed": "No definite release-blocking defect found in reviewed logic; limitations and original preservation paths are documented.",
@@ -338,18 +339,30 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
+        },
+        {
+          "path": "release-evidence/0.20.1/compatibility.json",
+          "sha256": "97b33519eb5a49a8e4f6cc6e736dbaeac36b65d2acb89cadf43310d89afcee63"
+        },
+        {
+          "path": "release-evidence/0.20.1/short-name-desktop.json",
+          "sha256": "bdc3c40740fee0a32a1cd3ab490267c6df015d5815375eccaea95a1fb56a600f"
+        },
+        {
+          "path": "release-evidence/0.20.1/short-name-updates.json",
+          "sha256": "bd4f2822daebb29d79cb9286eb4e2e8873ecf69cc05a57853f8c2b750d23fd8d"
         }
       ]
     },
     {
       "id": "upgrade-environments/automated",
       "status": "passed",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Run scripts/check-runtime-regression.mjs and --desktop with GUI exit check and official format catalog enabled; require terminal 346/346 and 8 patch assertions.",
       "observed": "Both runtimes: 346 passed, 0 failed/cancelled/skipped; patch 8 assertions passed. Individual scenarios and limitations in review/logs.",
@@ -357,34 +370,46 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/standalone-result.json",
-          "sha256": "a25e6275ad3c74388ae52120dc90561902c829887d51504c2809ce03a6b231c0"
+          "sha256": "bc8a5c7e77a9de9e98adf5ae006e5cc282e785c3cdbdb7dc88bb21125dc3d24f"
         },
         {
           "path": "release-evidence/0.20.1/desktop-result.json",
-          "sha256": "c96fc8401621803952ab7184e10e9e21868d6b19bab9bbbecd9fd5b42e1e1f89"
+          "sha256": "f1fbb7e7e776894cb9e91c28af6bf0d95078535a4e54d186b626996e1f30da2a"
         },
         {
           "path": "release-evidence/0.20.1/policy-supplement-standalone.log",
-          "sha256": "7b793576bf93876ee7165c8edc4edf072d47413b1bc63f2c6a96cafc7d4d902b"
+          "sha256": "177b95e01e5ebd1cff6fbf29be12632fb3bdae19972c9263bb321075f7081f0b"
         },
         {
           "path": "release-evidence/0.20.1/policy-supplement-desktop.log",
-          "sha256": "516c215e85aa539842557802986d247565a54460e024253519653498cdef663e"
+          "sha256": "c7fca1a2c3400c46aa91dc137c93ef3a69a6a3b4773c7bd556279e990288eacf"
+        },
+        {
+          "path": "release-evidence/0.20.1/compatibility.json",
+          "sha256": "97b33519eb5a49a8e4f6cc6e736dbaeac36b65d2acb89cadf43310d89afcee63"
+        },
+        {
+          "path": "release-evidence/0.20.1/short-name-desktop.json",
+          "sha256": "bdc3c40740fee0a32a1cd3ab490267c6df015d5815375eccaea95a1fb56a600f"
+        },
+        {
+          "path": "release-evidence/0.20.1/short-name-updates.json",
+          "sha256": "bd4f2822daebb29d79cb9286eb4e2e8873ecf69cc05a57853f8c2b750d23fd8d"
         }
       ]
     },
     {
       "id": "upgrade-environments/fault-injection",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "Only documented subset covered; full checklist scenario matrix not verified. Explicitly accepted as unverified for this release; not an all-passed claim.",
@@ -392,18 +417,30 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
+        },
+        {
+          "path": "release-evidence/0.20.1/compatibility.json",
+          "sha256": "97b33519eb5a49a8e4f6cc6e736dbaeac36b65d2acb89cadf43310d89afcee63"
+        },
+        {
+          "path": "release-evidence/0.20.1/short-name-desktop.json",
+          "sha256": "bdc3c40740fee0a32a1cd3ab490267c6df015d5815375eccaea95a1fb56a600f"
+        },
+        {
+          "path": "release-evidence/0.20.1/short-name-updates.json",
+          "sha256": "bd4f2822daebb29d79cb9286eb4e2e8873ecf69cc05a57853f8c2b750d23fd8d"
         }
       ]
     },
     {
       "id": "upgrade-environments/native-runtime",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "Only documented subset covered; full checklist scenario matrix not verified. Explicitly accepted as unverified for this release; not an all-passed claim.",
@@ -411,22 +448,34 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/candidate-desktop.json",
-          "sha256": "4fe92b0a819be8bad7c1fb8778362e66d8f0eb13afd7c66f371447b77ea80e44"
+          "sha256": "36060f71896aa566d2ff9558a7700c75bd00aeb6e8edf4993459cc4ed2b410cf"
+        },
+        {
+          "path": "release-evidence/0.20.1/compatibility.json",
+          "sha256": "97b33519eb5a49a8e4f6cc6e736dbaeac36b65d2acb89cadf43310d89afcee63"
+        },
+        {
+          "path": "release-evidence/0.20.1/short-name-desktop.json",
+          "sha256": "bdc3c40740fee0a32a1cd3ab490267c6df015d5815375eccaea95a1fb56a600f"
+        },
+        {
+          "path": "release-evidence/0.20.1/short-name-updates.json",
+          "sha256": "bd4f2822daebb29d79cb9286eb4e2e8873ecf69cc05a57853f8c2b750d23fd8d"
         }
       ]
     },
     {
       "id": "recovery/source-review",
       "status": "passed",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Trace the risk-specific entry, snapshot, merge, write, failure, receipt and recovery branches listed in release-review.md; compare independent test expectations.",
       "observed": "No definite release-blocking defect found in reviewed logic; limitations and original preservation paths are documented.",
@@ -434,22 +483,22 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/candidate-repair.json",
-          "sha256": "97727c5ca2a9c84dd13a86b5eb9cc629e156c65349842733b0fc5c5c5a56d702"
+          "sha256": "63b23af25733e8f5a0f007b08c2f20a7da286ea4e00099e1b3d8f2c8a9cdb764"
         }
       ]
     },
     {
       "id": "recovery/automated",
       "status": "passed",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Run scripts/check-runtime-regression.mjs and --desktop with GUI exit check and official format catalog enabled; require terminal 346/346 and 8 patch assertions.",
       "observed": "Both runtimes: 346 passed, 0 failed/cancelled/skipped; patch 8 assertions passed. Individual scenarios and limitations in review/logs.",
@@ -457,38 +506,38 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/standalone-result.json",
-          "sha256": "a25e6275ad3c74388ae52120dc90561902c829887d51504c2809ce03a6b231c0"
+          "sha256": "bc8a5c7e77a9de9e98adf5ae006e5cc282e785c3cdbdb7dc88bb21125dc3d24f"
         },
         {
           "path": "release-evidence/0.20.1/desktop-result.json",
-          "sha256": "c96fc8401621803952ab7184e10e9e21868d6b19bab9bbbecd9fd5b42e1e1f89"
+          "sha256": "f1fbb7e7e776894cb9e91c28af6bf0d95078535a4e54d186b626996e1f30da2a"
         },
         {
           "path": "release-evidence/0.20.1/policy-supplement-standalone.log",
-          "sha256": "7b793576bf93876ee7165c8edc4edf072d47413b1bc63f2c6a96cafc7d4d902b"
+          "sha256": "177b95e01e5ebd1cff6fbf29be12632fb3bdae19972c9263bb321075f7081f0b"
         },
         {
           "path": "release-evidence/0.20.1/policy-supplement-desktop.log",
-          "sha256": "516c215e85aa539842557802986d247565a54460e024253519653498cdef663e"
+          "sha256": "c7fca1a2c3400c46aa91dc137c93ef3a69a6a3b4773c7bd556279e990288eacf"
         },
         {
           "path": "release-evidence/0.20.1/candidate-repair.json",
-          "sha256": "97727c5ca2a9c84dd13a86b5eb9cc629e156c65349842733b0fc5c5c5a56d702"
+          "sha256": "63b23af25733e8f5a0f007b08c2f20a7da286ea4e00099e1b3d8f2c8a9cdb764"
         }
       ]
     },
     {
       "id": "recovery/fault-injection",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "Only documented subset covered; full checklist scenario matrix not verified. Explicitly accepted as unverified for this release; not an all-passed claim.",
@@ -496,22 +545,22 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/candidate-repair.json",
-          "sha256": "97727c5ca2a9c84dd13a86b5eb9cc629e156c65349842733b0fc5c5c5a56d702"
+          "sha256": "63b23af25733e8f5a0f007b08c2f20a7da286ea4e00099e1b3d8f2c8a9cdb764"
         }
       ]
     },
     {
       "id": "recovery/native-runtime",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "Only documented subset covered; full checklist scenario matrix not verified. Explicitly accepted as unverified for this release; not an all-passed claim.",
@@ -519,26 +568,26 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/candidate-desktop.json",
-          "sha256": "4fe92b0a819be8bad7c1fb8778362e66d8f0eb13afd7c66f371447b77ea80e44"
+          "sha256": "36060f71896aa566d2ff9558a7700c75bd00aeb6e8edf4993459cc4ed2b410cf"
         },
         {
           "path": "release-evidence/0.20.1/candidate-repair.json",
-          "sha256": "97727c5ca2a9c84dd13a86b5eb9cc629e156c65349842733b0fc5c5c5a56d702"
+          "sha256": "63b23af25733e8f5a0f007b08c2f20a7da286ea4e00099e1b3d8f2c8a9cdb764"
         }
       ]
     },
     {
       "id": "full-regression",
       "status": "passed",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Run scripts/check-runtime-regression.mjs and --desktop with GUI exit check and official format catalog enabled; require terminal 346/346 and 8 patch assertions.",
       "observed": "Both runtimes: 346 passed, 0 failed/cancelled/skipped; patch 8 assertions passed. Individual scenarios and limitations in review/logs.",
@@ -546,34 +595,34 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/standalone-result.json",
-          "sha256": "a25e6275ad3c74388ae52120dc90561902c829887d51504c2809ce03a6b231c0"
+          "sha256": "bc8a5c7e77a9de9e98adf5ae006e5cc282e785c3cdbdb7dc88bb21125dc3d24f"
         },
         {
           "path": "release-evidence/0.20.1/desktop-result.json",
-          "sha256": "c96fc8401621803952ab7184e10e9e21868d6b19bab9bbbecd9fd5b42e1e1f89"
+          "sha256": "f1fbb7e7e776894cb9e91c28af6bf0d95078535a4e54d186b626996e1f30da2a"
         },
         {
           "path": "release-evidence/0.20.1/policy-supplement-standalone.log",
-          "sha256": "7b793576bf93876ee7165c8edc4edf072d47413b1bc63f2c6a96cafc7d4d902b"
+          "sha256": "177b95e01e5ebd1cff6fbf29be12632fb3bdae19972c9263bb321075f7081f0b"
         },
         {
           "path": "release-evidence/0.20.1/policy-supplement-desktop.log",
-          "sha256": "516c215e85aa539842557802986d247565a54460e024253519653498cdef663e"
+          "sha256": "c7fca1a2c3400c46aa91dc137c93ef3a69a6a3b4773c7bd556279e990288eacf"
         }
       ]
     },
     {
       "id": "candidate-install",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "Only documented subset covered; full checklist scenario matrix not verified. Explicitly accepted as unverified for this release; not an all-passed claim.",
@@ -581,22 +630,34 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/candidate-desktop.json",
-          "sha256": "4fe92b0a819be8bad7c1fb8778362e66d8f0eb13afd7c66f371447b77ea80e44"
+          "sha256": "36060f71896aa566d2ff9558a7700c75bd00aeb6e8edf4993459cc4ed2b410cf"
+        },
+        {
+          "path": "release-evidence/0.20.1/compatibility.json",
+          "sha256": "97b33519eb5a49a8e4f6cc6e736dbaeac36b65d2acb89cadf43310d89afcee63"
+        },
+        {
+          "path": "release-evidence/0.20.1/short-name-desktop.json",
+          "sha256": "bdc3c40740fee0a32a1cd3ab490267c6df015d5815375eccaea95a1fb56a600f"
+        },
+        {
+          "path": "release-evidence/0.20.1/short-name-updates.json",
+          "sha256": "bd4f2822daebb29d79cb9286eb4e2e8873ecf69cc05a57853f8c2b750d23fd8d"
         }
       ]
     },
     {
       "id": "restore-drill",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "Only documented subset covered; full checklist scenario matrix not verified. Explicitly accepted as unverified for this release; not an all-passed claim.",
@@ -604,22 +665,22 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         },
         {
           "path": "release-evidence/0.20.1/candidate-repair.json",
-          "sha256": "97727c5ca2a9c84dd13a86b5eb9cc629e156c65349842733b0fc5c5c5a56d702"
+          "sha256": "63b23af25733e8f5a0f007b08c2f20a7da286ea4e00099e1b3d8f2c8a9cdb764"
         }
       ]
     },
     {
       "id": "physical-two-device-github",
       "status": "not-verified",
-      "completedAt": "2026-10-23T07:27:19.707Z",
+      "completedAt": "2026-10-23T07:49:16.206Z",
       "environment": "Windows 11; Node 24.19.0; Electron 44.7.0 / Node 24.21.0 / Desktop DSH 0.2.1-rc.2; Web repair subset DSH 0.2.0-rc.1",
       "procedure": "Review documented coverage against release checklist; record unperformed scenarios and owner decision. No execution claimed for unperformed scenarios.",
       "observed": "物理双机验收未通过（未执行）。用户决定暂缓并先发布。",
@@ -627,11 +688,11 @@
       "artifacts": [
         {
           "path": "release-evidence/0.20.1/release-review.md",
-          "sha256": "5cfa306ddd586afcd4aec014ee82885f6aa192efb78bd39c80f8c677bfd3d9c9"
+          "sha256": "6ce313c90ac873aa7c6d6ab64aed7f8cc4a395306b45879c3959b33565b9d823"
         },
         {
           "path": "release-evidence/0.20.1/candidate-audit.json",
-          "sha256": "e10733f1e169c1d0a40e3399b9c48cba9a4b584e8b656dca8c280c14ff264165"
+          "sha256": "0fc063b657ae87636591af7fe6bbba4572d408eb99859bf54d40407623f33067"
         }
       ]
     }

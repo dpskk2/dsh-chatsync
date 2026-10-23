@@ -29,10 +29,9 @@
 
 先准备能正常打开的 DSH、[Git](https://git-scm.com/downloads/) 和 [GitHub CLI](https://cli.github.com/)，以及可访问 GitHub 的网络。
 
-**推荐：DSH官方插件店：** 打开「插件」→「添加插件」，输入 `chatsync`。安装后重新启动 DSH；桌面端需完全退出。
+#### **推荐：DSH官方插件添加：** 打开「插件」→「添加插件」，输入 `chatsync`。
 
-<details>
-<summary>使用 PowerShell 安装（Web / Windows 桌面端）</summary>
+或使用 PowerShell 安装
 
 **Web 端：**
 

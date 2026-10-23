@@ -17,9 +17,7 @@
 
 </div>
 
-![全新环境中的首次设置页面](https://raw.githubusercontent.com/dpskk2/dsh-chatsync/main/docs/assets/readme/first-setup.jpg)
-
-## 能带走什么
+## chatsync能做什么
 
 | 接着做的事 | 同步内容 |
 | --- | --- |

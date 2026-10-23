@@ -12,11 +12,14 @@
   "version": "0.20.1",
   "build": "2026-10-23-release-0.20.1",
   "executedPackageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
-  "releasePackageSha256": "aae2625fb656928f5379b5e831ff5e5261d09f998673952362e9d437bebd8f16",
+  "releasePackageSha256": "cbaa924bda6154c6857db62f74d8b44af8f87a5e58a5d83729c5d9191c86fd05",
   "equivalence": {
-    "executedPackageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
-    "runtimeFilesUnchanged": true,
-    "changes": "Supported version metadata and documentation only; separate short-name artifact has identity substitutions and its own native Host test."
+    "executedPackageSha256": "cbaa924bda6154c6857db62f74d8b44af8f87a5e58a5d83729c5d9191c86fd05",
+    "previouslyTestedPackageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
+    "repairExecutedPackageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
+    "runtimeFilesEqualAfterLineEndingNormalization": true,
+    "linuxAndLocalPackageBytesIdentical": true,
+    "changes": "LF canonical packaging, version metadata and documentation; no functional product-code change. Exact LF package has a fresh native Host test. Short-name artifact has its own native Host test."
   },
-  "sourceSha256": "19e738ca0ac9547e4514c608391a91147cf04e307a2e3b7b813cbf9bdedd02f8"
+  "sourceSha256": "ad6df3e3ed54edc73752944a228c79a3a53fda5eb1e254cc805bbab9c6da96de"
 }

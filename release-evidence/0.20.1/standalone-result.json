@@ -22,8 +22,8 @@
     "assertions": 8,
     "logFile": "<WORKSPACE>\\outputs\\regression-2026-10-23T07-13-23-423Z-standalone\\patch.log"
   },
-  "sourceSha256": "19e738ca0ac9547e4514c608391a91147cf04e307a2e3b7b813cbf9bdedd02f8",
-  "packageSha256": "aae2625fb656928f5379b5e831ff5e5261d09f998673952362e9d437bebd8f16",
+  "sourceSha256": "ad6df3e3ed54edc73752944a228c79a3a53fda5eb1e254cc805bbab9c6da96de",
+  "packageSha256": "cbaa924bda6154c6857db62f74d8b44af8f87a5e58a5d83729c5d9191c86fd05",
   "build": "2026-10-23-release-0.20.1",
-  "scopeNote": "Full suite covers final product code. After the suite began, two documentation URLs and the release-policy script/tests were adjusted. Product runtime files and npm package bytes did not change. Final policy has separate 13-test results on both runtimes; see policy-supplement logs."
+  "scopeNote": "Full suite covers product runtime logic. Later version metadata, documentation, short-name packaging and release-policy adjustments did not repeat the full suite. Final main package uses LF rather than the earlier Windows CRLF archive; runtime sources match after line-ending normalization. Exact final LF package separately passed the actual Desktop Host subset. Final policy has separate 13-test results on both runtimes; see policy-supplement logs."
 }

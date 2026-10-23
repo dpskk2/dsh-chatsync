@@ -1,6 +1,6 @@
 {
   "ok": true,
-  "root": "<TEMP>\\chatsync-desktop-native-lZrjdX",
+  "root": "<TEMP>\\chatsync-desktop-native-IEJKUI",
   "physicalMachines": 1,
   "hostKind": "desktop",
   "electronVersion": "44.7.0",
@@ -15,209 +15,212 @@
     "A upload → B read and add → A receive; both actual Desktop Hosts restart sequentially and publicly read identical four sessions, membership and attachment hashes"
   ],
   "homes": [
-    "<TEMP>\\chatsync-desktop-native-lZrjdX\\a",
-    "<TEMP>\\chatsync-desktop-native-lZrjdX\\b"
+    "<TEMP>\\chatsync-desktop-native-IEJKUI\\a",
+    "<TEMP>\\chatsync-desktop-native-IEJKUI\\b"
   ],
   "version": "0.20.1",
   "build": "2026-10-23-release-0.20.1",
-  "executedPackageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
-  "releasePackageSha256": "aae2625fb656928f5379b5e831ff5e5261d09f998673952362e9d437bebd8f16",
+  "executedPackageSha256": "cbaa924bda6154c6857db62f74d8b44af8f87a5e58a5d83729c5d9191c86fd05",
+  "releasePackageSha256": "cbaa924bda6154c6857db62f74d8b44af8f87a5e58a5d83729c5d9191c86fd05",
   "equivalence": {
-    "executedPackageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
-    "runtimeFilesUnchanged": true,
-    "changes": "Supported version metadata and documentation only; separate short-name artifact has identity substitutions and its own native Host test."
+    "executedPackageSha256": "cbaa924bda6154c6857db62f74d8b44af8f87a5e58a5d83729c5d9191c86fd05",
+    "previouslyTestedPackageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
+    "repairExecutedPackageSha256": "546f5b5ff096c0f126a7da772f31d2bc184a9a5f5e31aefda2c0b833102f950f",
+    "runtimeFilesEqualAfterLineEndingNormalization": true,
+    "linuxAndLocalPackageBytesIdentical": true,
+    "changes": "LF canonical packaging, version metadata and documentation; no functional product-code change. Exact LF package has a fresh native Host test. Short-name artifact has its own native Host test."
   },
-  "sourceSha256": "19e738ca0ac9547e4514c608391a91147cf04e307a2e3b7b813cbf9bdedd02f8",
+  "sourceSha256": "ad6df3e3ed54edc73752944a228c79a3a53fda5eb1e254cc805bbab9c6da96de",
   "loadedFiles": [
     {
       "path": "lib/branch-history.js",
-      "sha256": "62ab029caa86700beb8483003ab4572efa9d8f001938089e18421d714930041c",
-      "installedSha256": "62ab029caa86700beb8483003ab4572efa9d8f001938089e18421d714930041c"
+      "sha256": "dae06c94599f9a8ca9bc8733c59ee943405af73961886c051f1d3085e61a1ca2",
+      "installedSha256": "dae06c94599f9a8ca9bc8733c59ee943405af73961886c051f1d3085e61a1ca2"
     },
     {
       "path": "lib/cli.mjs",
-      "sha256": "631f943d04649ea6390c46f17e6962a55fd1509f295aad6746f52068cfcf7bf8",
-      "installedSha256": "631f943d04649ea6390c46f17e6962a55fd1509f295aad6746f52068cfcf7bf8"
+      "sha256": "bc34e7741237015aaba147a84019101f9ade11b7d11ed759eb04a85b1c550ec6",
+      "installedSha256": "bc34e7741237015aaba147a84019101f9ade11b7d11ed759eb04a85b1c550ec6"
     },
     {
       "path": "lib/client.js",
-      "sha256": "a23f86ffa35a78cd9982f22af4d4278ec8267fce2b24c6a10983b1db723bcbca",
-      "installedSha256": "a23f86ffa35a78cd9982f22af4d4278ec8267fce2b24c6a10983b1db723bcbca"
+      "sha256": "5463ff403c9ab8320d996464d4cdb63d8d3e3417974d8077b1b5edde0b03a249",
+      "installedSha256": "5463ff403c9ab8320d996464d4cdb63d8d3e3417974d8077b1b5edde0b03a249"
     },
     {
       "path": "lib/config-file.js",
-      "sha256": "154720131fac6abfff9e1c7757653cb207e117715582f76197c40e40ba8dff9b",
-      "installedSha256": "154720131fac6abfff9e1c7757653cb207e117715582f76197c40e40ba8dff9b"
+      "sha256": "a1c69b3a541ef772d6984323c025bba33acb01131e6e22c5c44ed2db3893094f",
+      "installedSha256": "a1c69b3a541ef772d6984323c025bba33acb01131e6e22c5c44ed2db3893094f"
     },
     {
       "path": "lib/connection.js",
-      "sha256": "d8662f209966d1891b0bfb44221969870c0df13366ed3561291a8e8d1d03a15b",
-      "installedSha256": "d8662f209966d1891b0bfb44221969870c0df13366ed3561291a8e8d1d03a15b"
+      "sha256": "aaa0e242dc13edef82fb245531ac82b2a816d3958a72e056fcb76ebf1aec1790",
+      "installedSha256": "aaa0e242dc13edef82fb245531ac82b2a816d3958a72e056fcb76ebf1aec1790"
     },
     {
       "path": "lib/data-health.js",
-      "sha256": "a70617312fbde3b7ffd5e14f9bd6cd3f4b863134b88c1573682748270500be21",
-      "installedSha256": "a70617312fbde3b7ffd5e14f9bd6cd3f4b863134b88c1573682748270500be21"
+      "sha256": "f200d4d0f67dab695b50a1ff62efab2a3477b0d0e19a6877b261caff1157528e",
+      "installedSha256": "f200d4d0f67dab695b50a1ff62efab2a3477b0d0e19a6877b261caff1157528e"
     },
     {
       "path": "lib/data-repair-worker.mjs",
-      "sha256": "53ae30ccb291c8cfe2851972d259dcee37cc593916ef1ed2a75537b449281e8c",
-      "installedSha256": "53ae30ccb291c8cfe2851972d259dcee37cc593916ef1ed2a75537b449281e8c"
+      "sha256": "ab49ed5ecdc0afccd97345029b90a1084609124504417f376b577305170044db",
+      "installedSha256": "ab49ed5ecdc0afccd97345029b90a1084609124504417f376b577305170044db"
     },
     {
       "path": "lib/diagnostics.js",
-      "sha256": "3b7cd7575f5223e857f48dfd6d4b73069e66de198ff11e8b9cbeb27400f62fb7",
-      "installedSha256": "3b7cd7575f5223e857f48dfd6d4b73069e66de198ff11e8b9cbeb27400f62fb7"
+      "sha256": "58662681d67fd28f5be4a2fd59efdabcf7dca5c1e4ab14a7b0df9a5b918e1395",
+      "installedSha256": "58662681d67fd28f5be4a2fd59efdabcf7dca5c1e4ab14a7b0df9a5b918e1395"
     },
     {
       "path": "lib/dsh-file-catalog.json",
-      "sha256": "526c604feec02fd9e47df3a89bb0658d8845f45d379dd780843ed4226d0c9fb7",
-      "installedSha256": "526c604feec02fd9e47df3a89bb0658d8845f45d379dd780843ed4226d0c9fb7"
+      "sha256": "ce4e5b56bb8461c01627bfa6e0cb194d2f37a682612f67986f56741cdec1a1b6",
+      "installedSha256": "ce4e5b56bb8461c01627bfa6e0cb194d2f37a682612f67986f56741cdec1a1b6"
     },
     {
       "path": "lib/exit-sync.mjs",
-      "sha256": "4b6a713488edb219dcd74db68b204ca0b98742199d742a444c6e63ded9337adc",
-      "installedSha256": "4b6a713488edb219dcd74db68b204ca0b98742199d742a444c6e63ded9337adc"
+      "sha256": "f6d8c5b8d931a9f56ade42f8cf03018ac0d1798268e09ef6c0f23c56228c54ff",
+      "installedSha256": "f6d8c5b8d931a9f56ade42f8cf03018ac0d1798268e09ef6c0f23c56228c54ff"
     },
     {
       "path": "lib/handoff.js",
-      "sha256": "da859f2493c9f4defdca8d26679cbc9f56c084c987c9d9fbc12363fb29a5ced1",
-      "installedSha256": "da859f2493c9f4defdca8d26679cbc9f56c084c987c9d9fbc12363fb29a5ced1"
+      "sha256": "e7fa1c77915cfaee92bae3a437d23512c4c0f2dea878e96aa5f84e9968bd20de",
+      "installedSha256": "e7fa1c77915cfaee92bae3a437d23512c4c0f2dea878e96aa5f84e9968bd20de"
     },
     {
       "path": "lib/host-grouping.js",
-      "sha256": "487001282e5a8eea9c386d22c41197f9600c156b55d6c15c8758e5eee34f92d7",
-      "installedSha256": "487001282e5a8eea9c386d22c41197f9600c156b55d6c15c8758e5eee34f92d7"
+      "sha256": "b05642ff6000a0bf9beb280597e70c2f8c244e05541b4cb695393c6e71a69ac1",
+      "installedSha256": "b05642ff6000a0bf9beb280597e70c2f8c244e05541b4cb695393c6e71a69ac1"
     },
     {
       "path": "lib/host-sync.js",
-      "sha256": "f06df6782bad93fc46185be0b29eaf39b4b6d4bdc3e0151546e0773edb63168e",
-      "installedSha256": "f06df6782bad93fc46185be0b29eaf39b4b6d4bdc3e0151546e0773edb63168e"
+      "sha256": "c24ea49252aa7d972bcade8412e39a001ebac595fa91d3fc9a572659ae702da4",
+      "installedSha256": "c24ea49252aa7d972bcade8412e39a001ebac595fa91d3fc9a572659ae702da4"
     },
     {
       "path": "lib/index.js",
-      "sha256": "68f5b52f46e1c2aef7a0627c0f8af7c2073d55db434369ecd5fbeb56549aa4ff",
-      "installedSha256": "68f5b52f46e1c2aef7a0627c0f8af7c2073d55db434369ecd5fbeb56549aa4ff"
+      "sha256": "8b735b7455b201017d0d113bdad1ab2a4bf793f2e1f7b875e5ea2975c671429c",
+      "installedSha256": "8b735b7455b201017d0d113bdad1ab2a4bf793f2e1f7b875e5ea2975c671429c"
     },
     {
       "path": "lib/merge.js",
-      "sha256": "840430ccc55d5c75763641c52d583926b28b7688ae126210b55b76e0929e5a4b",
-      "installedSha256": "840430ccc55d5c75763641c52d583926b28b7688ae126210b55b76e0929e5a4b"
+      "sha256": "24a65d27c926c6d756f6b17999b6b1c31325f2308752470ca8d7e0e6fa6797d6",
+      "installedSha256": "24a65d27c926c6d756f6b17999b6b1c31325f2308752470ca8d7e0e6fa6797d6"
     },
     {
       "path": "lib/patches.js",
-      "sha256": "73a3be41b70a89769fe4ab35467d61a84445e6e6f64d5e8fe2cbbd564f8a2288",
-      "installedSha256": "73a3be41b70a89769fe4ab35467d61a84445e6e6f64d5e8fe2cbbd564f8a2288"
+      "sha256": "f19fa487f156560c1a850bf4455b2812cda015db49981cf55f22dcd3eb4df0f8",
+      "installedSha256": "f19fa487f156560c1a850bf4455b2812cda015db49981cf55f22dcd3eb4df0f8"
     },
     {
       "path": "lib/privacy-copy.js",
-      "sha256": "df4a58c55695be853fdd16fc0cbadc3bcc388eec9d796778ea994d958ef4421f",
-      "installedSha256": "df4a58c55695be853fdd16fc0cbadc3bcc388eec9d796778ea994d958ef4421f"
+      "sha256": "04a2fd801334f06a32e7c5732ed7cbe9d1b9714b7c92c7f0a14a1b39e938f1ba",
+      "installedSha256": "04a2fd801334f06a32e7c5732ed7cbe9d1b9714b7c92c7f0a14a1b39e938f1ba"
     },
     {
       "path": "lib/privacy.js",
-      "sha256": "23169ae519b5aa3f9d561d0edea23f3f45b7cefa127322fe32c1fd4a6a97b84d",
-      "installedSha256": "23169ae519b5aa3f9d561d0edea23f3f45b7cefa127322fe32c1fd4a6a97b84d"
+      "sha256": "23717d3e032200c306e3b4e8926cfe2b4b6803e3dc469b09ea93c8cebd847b07",
+      "installedSha256": "23717d3e032200c306e3b4e8926cfe2b4b6803e3dc469b09ea93c8cebd847b07"
     },
     {
       "path": "lib/recovery-guide.js",
-      "sha256": "7690359bbcac1de60c0e92d2bf5c95a6e21c4195cee60cbdcaa7b6995a7d969f",
-      "installedSha256": "7690359bbcac1de60c0e92d2bf5c95a6e21c4195cee60cbdcaa7b6995a7d969f"
+      "sha256": "39515476417cb33f9e2dfd8c902993e9bbf4c6585c7edf8f914385812702555d",
+      "installedSha256": "39515476417cb33f9e2dfd8c902993e9bbf4c6585c7edf8f914385812702555d"
     },
     {
       "path": "lib/recovery.js",
-      "sha256": "09222d3f3792d6116446bd45b75435a22a0f220873d05317f7d07c55ff5bba7a",
-      "installedSha256": "09222d3f3792d6116446bd45b75435a22a0f220873d05317f7d07c55ff5bba7a"
+      "sha256": "7a36fdf98e7d259697a1e0af42b03c457c061021884ffa1f463105333414027f",
+      "installedSha256": "7a36fdf98e7d259697a1e0af42b03c457c061021884ffa1f463105333414027f"
     },
     {
       "path": "lib/remote.js",
-      "sha256": "527af127390563204813a8ae3742dcf08c021e8262579140d29565346c6f3dd8",
-      "installedSha256": "527af127390563204813a8ae3742dcf08c021e8262579140d29565346c6f3dd8"
+      "sha256": "8ae2f7a482831691c83105e3d85d6be57f5b41892b5aaf8a6749fb47e102b05c",
+      "installedSha256": "8ae2f7a482831691c83105e3d85d6be57f5b41892b5aaf8a6749fb47e102b05c"
     },
     {
       "path": "lib/review.js",
-      "sha256": "906d6955cc13b36589870ced757e2334823429369fe2132132a2e6aece0a51eb",
-      "installedSha256": "906d6955cc13b36589870ced757e2334823429369fe2132132a2e6aece0a51eb"
+      "sha256": "4ef70fdd57f6943d7e139c8bfc92bc45631eed0500b1607db1dfa0617abd3624",
+      "installedSha256": "4ef70fdd57f6943d7e139c8bfc92bc45631eed0500b1607db1dfa0617abd3624"
     },
     {
       "path": "lib/scheduler.js",
-      "sha256": "498c526414d8e10b361d84c2cfe4fb8887ef9e2b1e38fd314d3c795d7a7da52a",
-      "installedSha256": "498c526414d8e10b361d84c2cfe4fb8887ef9e2b1e38fd314d3c795d7a7da52a"
+      "sha256": "ce1c3e614d07411415cea9a4204f4571575f9f8019a3dd4775ac2ba1cf4fd5e2",
+      "installedSha256": "ce1c3e614d07411415cea9a4204f4571575f9f8019a3dd4775ac2ba1cf4fd5e2"
     },
     {
       "path": "lib/scope.js",
-      "sha256": "d0b1f1cb725bb9f31ee8becc5fb270fcb6eb14a02bb776d262a0223ca64304b6",
-      "installedSha256": "d0b1f1cb725bb9f31ee8becc5fb270fcb6eb14a02bb776d262a0223ca64304b6"
+      "sha256": "842bb32d76aacf8053676000cabd2c47d6c978af3fa95d4d1986a8aed2e4ca97",
+      "installedSha256": "842bb32d76aacf8053676000cabd2c47d6c978af3fa95d4d1986a8aed2e4ca97"
     },
     {
       "path": "lib/send-guard.js",
-      "sha256": "96dc26505f33aee05aa431ca42bd21922bcaf0e5ac3533079510c9e19ea8cd28",
-      "installedSha256": "96dc26505f33aee05aa431ca42bd21922bcaf0e5ac3533079510c9e19ea8cd28"
+      "sha256": "be7f6455a14540439b9a8213a1f29e3c5424253db765e2f67e1e51cb088a992e",
+      "installedSha256": "be7f6455a14540439b9a8213a1f29e3c5424253db765e2f67e1e51cb088a992e"
     },
     {
       "path": "lib/session-activity.js",
-      "sha256": "6f01672a99223d10c20d457de29fbda54ab7e6dad6145a7163daf31465a872e4",
-      "installedSha256": "6f01672a99223d10c20d457de29fbda54ab7e6dad6145a7163daf31465a872e4"
+      "sha256": "b5313e34cbde7ef05de28f10169d44a4e091934b5c0657dfb70e1859bc24bd58",
+      "installedSha256": "b5313e34cbde7ef05de28f10169d44a4e091934b5c0657dfb70e1859bc24bd58"
     },
     {
       "path": "lib/session-path.js",
-      "sha256": "20a46f09704d4659d44a0d396fa9d881fcb614d804e53880cadbf2ae38464ca5",
-      "installedSha256": "20a46f09704d4659d44a0d396fa9d881fcb614d804e53880cadbf2ae38464ca5"
+      "sha256": "7a675d8fe611258875ca21b79068d49662f90e0342e18d28cb4f4490e7547bfd",
+      "installedSha256": "7a675d8fe611258875ca21b79068d49662f90e0342e18d28cb4f4490e7547bfd"
     },
     {
       "path": "lib/session-recovery.js",
-      "sha256": "971b16f94d0112de1f6697d69621b89bb0730ee547542bd6fd4be0899f1d0afe",
-      "installedSha256": "971b16f94d0112de1f6697d69621b89bb0730ee547542bd6fd4be0899f1d0afe"
+      "sha256": "1aabd302bcc412318afc7215bf8d60ce4274101a798bfbca38860ef7c4868ddd",
+      "installedSha256": "1aabd302bcc412318afc7215bf8d60ce4274101a798bfbca38860ef7c4868ddd"
     },
     {
       "path": "lib/session-relocation.js",
-      "sha256": "81c025e7440d7dc7e1fd82e66af09318e4602620f96d907c7f4556d279783420",
-      "installedSha256": "81c025e7440d7dc7e1fd82e66af09318e4602620f96d907c7f4556d279783420"
+      "sha256": "d659aa1439529495475305c7111c84a0cd7117130d0e2e16710b241d622c65be",
+      "installedSha256": "d659aa1439529495475305c7111c84a0cd7117130d0e2e16710b241d622c65be"
     },
     {
       "path": "lib/session-removals.js",
-      "sha256": "306921c6766d600be7ca69a3f03a6dcdc49216ff9ea31c4ac038f9aacc494965",
-      "installedSha256": "306921c6766d600be7ca69a3f03a6dcdc49216ff9ea31c4ac038f9aacc494965"
+      "sha256": "ad6678665108d9cef6494ab89b1350beb4ff0dfd49f7d16d881736afd3e4a239",
+      "installedSha256": "ad6678665108d9cef6494ab89b1350beb4ff0dfd49f7d16d881736afd3e4a239"
     },
     {
       "path": "lib/session-repair.js",
-      "sha256": "01e8007e14a7eae3b6bc24eb13eecd86952a959ac7b9263868f4cc63bb81d562",
-      "installedSha256": "01e8007e14a7eae3b6bc24eb13eecd86952a959ac7b9263868f4cc63bb81d562"
+      "sha256": "214da1c0a57803f40330b99c7d9b413a08440067207b853e4506ab36665ba541",
+      "installedSha256": "214da1c0a57803f40330b99c7d9b413a08440067207b853e4506ab36665ba541"
     },
     {
       "path": "lib/session-safety.js",
-      "sha256": "be0e84dea18d32d27247554b2a755fa522a81757d71f1de965181749fefa2a48",
-      "installedSha256": "be0e84dea18d32d27247554b2a755fa522a81757d71f1de965181749fefa2a48"
+      "sha256": "6772d622b5450b1f024b3b0aa3a60351b04123eb4b5a3b34b4da533eef38af27",
+      "installedSha256": "6772d622b5450b1f024b3b0aa3a60351b04123eb4b5a3b34b4da533eef38af27"
     },
     {
       "path": "lib/session-transfer.js",
-      "sha256": "8c0bb03a3360aa4167078f15b7151f03ffaf9fb8b9381cd6a7135f81004579c7",
-      "installedSha256": "8c0bb03a3360aa4167078f15b7151f03ffaf9fb8b9381cd6a7135f81004579c7"
+      "sha256": "aa2de6dd581e9578e085096dd17e4e8e5cd35ca4ab6caa9968773ab9d58c53c0",
+      "installedSha256": "aa2de6dd581e9578e085096dd17e4e8e5cd35ca4ab6caa9968773ab9d58c53c0"
     },
     {
       "path": "lib/sync.js",
-      "sha256": "3ac5ed7212a531e4d258910379f4fcfa37df815d765847ff84330b27f5eddce1",
-      "installedSha256": "3ac5ed7212a531e4d258910379f4fcfa37df815d765847ff84330b27f5eddce1"
+      "sha256": "ed828c31a65ea18ef6a663446934c30eaa78a7721ea3539287673dd579d6136d",
+      "installedSha256": "ed828c31a65ea18ef6a663446934c30eaa78a7721ea3539287673dd579d6136d"
     },
     {
       "path": "lib/updates.js",
-      "sha256": "428db50098ae547e6f9f418a547d51fd9f61caf882f40cad4cdb12d628572515",
-      "installedSha256": "428db50098ae547e6f9f418a547d51fd9f61caf882f40cad4cdb12d628572515"
+      "sha256": "30bd3b5ef2793edc701a8a2743b1dbe6ab2e2acbbf6a878821a4b6912ad3c9d4",
+      "installedSha256": "30bd3b5ef2793edc701a8a2743b1dbe6ab2e2acbbf6a878821a4b6912ad3c9d4"
     },
     {
       "path": "lib/windows-output.js",
-      "sha256": "c50df6eead8ddf701febb2147d1e0d3a86e96dfd81e803eb9bc710052eacbc72",
-      "installedSha256": "c50df6eead8ddf701febb2147d1e0d3a86e96dfd81e803eb9bc710052eacbc72"
+      "sha256": "7fc8ab8afd6816cfbdcb8f2052844ba8ec811b6bf34ec7f42e9f3fad4f0a8f0f",
+      "installedSha256": "7fc8ab8afd6816cfbdcb8f2052844ba8ec811b6bf34ec7f42e9f3fad4f0a8f0f"
     },
     {
       "path": "lib/workspace-target.js",
-      "sha256": "d21519e64dbefe6230fa0ef5f3a759192ad512848485cc6def5d30fcfc54ca36",
-      "installedSha256": "d21519e64dbefe6230fa0ef5f3a759192ad512848485cc6def5d30fcfc54ca36"
+      "sha256": "fbbab6dcf977a7357df088cf9bd27a8f3a7ca1067af5ea8922c97c9a63e4b9e0",
+      "installedSha256": "fbbab6dcf977a7357df088cf9bd27a8f3a7ca1067af5ea8922c97c9a63e4b9e0"
     },
     {
       "path": "lib/yaml.js",
-      "sha256": "98842924d6af3bc8f7129db5c0f85f0a20bb194bf6b238328ee7a77c04739233",
-      "installedSha256": "98842924d6af3bc8f7129db5c0f85f0a20bb194bf6b238328ee7a77c04739233"
+      "sha256": "d3e21d7bab63b88d1a8793e061392e912239595f190aad587840eaaaee80763a",
+      "installedSha256": "d3e21d7bab63b88d1a8793e061392e912239595f190aad587840eaaaee80763a"
     }
   ]
 }

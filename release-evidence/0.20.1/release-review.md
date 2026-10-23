@@ -6,7 +6,9 @@
 
 按用户最后指令，新增无前缀的 **chatsync** npm 安装名称；原 `@dpskk2/dsh-chatsync` 保留，旧用户不必迁移。官方“添加插件”实际接受精确安装包名，关键词不能替代包名。短名包由同一源码生成，仅替换包名、挂载名、前端模块身份和更新检查目标；自身包含相同实现，无额外运行依赖。实际短名包的独立安装、Desktop Host 服务往返和冷启动读回见 short-name-desktop.json。用户只需在“添加插件”输入 chatsync。
 
-这些最后的版本元数据、文档和短名制品调整没有重复全量回归。主包全部 lib 文件与完整回归及原生宿主已验证的文件哈希一致，见 candidate-audit.json 的 equivalence；原生测试保留实际执行包哈希，与最终发布包哈希明确区分。短名的更新命令和注册身份另做针对性检查。完整回归记录不冒充新元数据下重新执行。
+这些最后的版本元数据、文档和短名制品调整没有重复全量回归。主包全部 lib 文件在统一 CRLF/LF 后与完整回归已验证的文件一致，见 candidate-audit.json 的 equivalence；原生测试保留实际执行包哈希，与最终发布包哈希明确区分。最终 LF 主包另执行实际 Desktop Host 子场景并通过。短名的更新命令和注册身份另做针对性检查。完整回归记录不冒充新元数据下重新执行。
+
+首次发布任务 39920522686 在 npm 发布前因包哈希不一致停止。原因是 Windows 的 git archive 受 core.autocrlf 影响，早期候选含 CRLF，而 Linux 构建使用 LF。现显式使用 core.autocrlf=false，最终主包 SHA256 为 cbaa924bda6154c6857db62f74d8b44af8f87a5e58a5d83729c5d9191c86fd05，与 Linux 诊断构建逐字节相同。已发布短名包始终从 Git 原始 LF 内容生成，SHA256 保持 3d83756fabea13e99adb0a2d253d09ae992542cb1ec5c31e8dd10d3ef4f98776。此次重试只补查发布门禁、更新目标和打包，不重复完整产品回归。
 
 ## 发布决定
 
@@ -28,7 +30,7 @@
 
 ## 实际检查与证据文件
 
-- standalone-result.json、standalone-suite.log、standalone-patch.log：独立 Node 完整回归、终态和补丁断言。完整回归开始后只调整了文档链接、发布流程的制品校验值路径，以及门禁对“已安装但未目视完整 Desktop 窗口”的未验证状态记录；运行代码、依赖、默认值和 tgz 字节不变。最终门禁单独在两个运行环境各补跑 13 项检查，见 policy-supplement 日志。
+- standalone-result.json、standalone-suite.log、standalone-patch.log：独立 Node 完整回归、终态和补丁断言。其后调整版本元数据、文档、安装名称及发布门禁，并统一主包换行符为 LF；运行逻辑、依赖和默认值未变，运行源码按统一换行符核对一致。最终门禁单独在两个运行环境各补跑 13 项检查，见 policy-supplement 日志。
 - desktop-result.json、desktop-suite.log、desktop-patch.log：Desktop 自带 Node/Electron 完整回归，实际运行时写入记录；它不等于真实宿主或窗口操作。
 - candidate-audit.json：从 Git 原始内容生成的 tgz、实际安装的全部原始包文件哈希、运行文件哈希及敏感扫描。原始包文件全部一致；测试支架另加，不修改运行源码。个人部署记录、机器名副本与输出目录不入包。
 - candidate-desktop.json：实际安装包加载于 DSH Desktop Host，合成数据 A→B→A、4 个会话、项目归属、附件哈希、重复重试及顺序重启读回。只有一台物理机，本地 Git，未打开 Electron 窗口。仅证明所列子场景，不能覆盖 native-runtime 或 candidate-install 的所有条件；candidate-install 同样保留 not-verified，并记录用户接受该未覆盖部分。

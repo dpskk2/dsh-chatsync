@@ -49,7 +49,7 @@ test('legacy and cache cleanup cannot upload pending secrets before the normal p
   }
 });
 
-test('legacy cleanup leaves executable configuration waiting for normal preview approval', { timeout: 90000 }, async t => {
+test('legacy cleanup still scans and uploads selected executable configuration without repeated approval', { timeout: 90000 }, async t => {
   const { home, remote, engine } = gitFixture(t);
   fs.writeFileSync(path.join(home, 'base.txt'), 'safe baseline\n');
   assert.equal((await engine.syncOnce('cleanup-test', { forceCommit: true })).error, undefined);
@@ -64,10 +64,9 @@ test('legacy cleanup leaves executable configuration waiting for normal preview 
   fs.writeFileSync(path.join(home, 'patches/cleanup-fixture.mjs'), 'export default {};\n');
   engine.syncOnce = SyncEngine.prototype.syncOnce.bind(engine);
   const value = await engine.syncOnce('cleanup-test', { forceCommit: true });
-  assert.equal(value.needsReview, true, JSON.stringify(value));
-  assert.equal(execFileSync('git', ['--git-dir', remote, 'rev-parse', 'main'], { encoding: 'utf8' }).trim(), before);
-  const accepted = await engine.syncOnce('cleanup-test', { forceCommit: true, approval: value.review.id });
-  assert.equal(accepted.error, undefined, JSON.stringify(accepted));
+  assert.equal(value.needsReview, undefined, JSON.stringify(value));
+  assert.equal(value.error, undefined, JSON.stringify(value));
+  assert.notEqual(execFileSync('git', ['--git-dir', remote, 'rev-parse', 'main'], { encoding: 'utf8' }).trim(), before);
   assert.equal(execFileSync('git', ['--git-dir', remote, 'show', 'main:patches/cleanup-fixture.mjs'], { encoding: 'utf8' }), 'export default {};\n');
 });
 
@@ -83,6 +82,9 @@ test('exit uploads and retries pin the checked commit when an external writer ad
         { [workspaceId]: { path: project, title: 'exit fixture' } } } }));
       engine.overrides.workspaceSync = true;
     }
+    assert.equal((await engine.syncOnce('exit-race-test', { forceCommit: true })).error, undefined);
+    // The implicit first round does not perform an extra approval retry. Settle
+    // first-run metadata before testing a race against an already checked head.
     assert.equal((await engine.syncOnce('exit-race-test', { forceCommit: true })).error, undefined);
     const gitdir = target === 'workspace' ? engine.workspaceGitDir(workspaceId) : null;
     const branch = target === 'workspace' ? engine.workspaceBranchOf(engine.loadConfig(), workspaceId) : 'main';

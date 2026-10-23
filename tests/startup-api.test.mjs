@@ -7,6 +7,17 @@ import { EventEmitter } from 'node:events';
 import { apply } from '../lib/index.js';
 import { SyncEngine } from '../lib/sync.js';
 
+test('startup failure includes file-level issues and technical detail in the modal snapshot', async t => {
+  t.mock.method(SyncEngine.prototype, 'syncOnce', async () => ({ error: 'blocked',
+    privacy: { label: '工作区 sample', root: 'C:/project', findings: [{ file: 'notes.txt', reasons: ['服务密钥格式'], matches: [{ line: 12 }] }] },
+    workspaces: { total: 2, synced: 1, errors: [{ id: 'sample', title: 'sample', error: 'push' }] } }));
+  const request = host(t, { autoPullOnStart: true }); await new Promise(resolve => setImmediate(resolve));
+  const state = await request('startup');
+  assert.equal(state.startup.phase, 'error'); assert.equal(state.startup.issues.length, 1);
+  assert.equal(state.startup.issues[0].file, 'notes.txt'); assert.deepEqual(state.startup.issues[0].lines, [12]);
+  assert.equal(state.startup.detail.workspaces.synced, 1);
+});
+
 test('startup can approve its exact pending transfer without leaving the modal', async t => {
   const id = 'a'.repeat(64), approvals = [];
   t.mock.method(SyncEngine.prototype, 'syncOnce', async (_reason, options) => {
@@ -76,6 +87,24 @@ function host(t, overrides = {}, inspect = () => {}) {
   };
 }
 
+test('background startup never schedules a restart while editing is allowed', async t => {
+  t.mock.method(SyncEngine.prototype, 'syncOnce', async () => ({ restartRequired: true }));
+  let checked = false;
+  t.mock.method(SyncEngine.prototype, 'maybeScheduleRepairRestart', result => { checked = result.restartRequired; return true; });
+  const request = host(t, { autoPullOnStart: true });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(checked, false);
+  assert.equal((await request('startup')).startup.phase, 'ready');
+});
+
+test('startup progress snapshot does not scan sessions or expose configuration', async t => {
+  const request = host(t);
+  t.mock.method(SyncEngine.prototype, 'sessionActivity', () => assert.fail('progress polling must not scan session logs'));
+  const state = await request('startup');
+  assert.equal(state.ok, true); assert.equal(state.startup.phase, 'ready');
+  assert.equal(typeof state.progress, 'object'); assert.equal(state.remote, undefined);
+});
+
 test('manual cancellation targets exactly one run, waits for local work and never reports success', async t => {
   t.mock.method(SyncEngine.prototype, 'sessionActivity', () => ({ available: true, activeCount: 0 }));
   let finish;
@@ -105,15 +134,14 @@ test('manual cancellation targets exactly one run, waits for local work and neve
   assert.equal((await request('cancel', { runId: next.runId })).ok, false);
 });
 
-test('manual cancellation cannot bypass the required startup offline choice', async t => {
-  t.mock.method(SyncEngine.prototype, 'sessionActivity', () => ({ available: true, activeCount: 0 }));
+test('background startup cancellation is available without a global offline dialog', async t => {
   let finish;
   t.mock.method(SyncEngine.prototype, '_syncOnce', () => new Promise(resolve => { finish = resolve; }));
   const request = host(t, { autoPullOnStart: true }); await new Promise(resolve => setImmediate(resolve));
-  const progress = await request('progress'); assert.equal(progress.canCancel, false);
-  const blocked = await request('cancel', { runId: progress.runId }); assert.equal(blocked.ok, false); assert.match(blocked.error, /启动同步弹窗/);
-  finish({}); await new Promise(resolve => setImmediate(resolve));
-  assert.equal((await request('status')).startup.phase, 'ready');
+  const progress = await request('progress'); assert.equal(progress.canCancel, true);
+  const stopping = request('cancel', { runId: progress.runId });
+  await new Promise(resolve => setImmediate(resolve)); finish({});
+  assert.equal((await stopping).ok, true);
 });
 
 test('startup and exit protection round trip independently of manual mode', async t => {

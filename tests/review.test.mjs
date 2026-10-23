@@ -16,12 +16,27 @@ function fixture(t) {
   const make = name => {
     const home = path.join(root, name); fs.mkdirSync(home);
     const engine = new SyncEngine(home, { remote, autoRepo: false, workspaceSync: false });
+    engine.requireTransferReview = true;
     engine.verifyPrivateRemote = async () => ({ ok: true });
     return engine;
   };
   const put = (engine, file, value) => { const p = path.join(engine.home, file); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, value); };
   return { root, remote, make, put };
 }
+
+test('ordinary startup uploads repeated package and lock changes without approval, including after engine recreation', { timeout: 90000 }, async t => {
+  const { remote, make, put } = fixture(t), a = make('implicit'); a.requireTransferReview = false;
+  for (const version of ['1.0.0', '1.0.1']) {
+    put(a, 'profiles/desktop/package.json', JSON.stringify({ dependencies: { 'fixture-plugin': version } }));
+    put(a, 'profiles/desktop/pnpm-lock.yaml', 'fixture-version: ' + version + '\n');
+    const result = await a.syncOnce('startup', { forceCommit: true });
+    assert.equal(result.error, undefined, JSON.stringify(result)); assert.equal(result.needsReview, undefined);
+  }
+  const again = new SyncEngine(a.home, { remote, autoRepo: false, workspaceSync: false });
+  again.verifyPrivateRemote = async () => ({ ok: true });
+  assert.equal((await again.syncOnce('startup', { forceCommit: true })).error, undefined);
+  assert.match(execFileSync('git', ['--git-dir', remote, 'show', 'main:profiles/desktop/package.json'], { encoding: 'utf8' }), /1\.0\.1/);
+});
 
 test('automatic first upload stops, stale confirmation cannot authorize changed contents, ordinary edits need no new confirmation', { timeout: 90000 }, async t => {
   const { remote, make, put } = fixture(t), engine = make('a');

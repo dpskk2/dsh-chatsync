@@ -1,4 +1,5 @@
 import { acceptFixturePreviews } from './helpers/reviewed-sync.mjs';
+import { removeFixture } from './helpers/fixture-cleanup.mjs';
 import { scopeMirrorPath } from '../lib/scope.js';
 import { DEFAULT_CONFIG } from '../lib/sync.js';
 import test from 'node:test';
@@ -19,7 +20,7 @@ const rows = n => [{ type: 'session', version: 4, id: 'session-11111111-1111-111
 const encode = r => zstdCompressSync(Buffer.from(r.map(JSON.stringify).join('\n') + '\n'));
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-safe-log-'));
-  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  t.after(() => removeFixture(root));
   const remote = path.join(root, 'remote.git');
   execFileSync('git', ['init', '--bare', remote], { stdio: 'ignore' });
   const device = name => {

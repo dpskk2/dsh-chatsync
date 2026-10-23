@@ -51,7 +51,7 @@ test('unavailable network retries later; missing or mismatched notes never inven
   }
 });
 
-function ui(data, { seen = new Map(), clipboard = async () => {} } = {}) {
+function ui(data, { seen = new Map(), clipboard = async () => {}, global = false, startupState = { ok:true,startup:{phase:'ready'},progress:{running:false} } } = {}) {
   let component, hooks = [], cursor = 0, effects = [], calls = 0;
   const slots = new Map();
   const react = {
@@ -67,7 +67,8 @@ function ui(data, { seen = new Map(), clipboard = async () => {} } = {}) {
       localStorage: { getItem: k => seen.get(k), setItem: (k, v) => seen.set(k, v) },
       navigator: { clipboard: { writeText: clipboard } },
       __ModuleLoader__: { load(def) { component = def.factory(() => react); } } },
-    fetch: async url => { assert.equal(url, '/dsh-sync/api/update'); calls++; return { json: async () => data }; },
+    fetch: async url => { calls++; if(url==='/dsh-sync/api/startup') return {ok:true,json:async()=>startupState}; assert.equal(url, '/dsh-sync/api/update'); return { json: async () => data }; },
+    AbortSignal,
     setInterval: () => 0, clearInterval() {}, setTimeout, clearTimeout,
   });
   component.apply({ slots: { inject: (_n, cb) => cb(), register: (meta, fn) => slots.set(meta.id, fn) } });
@@ -75,7 +76,7 @@ function ui(data, { seen = new Map(), clipboard = async () => {} } = {}) {
   const Notice = flatten(slots.get('dsh-sync-manage')({})).find(n => n.type?.name === 'UpdateNotice').type;
   hooks = []; effects = []; cursor = 0;
   return {
-    render(props = {}) { cursor = 0; return Notice(props); },
+    render(props = {}) { cursor = 0; return global ? slots.get('dsh-sync-startup')(props) : Notice(props); },
     async effects() { const pending = effects; effects = []; pending.forEach(fn => fn()); await new Promise(resolve => setImmediate(resolve)); },
     flatten, calls: () => calls,
   };
@@ -126,4 +127,25 @@ test('quiet when no release or check failed; busy sync defers first display', as
   assert.equal(seen.size, 0);
   assert.equal(h.render({ ...startup, busy: true }), null);
   h.render(startup); await h.effects(); assert.ok(h.render(startup));
+});
+
+
+test('registered startup overlay mounts the update popup without opening settings or relying on a removed sidebar footer', async () => {
+  for (const running of [false,true]) {
+    const h=ui(available,{global:true,startupState:{ok:true,startup:{phase:running?'running':'ready'},progress:{running}}});
+    let node=h.render();assert.equal(node.type.name,'UpdateNotice');assert.equal(node.props.startup,true);assert.equal(node.props.busy,true);
+    await h.effects();node=h.render();
+    assert.equal(node.type.name,'UpdateNotice');assert.equal(node.props.busy,running);
+    assert.equal(node.props.anchorRef,undefined);
+    assert.equal(h.calls(),1);
+  }
+});
+
+test('global popup positions itself in the viewport when no footer anchor exists', async () => {
+  const h=ui(available);const props={startup:true,busy:false};
+  h.render(props);await h.effects();h.render(props);await h.effects();
+  const tree=h.render(props);assert.ok(tree);
+  assert.equal(tree.type,'aside');assert.equal(tree.props.style.right,16);assert.equal(tree.props.style.top,56);
+  assert.match(tree.props.className,/dss-update-popup/);
+  h.flatten(tree).find(n=>n.props['aria-label']==='关闭更新提醒').props.onClick();assert.equal(h.render(props),null);
 });

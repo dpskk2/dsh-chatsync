@@ -1,4 +1,4 @@
-name: Publish to npm and GitHub Releases
+name: Publish npm and GitHub Release
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: write
-  id-token: write   # npm Trusted Publishing (OIDC):无需 NPM_TOKEN / 2FA,发布身份由 GitHub OIDC 提供
+  id-token: write
 
 jobs:
   publish:
@@ -20,7 +20,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '24.19.0'
+      - name: Pin packager
+        run: npm install --global npm@11.17.0 --ignore-scripts
 
       - name: Sanity check tag vs package version
         run: |
@@ -36,23 +38,26 @@ jobs:
           node scripts/release-notes.mjs
           git archive --format=zip --prefix="dsh-chatsync-${GITHUB_REF_NAME}/" --output="dsh-chatsync-${GITHUB_REF_NAME}-source.zip" HEAD
 
-      - name: Skip if version already on npm (idempotent)
-        run: |
-          PKG="$(node -p 'require("./package.json").version')"
-          if npm view "@dpskk2/dsh-chatsync@${PKG}" version >/dev/null 2>&1; then
-            echo "dsh-chatsync@${PKG} 已存在于 npm,跳过发布"
-            echo "ALREADY_PUBLISHED=true" >> "$GITHUB_ENV"
-          fi
-
-      - name: Install dependencies
-        run: npm install
-
       - name: Verify sync and upgrade compatibility before publishing
         run: npm test
 
-      - name: Publish to npm (Trusted Publishing / OIDC)
-        if: env.ALREADY_PUBLISHED != 'true'
-        run: npm publish --provenance
+      - name: Pack candidate and verify local safety evidence
+        run: |
+          mkdir -p work/release
+          npm pack --ignore-scripts --json --pack-destination work/release > work/release/pack.json
+          PACKAGE="$(node -p 'JSON.parse(require("fs").readFileSync("work/release/pack.json", "utf8"))[0].filename')"
+          node scripts/check-release-safety.mjs --package "work/release/$PACKAGE"
+          echo "RELEASE_PACKAGE=work/release/$PACKAGE" >> "$GITHUB_ENV"
+
+      - name: Publish verified package to npm
+        run: |
+          PKG="$(node -p 'require("./package.json").version')"
+          if npm view "@dpskk2/dsh-chatsync@$PKG" version >/dev/null 2>&1; then
+            npm pack "@dpskk2/dsh-chatsync@$PKG" --ignore-scripts --pack-destination /tmp
+            cmp "$RELEASE_PACKAGE" "/tmp/$(basename "$RELEASE_PACKAGE")"
+          else
+            npm publish "$RELEASE_PACKAGE" --ignore-scripts --provenance --access public
+          fi
 
       - name: Publish GitHub Release with source and changelog
         env:
@@ -60,9 +65,10 @@ jobs:
         run: |
           TAG="$GITHUB_REF_NAME"
           ARCHIVE="dsh-chatsync-${TAG}-source.zip"
+          sha256sum "$ARCHIVE" "$RELEASE_PACKAGE" > SHA256SUMS.txt
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$ARCHIVE" --clobber
+            gh release upload "$TAG" "$ARCHIVE" "$RELEASE_PACKAGE" SHA256SUMS.txt --clobber
             gh release edit "$TAG" --notes-file release-notes.md
           else
-            gh release create "$TAG" "$ARCHIVE" --verify-tag --title "$TAG" --notes-file release-notes.md
+            gh release create "$TAG" "$ARCHIVE" "$RELEASE_PACKAGE" SHA256SUMS.txt --verify-tag --title "$TAG" --notes-file release-notes.md
           fi

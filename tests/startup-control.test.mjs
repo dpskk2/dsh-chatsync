@@ -1,3 +1,4 @@
+import { removeFixture } from './helpers/fixture-cleanup.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -10,7 +11,7 @@ import { SyncEngine } from '../lib/sync.js';
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 function fixture(t) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-startup-control-'));
-  t.after(() => fs.rmSync(home, { recursive: true, force: true }));
+  t.after(() => removeFixture(home));
   return { home, engine: new SyncEngine(home, { autoRepo: false, workspaceSync: false }) };
 }
 

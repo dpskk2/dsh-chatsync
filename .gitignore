@@ -3,3 +3,6 @@ npm-debug.log*
 release-notes.md
 dsh-chatsync-*-source.zip
 /outputs/
+/work/
+/CURRENT-VERSION.json
+/当前版本说明.md

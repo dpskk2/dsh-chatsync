@@ -1,3 +1,4 @@
+import { removeFixture } from './helpers/fixture-cleanup.mjs';
 import { acceptFixturePreviews } from './helpers/reviewed-sync.mjs';
 import { scopeMirrorPath } from '../lib/scope.js';
 import { DEFAULT_CONFIG } from '../lib/sync.js';
@@ -44,7 +45,7 @@ function audit(buf) {
 }
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-issue4-stress-'));
-  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  t.after(() => removeFixture(root));
   const remote = path.join(root, 'remote.git');
   execFileSync('git', ['init', '--bare', remote], { stdio: 'ignore' });
   const make = name => {
@@ -80,7 +81,7 @@ function writer(file, start, seed, t) {
 
 test('the exact reported 7173 -> 7183 gap loses nine events and is rejected', t => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-issue4-overwrite-model-'));
-  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  t.after(() => removeFixture(root));
   const file = path.join(root, 'log.zstd');
   const original = baseRows(7174), late = Array.from({ length: 9 }, (_, i) => event(7174 + i, 'writer'));
   fs.writeFileSync(file, encode(original)); const staleSnapshot = fs.readFileSync(file);

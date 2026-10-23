@@ -11,6 +11,47 @@ import { parseYaml } from '../lib/yaml.js';
 import { acceptFixturePreviews } from './helpers/reviewed-sync.mjs';
 import { attachFixturePersistence } from './helpers/session-persistence.mjs';
 
+test('first scoped clone reuses local history without borrowing storage or seeding unsent commits', { timeout: 60000 }, async t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-reference-'));
+  t.after(() => removeFixture(root));
+  const remote = path.join(root, 'remote.git'), home = path.join(root, 'home');
+  const git = (args, cwd) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  git(['init', '--bare', '--initial-branch=main', remote]);
+  git(['clone', remote, home]);
+  git(['config', 'user.name', 'fixture'], home); git(['config', 'user.email', 'fixture@invalid'], home);
+  fs.writeFileSync(path.join(home, 'note.txt'), 'shared history');
+  git(['add', '.'], home); git(['commit', '-m', 'shared'], home); git(['push', 'origin', 'main'], home);
+  const remoteHead = git(['rev-parse', 'HEAD'], home);
+  fs.writeFileSync(path.join(home, 'note.txt'), 'unsent local edit');
+  git(['add', '.'], home); git(['commit', '-m', 'unsent'], home);
+  const localHead = git(['rev-parse', 'HEAD'], home);
+  const engine = new SyncEngine(home, { remote: new URL('file:///' + remote.replaceAll('\\', '/')).href, autoRepo: false, workspaceSync: false });
+  engine.verifyPrivateRemote = async () => ({ ok: true });
+  const original = engine.git.bind(engine); let checked = false;
+  engine.git = async (args, ...rest) => {
+    const result = await original(args, ...rest);
+    if (args[0] === 'clone') {
+      assert.equal(engine.ok(result), true, result.err);
+      assert.ok(args.includes('--dissociate')); assert.equal(args[args.indexOf('--reference-if-able') + 1], home);
+      const folder = scopeMirrorPath(home, engine.loadConfig());
+      assert.equal(git(['rev-parse', 'HEAD'], folder), remoteHead);
+      assert.notEqual(remoteHead, localHead);
+      assert.equal(fs.existsSync(path.join(folder, '.git/objects/info/alternates')), false);
+      git(['fsck', '--full'], folder);
+      // Verify the copied repository after its former reference disappears.
+      const sourceObjects = path.join(home, '.git/objects'), archivedObjects = path.join(home, '.git/fixture-objects');
+      fs.renameSync(sourceObjects, archivedObjects);
+      try { assert.equal(git(['show', 'HEAD:note.txt'], folder), 'shared history'); git(['fsck', '--full'], folder); }
+      finally { fs.renameSync(archivedObjects, sourceObjects); }
+      checked = true;
+    }
+    return result;
+  };
+  await engine.syncOnce('reference-check', { forceCommit: true });
+  assert.equal(checked, true); assert.equal(git(['rev-parse', 'HEAD'], home), localHead);
+  assert.equal(fs.readFileSync(path.join(home, 'note.txt'), 'utf8'), 'unsent local edit');
+});
+
 test('reusing a transport never stacks progress callbacks across retries', async t => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-progress-retry-'));
   t.after(() => removeFixture(home));
@@ -124,7 +165,7 @@ test('scoped transport keeps excluded remote data and local fields, and reenable
   assert.equal(fs.existsSync(path.join(b.home, 'attachments/file.txt')), false);
 });
 
-test('retrying an import preview retains the staged registry repair instead of changing its commit forever', { timeout: 90000 }, async t => {
+test('sync preserves intentional ungrouping instead of manufacturing registry repair', { timeout: 90000 }, async t => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-scope-review-'));
   t.after(() => removeFixture(root));
   const home = path.join(root, 'home'), remote = path.join(root, 'remote.git');
@@ -147,9 +188,9 @@ test('retrying an import preview retains the staged registry repair instead of c
     result = await engine.syncOnce('manual', { forceCommit: true, approval: result.review.id });
   }
   assert.equal(result.error, undefined, JSON.stringify(result));
-  assert.ok(directions.includes('download'), 'Registry repair must be previewed before live import');
+  assert.deepEqual(directions, [], 'Selected scope is imported without repeated transfer approval');
   const observed = JSON.parse(fs.readFileSync(path.join(home, 'storages', 'workspace.json')));
-  assert.ok(observed.tables.workspaces.fixture.sessionIds.includes(sessionId));
+  assert.deepEqual(observed.tables.workspaces.fixture.sessionIds, []);
 });
 
 // Runtime status/host ownership is machine-local even though the historical

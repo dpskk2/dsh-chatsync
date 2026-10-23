@@ -18,6 +18,8 @@ import os from 'node:os';
 import path from 'node:path';
 import * as zlib from 'node:zlib';
 import { SyncEngine } from '../lib/sync.js';
+import { classifyGrouping } from '../lib/host-grouping.js';
+const visibleUngroupedIds = engine => classifyGrouping(engine, fs.existsSync(path.join(engine.home, 'storages/workspace.json')) ? JSON.parse(fs.readFileSync(path.join(engine.home, 'storages/workspace.json'))) : {}).ordinaryIds;
 
 const { zstdCompressSync } = zlib;
 
@@ -72,14 +74,14 @@ const turnRows = [
 test('空白会话(从未 turn/start)不再计入未分组', { skip: !zstdCompressSync }, (t) => {
   const home = makeHome(t);
   writeSession(home, ID_A, blankRows);
-  assert.deepEqual(new SyncEngine(home).ungroupedSessionIds(), []);
+  assert.deepEqual(visibleUngroupedIds(new SyncEngine(home)), []);
 });
 
 test('开始过轮次的会话仍然计入未分组', { skip: !zstdCompressSync }, (t) => {
   const home = makeHome(t);
   writeSession(home, ID_A, blankRows);
   writeSession(home, ID_B, turnRows);
-  assert.deepEqual(new SyncEngine(home).ungroupedSessionIds(), [ID_B]);
+  assert.deepEqual(visibleUngroupedIds(new SyncEngine(home)), [ID_B]);
 });
 
 test('已登记的空白会话同样不计入(登记表优先,与是否空白无关)', { skip: !zstdCompressSync }, (t) => {
@@ -87,14 +89,14 @@ test('已登记的空白会话同样不计入(登记表优先,与是否空白无
   writeSession(home, ID_A, blankRows);
   writeSession(home, ID_B, turnRows);
   writeRegistry(home, [ID_A, ID_B]);
-  assert.deepEqual(new SyncEngine(home).ungroupedSessionIds(), []);
+  assert.deepEqual(visibleUngroupedIds(new SyncEngine(home)), []);
 });
 
 test('明文 session.jsonl 也按 turn/start 判定', (t) => {
   const home = makeHome(t);
   writeSession(home, ID_A, blankRows, { name: 'session.jsonl', compress: false });
   writeSession(home, ID_B, turnRows, { name: 'session.jsonl', compress: false });
-  assert.deepEqual(new SyncEngine(home).ungroupedSessionIds(), [ID_B]);
+  assert.deepEqual(visibleUngroupedIds(new SyncEngine(home)), [ID_B]);
 });
 
 test('帧边界切断一行 JSON 时仍能识别 turn/start', { skip: !zstdCompressSync }, (t) => {
@@ -106,16 +108,16 @@ test('帧边界切断一行 JSON 时仍能识别 turn/start', { skip: !zstdCompr
     zstdCompressSync(Buffer.from(turn.slice(12))),
   ]);
   writeSession(home, ID_C, [], { raw });
-  assert.deepEqual(new SyncEngine(home).ungroupedSessionIds(), [ID_C]);
+  assert.deepEqual(visibleUngroupedIds(new SyncEngine(home)), [ID_C]);
 });
 
 test('日志追加轮次后判定缓存失效(同一引擎实例内)', { skip: !zstdCompressSync }, (t) => {
   const home = makeHome(t);
   const { file } = writeSession(home, ID_A, blankRows);
   const engine = new SyncEngine(home);
-  assert.deepEqual(engine.ungroupedSessionIds(), []);
+  assert.deepEqual(visibleUngroupedIds(engine), []);
   fs.appendFileSync(file, zstdCompressSync(jsonl([{ type: 'turn/start', seq: 2, time: 3 }])));
-  assert.deepEqual(engine.ungroupedSessionIds(), [ID_A]);
+  assert.deepEqual(visibleUngroupedIds(engine), [ID_A]);
 });
 
 test('无法判定的日志按「有轮次」保守处理(宁可多报,不静默忽略真会话)', { skip: !zstdCompressSync }, (t) => {
@@ -125,7 +127,7 @@ test('无法判定的日志按「有轮次」保守处理(宁可多报,不静默
     zstdCompressSync(jsonl([{ type: 'permission/preset', seq: 0, time: 1 }])),
   ]);
   writeSession(home, ID_A, [], { raw: good.subarray(0, good.length - 2) }); // 末帧截断
-  assert.deepEqual(new SyncEngine(home).ungroupedSessionIds(), [ID_A]);
+  assert.deepEqual(visibleUngroupedIds(new SyncEngine(home)), [ID_A]);
 });
 
 test('扫描/幽灵清理口径不受影响:localSessionIds 仍包含空白会话', { skip: !zstdCompressSync }, (t) => {
@@ -134,5 +136,5 @@ test('扫描/幽灵清理口径不受影响:localSessionIds 仍包含空白会�
   writeSession(home, ID_B, turnRows);
   const engine = new SyncEngine(home);
   assert.deepEqual([...engine.localSessionIds()].sort(), [ID_A, ID_B]);
-  assert.deepEqual(engine.ungroupedSessionIds(), [ID_B]);
+  assert.deepEqual(visibleUngroupedIds(engine), [ID_B]);
 });

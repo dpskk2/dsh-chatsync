@@ -5,6 +5,59 @@ import os from 'node:os';
 import path from 'node:path';
 import { EventEmitter } from 'node:events';
 import { apply } from '../lib/index.js';
+import { SyncEngine } from '../lib/sync.js';
+import { RecoveryStore } from '../lib/recovery.js';
+
+test('recovery API explains saved records and identifies the actual build', async t => {
+  const request = host(t, {}, home => {
+    const store = new RecoveryStore(home);
+    const saved = store.save({ kind: 'main', path: 'storages/sync-meta/profiles/web/package.json.vmap.json' }, { local: Buffer.from('a'), remote: Buffer.from('b') });
+    store.finish(saved.id, { status: 'merged', kept: 'remote' });
+  });
+  const result = await request('recovery');
+  assert.equal(result.ok, true); assert.equal(result.records.length, 1);
+  assert.equal(result.records[0].guide.decision, 'none');
+  assert.equal(result.records[0].kept, 'remote');
+  assert.equal((await request('status')).buildRevision, JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url))).chatsyncBuild);
+});
+
+test('recovery archiving is reversible and corrupt or incomplete records remain visible', async t => {
+  let saved;
+  const request=host(t,{},home=>{const store=new RecoveryStore(home);saved=store.save({kind:'main',path:'settings.yaml',status:'merged'},{local:Buffer.from('a'),remote:Buffer.from('b')});});
+  const body={id:saved.id,expectedVersions:Object.fromEntries(['local','remote'].map(s=>[s,saved.versions[s].sha256]))};
+  assert.equal((await request('recovery/archive',{...body,expectedVersions:{local:'stale'}})).ok,false);
+  assert.equal((await request('recovery/archive',body)).ok,true);
+  assert.equal((await request('recovery')).records[0].category,'history');
+  assert.equal((await request('recovery/archive',{id:saved.id,archived:false})).ok,true);
+  assert.equal((await request('recovery')).records[0].category,'attention');
+});
+
+test('status exposes current repair verification even with no prior sync and clears after acknowledgment', async t => {
+  const request=host(t,{},home=>{
+    const folder=path.join(home,'.chatsync-local/data-repair');fs.mkdirSync(folder,{recursive:true});
+    fs.writeFileSync(path.join(folder,'verification.json'),'["completed-plan"]');
+  });
+  assert.equal((await request('status')).dataVerificationPending,true);
+  const blocked=await request('run',{});
+  assert.equal(blocked.ok,false);assert.equal(blocked.detail.dataVerificationPending,true);
+  assert.equal((await request('status')).lastDetail.dataVerificationPending,true);
+  assert.equal((await request('data-health/verify',{})).ok,true);
+  assert.equal((await request('status')).dataVerificationPending,false);
+});
+
+test('the manual restart endpoint is removed while data repair remains available', t => {
+  const request = host(t);
+  assert.equal(request.routes.has('/dsh-sync/api/restart'), false);
+  assert.equal(request.routes.has('/dsh-sync/api/data-health/scan'), true);
+});
+
+test('local grouping diagnosis is available without a configured sync remote', async t => {
+  const request = host(t, { autoRestartAfterRepair: true });
+  const result = await request('grouping');
+  assert.equal(result.ok, true); assert.equal(result.enabled, true);
+  assert.equal(result.count, 0); assert.equal(result.busy, false);
+  assert.equal(result.issueKey, null);
+});
 
 function host(t, overrides = {}, inspect = () => {}) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-config-api-'));
@@ -102,9 +155,12 @@ test('content range API rejects nonboolean fields and persists the effective sel
   const saved = await request('config', { contentScope: selected });
   assert.equal(saved.ok, true);
   assert.deepEqual(saved.config.contentScope, selected);
+  const localDir = path.join(home, '.chatsync-local');
+  const beforeDiagnostics = fs.readdirSync(localDir, { recursive: true }).sort();
+  assert.ok(beforeDiagnostics.some(name => String(name).includes('config-history')));
   assert.equal((await request('doctor')).repositoryInitialized, false);
   assert.equal((await request('preview')).initialized, false);
-  assert.equal(fs.existsSync(path.join(home, '.chatsync-local')), false);
+  assert.deepEqual(fs.readdirSync(localDir, { recursive: true }).sort(), beforeDiagnostics, 'read-only diagnostics do not create transport state');
 });
 
 test('restart repair is enabled by default and preserves an explicit opt-out', async t => {
@@ -226,3 +282,44 @@ test('status reports active sessions with the projection title for the restart g
 });
 
 test('removed independent backup routes are not registered', t => { const request=host(t);assert.equal([...request.routes.keys()].some(route=>route.includes('webdav')),false); });
+
+
+test('connection API verifies a custom private destination while default setup stays offline', async t => {
+  const calls=[];
+  t.mock.method(SyncEngine.prototype,'gh',async args=>{
+    calls.push(args);return {code:0,out:'{"visibility":"PRIVATE","viewerPermission":"WRITE"}'};
+  });
+  const request=host(t);
+  const custom=await request('connection',{remote:'https://github.com/team/dsh-sync2.git',expectedRemote:''});
+  assert.equal(custom.ok,true);assert.equal(custom.config.autoRepo,false);
+  assert.equal((await request('config')).config.remote,custom.config.remote);
+  assert.deepEqual(calls,[['repo','view','team/dsh-sync2','--json','visibility,viewerPermission']]);
+  const defaults=await request('connection',{remote:'',expectedRemote:custom.config.remote});
+  assert.equal(defaults.ok,true);assert.equal(defaults.config.remote,'');assert.equal(defaults.config.autoRepo,true);
+  assert.equal(calls.length,1);
+  assert.equal((await request('connection',{remote:'https://gitee.com/alice/data',expectedRemote:''})).ok,false);
+});
+
+
+test('sidebar visibility defaults on, persists separately and validates boolean values', async t => {
+  const request=host(t);const before=(await request('config')).config;
+  assert.equal(before.showSidebarSync,true);
+  const off=await request('config',{showSidebarSync:false});assert.equal(off.ok,true);assert.equal(off.config.showSidebarSync,false);
+  const current=(await request('config')).config;assert.equal(current.showSidebarSync,false);
+  for(const key of ['remote','branch','automatic','workspaceSync','autoPullOnStart','autoPushOnExit'])assert.equal(current[key],before[key]);
+  for(const invalid of ['false',null,0])assert.equal((await request('config',{showSidebarSync:invalid})).ok,false);
+  assert.equal((await request('config')).config.showSidebarSync,false);
+  assert.equal((await request('config',{showSidebarSync:true})).config.showSidebarSync,true);
+});
+
+test('sidebar-only writes remain available during synchronization without allowing transfer configuration changes', async t => {
+  let engine;const original=SyncEngine.prototype.loadConfig;
+  t.mock.method(SyncEngine.prototype,'loadConfig',function(){engine=this;return original.call(this);});
+  const request=host(t);engine.progress={running:true};engine.inFlight=Promise.resolve();
+  try {
+    assert.equal((await request('config',{showSidebarSync:false})).ok,true);
+    assert.equal((await request('config',{automatic:false})).ok,false);
+    assert.equal((await request('config',{showSidebarSync:true,remote:'https://github.com/alice/data.git'})).ok,false);
+    const config=(await request('config')).config;assert.equal(config.showSidebarSync,false);assert.equal(config.remote,'');
+  } finally {engine.inFlight=null;engine.progress=null;}
+});

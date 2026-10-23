@@ -89,7 +89,7 @@ async function bootDesktopHost(runtimeDir, home, readyEndpoint, options) {
     };
     try {
       const status = await request(readyEndpoint);
-      if (status.ok) return { child, url, request, home, readLog: () => log, kind: 'desktop' };
+      if (status.ok) return { child, url, openUrl: ready.url, request, home, readLog: () => log, kind: 'desktop' };
     } catch (error) { fatal = error.message; }
   }
   fs.writeFileSync(path.join(home, 'boot.log'), log + '\n' + (fatal || 'Desktop IPC readiness timed out'));

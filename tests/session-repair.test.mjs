@@ -9,7 +9,23 @@ import { zstdCompressSync } from 'node:zlib';
 import { SyncEngine } from '../lib/sync.js';
 import { digest, atomicJson } from '../lib/recovery.js';
 import { decodeZstdFrames } from '../lib/merge.js';
-import { prepareImportRescue, previewSessionRepair, repairSessionImport, rollbackSessionRepair } from '../lib/session-repair.js';
+import { prepareImportRescue, previewSessionRepair, repairSessionImport, rollbackSessionRepair, assertDshClosed } from '../lib/session-repair.js';
+
+test('offline Windows probe excludes only itself and continues to reject another Desktop process', { skip: process.platform !== 'win32' }, async () => {
+  // Execute the real PowerShell predicate against synthetic process snapshots.
+  const probe = entries => ({ ok: r => r.code === 0, async _spawn(command, args) {
+    assert.equal(command, 'powershell.exe');
+    const script = args.at(-1);
+    const fake = 'function Get-CimInstance { ConvertFrom-Json -InputObject ' + "'" + JSON.stringify(entries) + "'" + ' }; ';
+    const r = spawnSync(command, [...args.slice(0, -1), fake + script], { encoding: 'utf8', windowsHide: true });
+    return { code: r.status, out: r.stdout, err: r.stderr };
+  } });
+  const self = { ProcessId: process.pid, Name: 'DeepSeek Harness.exe', CommandLine: 'DeepSeek Harness.exe exit-sync.mjs' };
+  await assertDshClosed(probe([self]), true);
+  await assert.rejects(assertDshClosed(probe([self, { ProcessId: process.pid + 1, Name: 'DeepSeek Harness.exe', CommandLine: 'DeepSeek Harness.exe' }]), true), e => e.code === 'DSH_RUNNING');
+  await assert.rejects(assertDshClosed(probe([self, { ProcessId: process.pid + 2, Name: 'node.exe', CommandLine: 'node @deepseek-ai/dsh/lib/bin.js web' }]), true), e => e.code === 'DSH_RUNNING');
+  await assert.rejects(assertDshClosed(probe([self, { ProcessId: process.pid + 3, Name: 'node.exe', CommandLine: null }]), true), /无法确认/);
+});
 
 function fixture(t, compressed = false) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-session-repair-'));

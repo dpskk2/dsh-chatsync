@@ -1,12 +1,14 @@
 # ChatSync
 
+For damaged legacy logs, incorrect project membership, local path collisions, or divergent offline conversations, use the separate on-demand data check. Repairs are previewed, backed up, and applied after DSH exits; independent conversations remain separate branches. See the [repair and branch guide](docs/data-repair-0.20.1.md) (Chinese).
+
 Continue DeepSeek Harness sessions across Windows computers using your own **private GitHub repository**. Sync sessions, chat attachments, shareable settings and optional project files.
 
-This workspace contains the consolidated **0.20.1 local build**. This delivery does not publish to npm or GitHub Releases. See the [installation guide](docs/getting-started.md), [configuration and recovery](docs/configuration.md), and [validation record](docs/release-0.20.1-validation.md).
+**0.20.1** is available as a package and full source archive on [GitHub Releases](https://github.com/dpskk2/dsh-chatsync/releases/tag/v0.20.1). Physical two-device acceptance has not passed (not performed); the owner explicitly requested release with this limitation. The same version is published to npm. See the [installation guide](docs/getting-started.md), [configuration and recovery](docs/configuration.md), and [validation record](docs/release-0.20.1-validation.md).
 
 ## Everyday use
 
-The first setup has three steps: connect a repository, choose content, then sync. Configured users enter a simple daily page with status and **Sync now**. Settings, conflict recovery, device receipts and diagnostics are available in expandable sections.
+Open **Sync** in the sidebar or Settings. First setup has three steps: set a backup destination, choose content, then sync. Run `gh auth login --hostname github.com --git-protocol https --web` to authorize GitHub. Keep the address empty to create or reuse a private dsh-sync repository on the first sync; saving alone does not create it. Configured users see automation status and **Sync now**. Sync settings and backup destination management stay visible; conflict contents expand on demand; session and data repairs open on a dedicated page. The default main branch is handled internally and existing custom branches are preserved. Grouping checks live in Sync settings. Ordinary ungrouped and archived sessions do not trigger repair; a notice requires inconsistent membership or evidence of grouping lost during sync. The notice shows the number of ungrouped sessions and opens a dedicated processing page. Select a session, review its plan, and choose an existing local project to recover a separate conversation while retaining and archiving the original. Other repair plans may require fully exiting DSH before writing. Sync settings also provide direct access to the processing page; background startup never closes the editor automatically.
 
 New connections begin manually. Optional automation runs only at startup and after normal exit; there are no periodic or idle transfers during editing. Explicit existing startup, exit, pause and content choices are retained. A legacy manual configuration does not silently become automatic after upgrade. Closing the desktop window to the tray is not a full exit.
 
@@ -16,11 +18,13 @@ Content switches save immediately and reconcile failed or lost responses with ef
 
 Git fetch and merge use an isolated transport tree. Existing sessions are continued through public host persistence APIs, with writer ownership and fresh validation. Busy writers, divergent histories or missing capabilities retain originals and produce pending work; an explicit host-closed workflow is available when needed. Remote deletion does not directly delete local sessions.
 
-Transfers inspect complete session snapshots and unpublished Git history. First transfers, substantial deletion and settings or executable configuration changes require an explicit current preview. Cancellation stops at safe boundaries and cannot undo completed uploads or host writes.
+Transfers inspect complete session snapshots and unpublished Git history. Connecting a repository and selecting content authorizes ordinary transfers; changed plugin manifests no longer require repeated approval. Startup sync runs in the background. New sessions, workspaces and drafts remain usable. An attempted send to an unchecked or unapplied old session opens a blocking dialog, retaining text and attachments. The user reviews updated history and sends again after sync; nothing is automatically resent. Failed startup sync retries in the background. The sidebar icon indicates activity; progress and feedback stay inside the Sync page without covering the account menu. Background sync has no cancellation button.
 
 Conflict recovery preserves both originals, backs up project files before restoration, and can create a separate session through supported host APIs. Interrupted imports have bounded offline repair and rollback procedures. Format and host limitations are documented in the [configuration guide](docs/configuration.md).
 
-This version supports GitHub only. GitCode and independent WebDAV backup are excluded. Update notices never install automatically. Device receipts indicate content handoff, not successful use on another computer.
+Conflict records use a single file list with the path, time, merge result and a View content button. Originals open in a separate large dialog with highlighted differences, linked scrolling and difference navigation. Reference information is available in the [file catalog](docs/dsh-file-catalog.md) (Chinese).
+
+This version supports GitHub only. GitCode and independent WebDAV backup are excluded. Update notices never install automatically.
 
 ## Development
 

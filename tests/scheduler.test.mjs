@@ -3,6 +3,19 @@ import assert from 'node:assert/strict';
 import { createSyncScheduler } from '../lib/scheduler.js';
 import { DEFAULT_CONFIG } from '../lib/sync.js';
 const settle = () => new Promise(resolve => setImmediate(resolve));
+test('failed startup retries with bounded backoff, while success, cancellation and privacy stop retries', async () => {
+  const timers = new Map(), delays = []; let key = 0, count = 0;
+  const clock = { setTimeout(fn, ms) { delays.push(ms); timers.set(++key, fn); return key; }, clearTimeout(id) { timers.delete(id); } };
+  const scheduler = createSyncScheduler({ clock, loadConfig: () => ({ enabled: true, autoPullOnStart: true }),
+    sync: async () => ++count < 4 ? { error: 'offline' } : {} });
+  scheduler.refresh({ startup: true }); await settle();
+  for (let i = 0; i < 3; i++) { const [id, run] = timers.entries().next().value; timers.delete(id); run(); await settle(); }
+  assert.deepEqual(delays, [15000, 30000, 60000]); assert.equal(count, 4); assert.equal(timers.size, 0); scheduler.stop();
+  for (const result of [{ cancelled: true }, { error: 'sensitive', privacy: {} }]) {
+    const h = createSyncScheduler({ clock, loadConfig: () => ({ enabled: true }), sync: async () => result });
+    h.refresh({ startup: true }); await settle(); assert.equal(timers.size, 0); h.stop();
+  }
+});
 function setup(initial = {}) {
   const config = { ...DEFAULT_CONFIG, enabled:true, ...initial }, calls = [];
   let timers = 0;

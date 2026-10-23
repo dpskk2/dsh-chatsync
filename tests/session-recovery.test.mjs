@@ -112,7 +112,7 @@ test('changed recovered session is not overwritten by a repeated import', async 
 
 test('unknown formats and oversized original logs are refused', () => {
   assert.throws(() => decodeRecoverySession(Buffer.from('{"version":99}\n'), catalog), /unsupported/);
-  assert.throws(() => decodeRecoverySession(Buffer.alloc(16 * 1024 * 1024 + 1), catalog), /16 MiB/);
+  assert.throws(() => decodeRecoverySession(Buffer.alloc(16 * 1024 * 1024 + 1), catalog, 16 * 1024 * 1024), /16 MiB/);
 });
 
 test('immutable fork plan survives an interrupted journal update and refuses tampering', async t => {

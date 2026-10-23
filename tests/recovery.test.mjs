@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { RecoveryStore, digest, restoreFile, safePath } from '../lib/recovery.js';
+import { RecoveryStore, digest, restoreFile, safePath, recoveryCategory } from '../lib/recovery.js';
 import { SyncEngine } from '../lib/sync.js';
 
 function setup(t) {
@@ -16,6 +16,28 @@ function setup(t) {
     { local: Buffer.from('original local'), remote: Buffer.from('original remote') });
   return { root, store, file, record };
 }
+
+test('archiving preserves originals and restoration access, validates hashes and can be undone', t => {
+  const { store, record } = setup(t);
+  const hashes = Object.fromEntries(['local','remote'].map(side => [side,record.versions[side].sha256]));
+  assert.throws(() => store.archive(record.id, { ...hashes, remote:'stale' }), /变化/);
+  store.archive(record.id,hashes);
+  const archived = store.read(record.id);
+  assert.equal(recoveryCategory(archived),'history'); assert.equal(archived.status,'merged');
+  assert.equal(store.preview(record.id).remote.text,'original remote');
+  store.archive(record.id,null,false); assert.equal(recoveryCategory(store.read(record.id)),'attention');
+  store.finish(record.id,{imports:{local:{status:'pending'}}});
+  assert.throws(() => store.archive(record.id,hashes),/未完成/);
+  assert.equal(recoveryCategory({...archived,imports:{local:{status:'pending'}}}),'attention');
+  store.finish(record.id,{imports:{}});
+  fs.writeFileSync(path.join(store.directory(),record.id,'remote.bin'),'corrupted');
+  assert.throws(() => store.archive(record.id,hashes),/校验失败/);
+});
+
+test('repair previews and completed backups are history rather than unresolved merges', () => {
+  for (const kind of ['scope-backup','data-repair','restore-backup']) assert.equal(recoveryCategory({kind}),'history');
+  assert.equal(recoveryCategory({kind:'main',status:'pending'}),'attention');
+});
 
 test('selected restoration backs up the current file and can undo without touching unrelated files', t => {
   const { root, store, file, record } = setup(t);

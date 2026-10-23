@@ -1,4 +1,12 @@
-# ChatSync
+# DSH 接着聊 · ChatSync
+
+### Switch computers. Continue the conversation and the work.
+
+[![npm](https://img.shields.io/npm/v/chatsync?color=2563eb)](https://www.npmjs.com/package/chatsync)
+[![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.2.0--rc.1-0f766e)](#compatibility)
+[![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
+
+[Install](#install) · [Update](#update) · [中文](README.md) · [Source downloads](https://github.com/dpskk2/dsh-chatsync/releases/latest)
 
 Requires DSH >= 0.2.0-rc.1 (Desktop 0.2.1-rc.2 or newer recommended) and Node.js >= 24. In Add Plugin, enter **chatsync**. The existing **@dpskk2/dsh-chatsync** package remains available for existing users.
 
@@ -7,6 +15,37 @@ For damaged legacy logs, incorrect project membership, local path collisions, or
 Continue DeepSeek Harness sessions across Windows computers using your own **private GitHub repository**. Sync sessions, chat attachments, shareable settings and optional project files.
 
 **0.20.1** is available as a package and full source archive on [GitHub Releases](https://github.com/dpskk2/dsh-chatsync/releases/tag/v0.20.1). Physical two-device acceptance has not passed (not performed); the owner explicitly requested release with this limitation. The same version is published to npm. See the [installation guide](docs/getting-started.md), [configuration and recovery](docs/configuration.md), and [validation record](docs/release-0.20.1-validation.md).
+
+## Install
+
+In DSH, open Plugins → Add Plugin and enter `chatsync`. Restart DSH after installation. Fully exit the desktop app, including its tray process.
+
+Install [Git](https://git-scm.com/downloads/) and [GitHub CLI](https://cli.github.com/), then authorize GitHub:
+
+```powershell
+gh auth login --hostname github.com --git-protocol https --web
+```
+
+<details>
+<summary>Install from PowerShell</summary>
+
+Web:
+
+```powershell
+dsh plugin --profile web add chatsync
+```
+
+Windows Desktop (default installation path; fully exit first):
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add chatsync
+```
+
+</details>
+
+Existing installations of `@dpskk2/dsh-chatsync` may keep using that package name. Do not install both names together. For local package installation, see the [installation guide](docs/getting-started.md).
+
+![First setup in an isolated, fresh DSH profile](https://raw.githubusercontent.com/dpskk2/dsh-chatsync/main/docs/assets/readme/first-setup.jpg)
 
 ## Everyday use
 
@@ -40,3 +79,25 @@ npm pack --dry-run
 Tests must run from the source archive or checkout, not the npm installation. Unit tests, local Git fixtures, real host checks and physical two-computer acceptance are distinct evidence levels. See [validation](docs/release-0.20.1-validation.md), [contributing](CONTRIBUTING.md), and the [changelog](CHANGELOG.md).
 
 License: [MIT](LICENSE)
+
+## Update
+
+Read the [changelog](CHANGELOG.md), update the installed profile, then restart DSH. Fully exit Windows Desktop before updating.
+
+Web:
+
+```powershell
+dsh plugin --profile web update chatsync
+```
+
+Windows Desktop (default installation path):
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync
+```
+
+For an existing `@dpskk2/dsh-chatsync` installation, replace `chatsync` with that package name. Update reminders do not automatically install updates.
+
+## Compatibility
+
+DSH >= 0.2.0-rc.1; Desktop 0.2.1-rc.2 or newer recommended. Standalone use requires Node.js >= 24. Desktop uses its bundled runtime. See the [validation record](docs/release-0.20.1-validation.md) for the actual verification scope.

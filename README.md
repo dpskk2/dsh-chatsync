@@ -1,54 +1,156 @@
-# ChatSync
+<div align="center">
 
-本版最低支持 DSH **0.2.0-rc.1**，桌面端推荐 **0.2.1-rc.2 或更新版**；独立运行使用 Node.js 24 或更新版。这是本版验证范围的支持下限，不代表侧边栏接口从该版本才出现。插件管理 → 添加插件输入 **chatsync**；旧包名 **@dpskk2/dsh-chatsync** 继续提供同版本，已安装用户可沿用原包名。
+# DSH 接着聊
 
-在两台 Windows 电脑之间同步 DeepSeek Harness 的会话、聊天附件、可共享设置和项目文件，通过你自己的 **GitHub 私有仓库**接着使用。
+### 换台电脑，接着聊、接着做。
 
-**0.20.1** 通过 [GitHub Release](https://github.com/dpskk2/dsh-chatsync/releases/tag/v0.20.1) 提供安装包和完整源码。物理双机验收未通过（未执行），本次依用户决定先发布；也发布同版本 npm 包。[本地安装与使用](docs/getting-started.md) · [配置与恢复](docs/configuration.md) · [验证记录](docs/release-0.20.1-validation.md)
+把 DeepSeek Harness（DSH）的会话、附件、设置和项目文件带到另一台电脑。<br>
+数据存放在你自己的 **GitHub 私有仓库**中。
 
-## 日常怎么用
+[![npm](https://img.shields.io/npm/v/chatsync?color=2563eb)](https://www.npmjs.com/package/chatsync)
+[![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.2.0--rc.1-0f766e)](#兼容性)
+[![Desktop](https://img.shields.io/badge/Desktop-%E6%8E%A8%E8%8D%90%200.2.1--rc.2-2563eb)](#兼容性)
+[![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A524-43853d)](#兼容性)
+[![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
 
-点击侧边栏「同步」，按三步设置备份地址、选择内容、首次同步。也可从「设置 → 同步」进入。之后打开就是「日常同步」：查看状态，按需点击「立即同步」。
+[安装使用](#安装插件) · [首次设置](#第一次设置) · [换台电脑](#换台电脑接着使用) · [更新插件](#更新插件) · [详细指南](docs/getting-started.md) · [源码下载](https://github.com/dpskk2/dsh-chatsync/releases/latest) · [English](README.en.md)
 
-- **同步设置与备份地址管理**常驻显示，内容和自动同步开关即时保存；保存失败会显示实际值或要求重新读取。默认备份无需填写地址，首次点击同步才自动建仓；连接后隐藏地址输入框。自定义私有仓库保存前检查访问和写入权限。
-- **查看冲突内容。**按文件查看本机与远端原件，在独立窗口中对比差异、同步滚动。项目文件可选择版本恢复，会话可另存为独立副本。
-- **分组检查。** 正常未分组和归档会话不自动修复；只有项目登记不一致或存在同步归属丢失证据时才提示检查。处理页可查看方案，确认后恢复独立会话并保留原件。
-- **会话与数据修复。**从同步页打开处理页面，检查消息无法读取、项目分组等问题，查看修复备份。需要停机写入的方案会先预览和备份，再提示退出执行。两端离线产生分支时可保留独立会话。[修复与分支说明](docs/data-repair-0.20.1.md)
+</div>
 
-首次连接默认先手动使用。开启自动同步后，只在启动与正常退出时运行；聊天中没有周期或空闲上传。已有明确的启动、退出、暂停和内容选择保留。旧版纯手动配置不会因升级自动开启传输。
-
-桌面端关闭窗口到托盘不等于退出。从菜单完全退出后，独立进程等待日志落盘再上传，下次启动显示结果；断网、强退和立即关机可能留下待上传内容。
+![全新环境中的首次设置页面](https://raw.githubusercontent.com/dpskk2/dsh-chatsync/main/docs/assets/readme/first-setup.jpg)
 
 ## 能带走什么
 
-| 内容 | 使用方式 |
+| 接着做的事 | 同步内容 |
 | --- | --- |
-| 会话及项目归属 | 保留可确认的完整追加历史，兼容已支持的旧日志；分叉分别保留。 |
-| 聊天附件 | 对话中上传的图片和文件。 |
-| 可共享设置 | 保留另一台电脑自己的密钥、代理和本机路径。 |
-| 项目文件 | 项目目录中的文档、代码等，可单独关闭，并映射到本机路径。 |
+| 接着聊 | 会话记录、聊天附件，以及会话与项目的对应关系 |
+| 接着做 | 项目文件夹中的文档、代码等文件，可在新电脑设置保存位置 |
+| 少配一遍 | 可共享的模型、界面与插件配置；密钥、代理和本机路径各机保留 |
+| 自己掌握数据 | 通过自己的 GitHub 私有仓库传输 |
 
-关闭某类会暂停该类两个方向的同步，不删除远端已有内容。本机凭据、锁、缓存、日志和运行状态不参与传输。[完整范围](docs/sync-content.md)
+只想同步聊天，可关闭「项目文件」。关闭某类内容会暂停该类双向同步，远端已有内容保留。其他插件和项目依赖需在新电脑另装。[完整同步范围与排除规则](docs/sync-content.md)
 
-## 同步和恢复
+## 安装插件
 
-取回、合并在独立传输副本完成。运行中的会话通过宿主公开写入接口安全接续；占用、分叉或接口不支持时保留原件，必要时明确关闭宿主后再取回。远端删除不会直接删除本机会话。
+先准备能正常打开的 DSH、[Git](https://git-scm.com/downloads/) 和 [GitHub CLI](https://cli.github.com/)，以及可访问 GitHub 的网络。
 
-连接仓库并选择内容后，普通同步自动进行，不再逐次确认插件清单等变化。启动后台同步不阻塞进入；可立即新建会话、工作区和编辑草稿。只有向尚未核对或未完成写入的旧会话发送消息时才弹窗拦截，输入内容和附件保留；同步完成后由用户查看更新并再次发送。网络失败会后台重试，新会话仍可使用。侧栏同步图标显示运行状态，点击进入同步页查看当前阶段与结果；无需手动取消后台同步。
+**在 DSH 界面安装：** 打开「插件」→「添加插件」，输入 `chatsync`。安装后重新启动 DSH；桌面端需完全退出，包含托盘。
 
-上传前检查未上传历史中的敏感内容和会话完整性。日志损坏不会通过重编号或混排强行合并。冲突恢复、导入修复有格式与宿主限制，见[配置与恢复](docs/configuration.md)。
+<details>
+<summary>使用 PowerShell 安装（Web / Windows 桌面端）</summary>
 
-本版只连接 GitHub；不包含 GitCode 或 WebDAV 独立备份。保留可关闭的更新提醒、插件图标和只读状态/预览/诊断工具，不自动安装更新。
+**Web 端：**
 
-## 开发与验证
+```powershell
+dsh plugin --profile web add chatsync
+```
 
-需要 Node.js 24 和 Git，原生 ESM，无运行时 npm 依赖。测试从源码运行：
+**Windows 桌面端（默认安装位置）：** 先打开过一次桌面应用，再完全退出（含托盘），执行：
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add chatsync
+```
+
+两端都用就分别安装。自定义安装位置时调整命令中的路径。旧包名 `@dpskk2/dsh-chatsync` 继续提供同版本，原有安装可沿用，无需重复安装两个包名。
+
+</details>
+
+也可从 [GitHub Release](https://github.com/dpskk2/dsh-chatsync/releases/latest) 下载安装包，按[本地包安装指南](docs/getting-started.md#1-安装本地包)操作。
+
+## 登录 GitHub
+
+在 PowerShell 中执行，按提示在浏览器完成授权：
+
+```powershell
+gh auth login --hostname github.com --git-protocol https --web
+```
+
+如果询问是否让 Git 使用此账号，选择 **Yes**。两台电脑登录同一个 GitHub 账号，即可复用默认备份仓库。
+
+## 第一次设置
+
+重新打开 DSH，点击侧边栏「同步」，也可从「设置 → 同步」进入。
+
+**① 备份地址** — 点击「使用默认备份并继续」。首次同步时自动创建或复用 `dsh-sync` 私有仓库；使用已有仓库则点击「使用其他仓库」。
+
+**② 选择内容** — 按需勾选，修改即时保存。首次连接先手动使用，之后可开启自动同步。
+
+![选择同步内容](https://raw.githubusercontent.com/dpskk2/dsh-chatsync/main/docs/assets/readme/sync-scope.jpg)
+
+**③ 首次同步** — 点击「立即同步」，等待完成。确认上传成功后再换电脑；只生成本地快照不代表已经上传。
+
+<details>
+<summary>查看首次同步页面</summary>
+
+![首次同步页面](https://raw.githubusercontent.com/dpskk2/dsh-chatsync/main/docs/assets/readme/first-sync.jpg)
+
+</details>
+
+## 换台电脑接着使用
+
+1. 原电脑同步成功后，在新电脑安装插件并登录同一 GitHub 账号。
+2. 打开「同步」，使用默认备份；自定义仓库时，两台电脑使用相同仓库与分支。
+3. 同步取回后，检查会话、附件和项目文件，配置本机模型 API 密钥。界面提示需要重启时，完全退出后重新打开。
+
+其他插件和项目依赖需另装；项目目录不同可在同步设置中调整本机保存位置。[详细指南](docs/getting-started.md#4-换台电脑接着使用)
+
+## 日常使用
+
+**开工前同步，收工后同步，确认成功再换电脑。** 侧边栏点击「同步」→「立即同步」，查看状态与结果。
+
+开启自动同步后，在启动和正常退出时同步。聊天过程中没有周期或空闲上传。桌面端关闭到托盘不等于退出；断网、强退和立即关机可能留下待上传内容。
+
+同步设置和备份地址管理常驻显示。启动后台同步期间可新建会话、工作区并编辑草稿；旧会话尚未完成核对时，发送会提示等待，文字与附件保留，核对后由你再次发送。
+
+## 冲突与修复
+
+- **查看冲突内容：** 选择文件，点击「查看内容」对比双方原件。项目文件可选择版本恢复，会话分叉可另存为独立会话。
+- **会话与数据修复：** 在同步页打开处理页面，查看检查结果、预览方案并确认；需要停机的修复会提示完全退出，原件和备份保留。
+- **分组检查：** 正常未分组和归档会话不会自动修复；项目登记异常或存在同步归属丢失证据时才提示检查。
+
+[冲突与恢复](docs/configuration.md#冲突原件与项目文件恢复) · [历史数据修复与会话分支](docs/data-repair-0.20.1.md)
+
+## 更新插件
+
+先阅读[更新日志](CHANGELOG.md)，然后按已安装的端更新。更新后重启 DSH；桌面端先完全退出，包含托盘，再执行命令。
+
+**Web 端：**
+
+```powershell
+dsh plugin --profile web update chatsync
+```
+
+**Windows 桌面端（默认安装位置）：**
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync
+```
+
+如果原先安装的是 `@dpskk2/dsh-chatsync`，把命令中的 `chatsync` 换成原包名。插件更新提醒可关闭，不会自动安装更新。
+
+每个版本在 [GitHub Releases](https://github.com/dpskk2/dsh-chatsync/releases) 提供中文更新说明、安装包和完整源码 ZIP。安装插件使用包文件；研究或开发使用源码 ZIP，包含对应标签下受版本控制的源码、测试、脚本和文档，不含 Git 历史及依赖。
+
+## 数据与隐私
+
+同步前检查未上传历史中的敏感内容与会话完整性。本机凭据、锁、缓存及运行状态不参与传输；聊天、附件或项目文件中写入的密钥仍需自行处理，可用[排除规则](docs/sync-content.md)控制范围。
+
+会话仅接续可确认的完整追加记录，分叉保留独立版本，不强行混排。远端删除不会直接删除本机会话。重要资料请另留备份。[同步与恢复边界](docs/configuration.md)
+
+## 兼容性
+
+支持 DSH 的 Web 和 Windows 桌面端，最低 **0.2.0-rc.1**；桌面端推荐 **0.2.1-rc.2 或更新版**。独立运行要求 **Node.js 24 或更新版**，桌面端使用应用自带运行时。
+
+当前版本 **0.20.1**，只支持 GitHub，不含 GitCode 或 WebDAV 独立备份。物理双机验收未通过（未执行），本版依维护者决定先发布；具体已验证与未覆盖范围见[本版验证记录](docs/release-0.20.1-validation.md)。
+
+## 帮助与开发
+
+[安装与使用](docs/getting-started.md) · [配置与恢复](docs/configuration.md) · [同步范围](docs/sync-content.md) · [文件说明](docs/dsh-file-catalog.md) · [提交问题](https://github.com/dpskk2/dsh-chatsync/issues)
+
+开发需要 Node.js 24 和 Git，原生 ESM，无运行时 npm 依赖：
 
 ```powershell
 npm test
 npm pack --dry-run
 ```
 
-源码包、npm 安装包和真实宿主验证是不同的交付层次。当前测试结果及没有覆盖的范围见[0.20.1 验证记录](docs/release-0.20.1-validation.md)。[开发约定](CONTRIBUTING.md) · [更新日志](CHANGELOG.md)
-
-License: [MIT](LICENSE)
+源码测试、安装包检查与真实宿主验证分别记录。[开发约定](CONTRIBUTING.md) · [更新日志](CHANGELOG.md) · [MIT License](LICENSE)

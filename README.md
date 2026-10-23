@@ -39,19 +39,21 @@
 dsh plugin --profile web add chatsync
 ```
 
-**Windows 桌面端（默认安装位置）：** 先打开过一次桌面应用，再完全退出（含托盘），执行：
+**Windows 桌面端（为dsh默认安装位置，自定义安装位置时调整命令中的路径）：**
 
 ```powershell
 & "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add chatsync
 ```
 
-两端都用就分别安装。自定义安装位置时调整命令中的路径。旧包名 `@dpskk2/dsh-chatsync` 继续提供同版本，原有安装可沿用，无需重复安装两个包名。
+旧包名 `@dpskk2/dsh-chatsync` 继续提供同版本，原有安装可沿用，无需重复安装两个包名。
 
 </details>
 
 也可从 [GitHub Release](https://github.com/dpskk2/dsh-chatsync/releases/latest) 下载安装包，按[本地包安装指南](docs/getting-started.md#1-安装本地包)操作。
 
 ## 更新方式
+
+**如果原先安装的是 `@dpskk2/dsh-chatsync`，把命令中的 `chatsync` 换成原包名。** 插件更新提醒可关闭，不会自动安装更新。
 
 **Web 端：**
 
@@ -64,10 +66,6 @@ dsh plugin --profile web update chatsync
 ```powershell
 & "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync
 ```
-
-如果原先安装的是 `@dpskk2/dsh-chatsync`，把命令中的 `chatsync` 换成原包名。插件更新提醒可关闭，不会自动安装更新。
-
-每个版本在 [GitHub Releases](https://github.com/dpskk2/dsh-chatsync/releases) 提供中文更新说明、安装包和完整源码 ZIP。安装插件使用包文件；研究或开发使用源码 ZIP，包含对应标签下受版本控制的源码、测试、脚本和文档，不含 Git 历史及依赖。
 
 ## 第一次设置
 

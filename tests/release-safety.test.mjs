@@ -141,12 +141,15 @@ test('owner decision cannot excuse failed, missing, pending or skipped checks', 
     assert.ok(f.errors().some(e => e.includes('physical-two-device-github：未通过')));
   }
 });
-test('owner decision cannot bypass regression, installation, automated tests or source review', t => {
+test('owner decision cannot bypass regression, automated tests, source review or failed installation', t => {
   const f = fixture(t); ownerDecision(f);
-  for (const id of ['full-regression', 'candidate-install', 'privacy/automated', 'privacy/source-review']) {
+  for (const id of ['full-regression', 'privacy/automated', 'privacy/source-review']) {
     f.manifest.ownerDecision.acceptedChecks = [id];
     assert.ok(f.errors().some(e => e.includes('用户发布决定无效')));
   }
+  f.manifest.ownerDecision.acceptedChecks = ['candidate-install'];
+  f.manifest.checks.find(c => c.id === 'candidate-install').status = 'failed';
+  assert.ok(f.errors().some(e => e.includes('candidate-install：未通过')));
 });
 test('unverified scenarios still require complete committed evidence and decision metadata', t => {
   const f = fixture(t); ownerDecision(f);

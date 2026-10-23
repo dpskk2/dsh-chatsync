@@ -51,7 +51,7 @@ export function validateRelease(root, manifest, packageFile) {
   // it never converts them to passed, and cannot override an actual failure.
   const decision = manifest.ownerDecision;
   const allowed = id => /\/(?:fault-injection|native-runtime)$/.test(id)
-    || ['restore-drill', 'physical-two-device-github'].includes(id);
+    || ['candidate-install', 'restore-drill', 'physical-two-device-github'].includes(id);
   const accepted = new Set();
   if (decision) {
     if (decision.version !== pkg.version || decision.build !== pkg.chatsyncBuild

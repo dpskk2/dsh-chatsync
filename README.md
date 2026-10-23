@@ -1,6 +1,6 @@
 <div align="center">
 
-# DSH 接着聊
+# chatsync 接着聊
 
 ### 换台电脑，接着聊、接着做。
 

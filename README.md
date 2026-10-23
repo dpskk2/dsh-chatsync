@@ -1,6 +1,6 @@
 <div align="center">
 
-# chatsync 接着聊
+# chatsync 接着聊（99%AIGC⚠️）
 
 ### 换台电脑，继续做。
 

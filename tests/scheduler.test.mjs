@@ -24,8 +24,8 @@ function setup(initial = {}) {
     sync: async reason => { calls.push(reason); return {}; } });
   return { config, calls, scheduler, timerCount: () => timers };
 }
-test('new connections stay manual while startup and exit options remain selectable', () => {
-  assert.equal(DEFAULT_CONFIG.enabled,false);
+test('new connections enable automation while startup and exit options remain selectable', () => {
+  assert.equal(DEFAULT_CONFIG.enabled,true);
   assert.equal(DEFAULT_CONFIG.autoPullOnStart,true);
   assert.equal(DEFAULT_CONFIG.autoPushOnExit,true);
 });

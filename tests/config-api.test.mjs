@@ -133,14 +133,26 @@ test('update route reports the running version and rejects mutation requests', a
   t.after(() => { globalThis.fetch = originalFetch; });
   const current = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
   const newer = (Number(current.split('.')[0]) + 1) + '.0.0';
-  globalThis.fetch = async url => ({ ok: true, json: async () => url.includes('registry.npmjs.org')
-    ? { version: newer } : { tag_name: 'v' + newer, body: '新版本更新内容' } });
+  let packageProbed = false;
+  const tarball = 'https://registry.npmjs.org/@dpskk2/dsh-chatsync/-/dsh-chatsync-' + newer + '.tgz';
+  globalThis.fetch = async (url, options) => {
+    if (options?.method === 'HEAD') {
+      assert.equal(url, tarball);
+      packageProbed = true;
+      return { ok: true };
+    }
+    return { ok: true, json: async () => url.includes('registry.npmjs.org')
+      ? { name: '@dpskk2/dsh-chatsync', version: newer, dist: { tarball } }
+      : { tag_name: 'v' + newer, body: '新版本更新内容' } };
+  };
   const request = host(t);
   const result = await request('update');
   assert.equal(result.ok, true);
   assert.equal(result.currentVersion, JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version);
   assert.equal(result.available, true);
   assert.equal(result.notes, '新版本更新内容');
+  assert.equal(packageProbed, true);
+  assert.ok(result.command.endsWith('update @dpskk2/dsh-chatsync@' + newer + ' --registry=https://registry.npmjs.org/'));
   assert.match(result.command, /plugin --profile (web|desktop) update @dpskk2\/dsh-chatsync/);
   assert.equal((await request('update', { install: true })).ok, false);
 });

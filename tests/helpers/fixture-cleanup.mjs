@@ -1,4 +1,10 @@
-import fs from 'node:fs';
+import hostFs from 'node:fs';
+import { createRequire } from 'node:module';
+
+// Teardown deletes only validated, synthetic temp roots. Opaque .asar fixtures
+// must be inspected as disk files, not as Electron virtual archive directories.
+// Product code continues using the host's normal filesystem.
+const fs = process.versions.electron ? createRequire(import.meta.url)('original-fs') : hostFs;
 import os from 'node:os';
 import path from 'node:path';
 

@@ -44,27 +44,9 @@ jobs:
           node work/desktop-runtime/node_modules/electron/install.js
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $electron = (Resolve-Path work/desktop-runtime/node_modules/electron/dist/electron.exe).Path
-          $env:ELECTRON_RUN_AS_NODE = '1'
-          $env:DSH_GUI_TEST_EXE = $electron
-          & $electron -p 'JSON.stringify(process.versions)'
-          $testFiles = Get-ChildItem tests/*.test.mjs | ForEach-Object { $_.FullName }
-          & $electron --test --test-concurrency=2 @testFiles
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & $electron patch-version-agnostic-test.mjs
+          node scripts/run-desktop-regression.mjs $electron
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Verify install package contents and documentation links
         run: node scripts/check-package-contents.mjs
 
-  publish-approved-candidate:
-    if: >-
-      github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/release/0.20.2') && startsWith(github.event.head_commit.message, 'release: v0.20.2 [publish]')
-    needs: check
-    permissions:
-      contents: write
-      id-token: write
-    uses: ./.github/workflows/publish.yml
-    with:
-      release_tag: v0.20.2
-      source_ref: ${{ github.sha }}
-    secrets: inherit

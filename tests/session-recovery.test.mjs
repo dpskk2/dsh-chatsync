@@ -81,6 +81,24 @@ test('import creates a distinct ID, verifies readback and membership, and repeat
   assert.deepEqual(f.engine.recovery.version(f.record, 'remote'), f.bytes);
 });
 
+test('rc.3 relocation overrides the inherited effective working directory once without rewriting source events', async t => {
+  const events = [{ type: 'working-directory/change', seq: 0, time: 1, data: { cwd: 'C:/old-computer/project/subdir' } }];
+  const f = fixture(t, events);
+  const first = await importRecoverySession(f.engine, f.ctx, f.request, async () => catalog);
+  const restored = f.storage.get(first.sessionId);
+  assert.deepEqual(restored.events.slice(0, events.length), events);
+  assert.equal(restored.inheritedEventCount, events.length);
+  assert.deepEqual(restored.events.at(-1).data, { cwd: f.workspace.path });
+  assert.equal(restored.events.at(-1).type, 'working-directory/change');
+  assert.equal(restored.events.at(-1).seq, restored.events.length - 1);
+  const length = restored.events.length;
+  f.ctx.failOnce = false;
+  const repeated = await importRecoverySession(f.engine, f.ctx, f.request, async () => catalog);
+  assert.equal(repeated.sessionId, first.sessionId);
+  assert.equal(restored.events.length, length);
+  assert.deepEqual(f.engine.recovery.version(f.record, 'remote'), f.bytes);
+});
+
 test('partial writes retry the journalled ID and preserve the verified prefix', async t => {
   const f = fixture(t, [0, 1, 2].map(seq => ({ type: 'fixture/event', seq, time: 1, data: {} })));
   f.ctx.failOnce = true;

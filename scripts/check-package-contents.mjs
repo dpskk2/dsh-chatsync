@@ -16,7 +16,7 @@ const pack = JSON.parse(execFileSync(process.execPath,
   { cwd: root, encoding: 'utf8', windowsHide: true, maxBuffer: 8 * 1024 * 1024 }))[0];
 const files = new Set(pack.files.map(file => file.path));
 const userDocs = new Set(['docs/README.md', 'docs/getting-started.md', 'docs/configuration.md',
-  'docs/dsh-file-catalog.md', 'docs/sync-content.md', 'docs/data-repair-0.20.1.md',
+  'docs/dsh-file-catalog.md', 'docs/dsh-0.2.1-rc.3-adaptation.md', 'docs/sync-content.md', 'docs/data-repair-0.20.1.md',
   'docs/release-0.20.0-validation.md', 'docs/release-0.20.1-validation.md', 'docs/release-0.20.2-validation.md']);
 const metadata = new Set(['package.json', 'README.md', 'README.en.md', 'CHANGELOG.md',
   'LICENSE', 'icon.png', 'cordis.patch.yml', 'scripts/restart-dsh-desktop.ps1']);

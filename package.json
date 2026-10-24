@@ -37,7 +37,8 @@
     "docs/assets",
     "docs/release-0.20.0-validation.md",
     "docs/release-0.20.1-validation.md",
-    "docs/release-0.20.2-validation.md"
+    "docs/release-0.20.2-validation.md",
+    "docs/dsh-0.2.1-rc.3-adaptation.md"
   ],
   "dsh": {
     "bundle": {
@@ -78,6 +79,6 @@
     }
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-session-format-catalog": "0.2.0-rc.2"
+    "@deepseek-ai/dsh-session-format-catalog": "0.2.1-rc.3"
   }
 }

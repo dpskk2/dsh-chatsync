@@ -34,6 +34,8 @@ test('offline task uses escaped long paths, current-user identity and preserved 
   const h = simulate(); assert.equal(h.result.scheduled, true);
   assert.match(h.xml, /long &amp; 中文 home/); assert.match(h.xml, /<UserId>S-1-5-21-123-1001<\/UserId>/);
   assert.match(h.xml, /LeastPrivilege/); assert.match(h.xml, /-SyncHome &quot;/);
+  assert.match(h.xml, /-SyncHostEntry &quot;/);
+  assert.ok(h.xml.includes(desktop[1]));
   assert.doesNotMatch(h.xml, /<Triggers>|HighestAvailable/);
   assert.equal(fs.existsSync(h.xmlFile), false);
   assert.equal(h.calls.some(([, args]) => args.includes('/tr')), false);

@@ -7,6 +7,7 @@ param(
     [string]$SyncHome,
     [string]$SyncCli,
     [string]$SyncConfig,
+    [string]$SyncHostEntry,
     [string]$TaskName,
     [switch]$DryRun
 )
@@ -77,6 +78,7 @@ try {
         $env:ELECTRON_RUN_AS_NODE = '1'
         $env:DSH_HOME = $SyncHome
         if ($SyncConfig) { $env:DSH_SYNC_OVERRIDES_FILE = $SyncConfig }
+        if ($SyncHostEntry) { $env:DSH_SYNC_HOST_ENTRY = $SyncHostEntry }
         $syncStartedAt = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
         # Electron is a Windows GUI executable: a bare invocation may return
         # before its CLI finishes. Do not relaunch a host until it has exited.
@@ -94,6 +96,7 @@ try {
         }
         Remove-Item Env:ELECTRON_RUN_AS_NODE
         Remove-Item Env:DSH_SYNC_OVERRIDES_FILE -ErrorAction SilentlyContinue
+        Remove-Item Env:DSH_SYNC_HOST_ENTRY -ErrorAction SilentlyContinue
         Write-Log "Offline startup sync exit code: $syncExit"
     }
     $started = Start-Process -FilePath $exe -WorkingDirectory (Split-Path -Parent $exe) -WindowStyle Hidden -PassThru

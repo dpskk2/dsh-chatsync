@@ -37,17 +37,18 @@ test('early review and connection failure retain timing and distinct terminal pr
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-review-timing-'));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const engine = new SyncEngine(home, { autoRepo: false, workspaceSync: false });
+  let clock = Date.now(); t.mock.method(Date, 'now', () => clock);
   engine._syncOnce = async function () {
-    this.step('fetch', '取回合成数据'); await new Promise(r => setTimeout(r, 10));
+    this.step('fetch', '取回合成数据'); clock += 25;
     this._reviewRequired = { id: 'fixture', summary: '需要确认' }; return {};
   };
   const result = await engine.syncOnce('startup');
-  assert.equal(result.needsReview, true); assert.ok(result.durationMs >= 10);
-  assert.equal(result.stages[0].stage, 'fetch'); assert.ok(result.stages[0].ms >= 10);
+  assert.equal(result.needsReview, true); assert.equal(result.durationMs, 25);
+  assert.equal(result.stages[0].stage, 'fetch'); assert.equal(result.stages[0].ms, 25);
   assert.equal(engine.progress.stage, 'review'); assert.ok(engine.progress.startedAt > 0);
   assert.doesNotMatch(engine.progress.label, /失败/);
-  engine._syncOnce = async () => ({ error: 'connection failed' });
+  engine._syncOnce = async () => { clock += 5; return { error: 'connection failed' }; };
   const failure = await engine.syncOnce('startup');
   assert.equal(engine.progress.stage, 'error'); assert.equal(failure.needsReview, undefined);
-  assert.ok(failure.durationMs >= 0);
+  assert.equal(failure.durationMs, 5);
 });

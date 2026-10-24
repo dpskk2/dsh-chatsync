@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execFile, spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { sessionFormatCatalog } from '@deepseek-ai/dsh-session-format-catalog';
 import { SyncEngine, resolveSyncConfig } from '../lib/sync.js';
-import { settingsProjection, restoreLocalSettings } from '../lib/scope.js';
+import { settingsProjection, restoreLocalSettings, scopeMirrorPath } from '../lib/scope.js';
 import { parseYaml } from '../lib/yaml.js';
 import { applyOfflineSession } from '../lib/session-safety.js';
 import { applyProjectFile, recoverProjectApplications } from '../lib/project-sync.js';
@@ -205,4 +207,38 @@ test('unsupported exclusive file installation stops before moving any project or
   try{assert.throws(()=>applyProjectFile(a.engine,a.ws,a.project,'note.txt',digest(before),Buffer.from('REMOTE')),/no hard links/);}
   finally{fs.linkSync=original;fs.renameSync=rename;}
   assert.equal(renamed,false);assert.deepEqual(fs.readFileSync(target),before);
+});
+
+
+test('isolated exit workers inherit the public host catalog, validate sessions and upload a real snapshot', {timeout:30000},async t=>{
+  const h=fixture(t),host=path.join(h.root,'host'),consumer=path.join(h.root,'isolated-plugin'),home=path.join(h.root,'exit-home');
+  fs.mkdirSync(home);fs.mkdirSync(host);fs.mkdirSync(consumer);
+  const entry=path.join(host,'host.mjs');fs.writeFileSync(entry,'');
+  const catalog=createRequire(import.meta.url).resolve('@deepseek-ai/dsh-session-format-catalog');
+  const pkg=path.join(host,'node_modules/@deepseek-ai/dsh-session-format-catalog');fs.mkdirSync(pkg,{recursive:true});
+  fs.writeFileSync(path.join(pkg,'package.json'),JSON.stringify({type:'module',main:'index.js'}));
+  fs.writeFileSync(path.join(pkg,'index.js'),'export * from '+JSON.stringify(pathToFileURL(catalog).href)+';');
+  fs.cpSync(fileURLToPath(new URL('../lib',import.meta.url)),path.join(consumer,'lib'),{recursive:true});
+  fs.writeFileSync(path.join(consumer,'package.json'),'{"type":"module"}');
+  fs.writeFileSync(path.join(home,'dsh-sync.json'),JSON.stringify({autoRepo:false,workspaceSync:false}));
+  const id='session-77777777-7777-7777-7777-777777777777',rel=`sessions/test/${id}/session.v4.jsonl`;
+  const bytes=Buffer.from([
+    {type:'session',version:4,id,createdAt:1700000000000,cwd:h.root,isSeeded:false,delegationDepth:0},
+    {seq:0,time:1700000000001,type:'session/title',data:{title:'exit worker',messageSeqs:[],source:{kind:'user'}}}
+  ].map(JSON.stringify).join('\n')+'\n');
+  fs.mkdirSync(path.dirname(path.join(home,rel)),{recursive:true});fs.writeFileSync(path.join(home,rel),bytes);
+  const worker=path.join(consumer,'lib/exit-sync.mjs');
+  const run=async hostEntry=>{
+    const env={...process.env,NODE_PATH:'',DSH_SYNC_HOST_ENTRY:hostEntry};
+    const parent=spawn(process.execPath,['-e','setTimeout(()=>{},100)'],{env,stdio:'ignore',windowsHide:true});
+    t.after(()=>{if(parent.exitCode===null)parent.kill();});
+    return await new Promise(resolve=>execFile(process.execPath,[worker,home,String(parent.pid)],
+      {env,encoding:'utf8',windowsHide:true,timeout:20000},(error,stdout,stderr)=>resolve({status:error?error.code:0,stdout,stderr})));
+  };
+  const denied=await run('');assert.equal(denied.status,1,denied.stderr);
+  assert.match(JSON.parse(fs.readFileSync(path.join(home,'.dsh-sync-status.json'))).result.error,/会话格式接口不可用/);
+  assert.deepEqual(fs.readFileSync(path.join(home,rel)),bytes);
+  const allowed=await run(entry);assert.equal(allowed.status,0,allowed.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(home,'.dsh-sync-status.json'))).result.error,undefined);
+  assert.deepEqual(execFileSync('git',['-C',scopeMirrorPath(home,{remote:'',branch:'main'}),'show','HEAD:'+rel]),bytes);
 });

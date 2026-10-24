@@ -49,4 +49,3 @@ jobs:
 
       - name: Verify install package contents and documentation links
         run: node scripts/check-package-contents.mjs
-

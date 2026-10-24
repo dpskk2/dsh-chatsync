@@ -36,7 +36,7 @@ function harness(fetchImpl, componentName = 'SyncPreferences', { timers = true, 
     useMemo: (fn) => fn(),
     useCallback: (fn) => fn,
   };
-  vm.runInNewContext(source.replace('module.exports = {', 'module.exports = { testComponents: { WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, showGroupingRepair, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, LocalPreview, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, StartupReview, SyncIssues, TransferLine, ProgressTip, STYLE, FootSyncButton },'), {
+  vm.runInNewContext(source.replace('module.exports = {', 'module.exports = { testComponents: { WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, showGroupingRepair, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, LocalPreview, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, StartupReview, SyncIssues, TransferLine, ProgressTip, STYLE, FootSyncButton },'), {
     window: { confirm, __ModuleLoader__: { load(def) { bundle = def.factory((name) => { assert.equal(name, 'react'); return react; }); } } },
     fetch: fetchImpl, AbortSignal,
     setTimeout, clearTimeout,
@@ -849,4 +849,19 @@ test('daily and first setup headers always offer the sidebar visibility switch',
     const h=harness(url=>response(url.endsWith('/status')?{ok:true,remote}:{ok:true,config:initial}),'Section',{timers:false});
     h.render();await h.effects();assert.equal(all(h.render()).filter(n=>n.type?.name==='SidebarVisibilityToggle').length,1);
   }
+});
+
+
+test('old project history offers a bound preview before any confirmed rebuild',async()=>{
+  const calls=[];const h=harness((url,options)=>{
+    calls.push({url,body:JSON.parse(options.body)});
+    return response(url.endsWith('/preview')?{ok:true,previewId:'bound-preview',message:'旧提交保留，项目和远端不变'}:{ok:true,message:'请再次点击立即同步'});
+  },'WorkspaceHistoryRepair');
+  const props={workspaceId:'project-a'};let tree=h.render(props);
+  assert.equal(calls.length,0);
+  await all(tree).find(n=>n.type==='button').props.onClick();tree=h.render(props);
+  assert.equal(calls.length,1);assert.deepEqual(calls[0].body,{workspaceId:'project-a'});
+  assert.match(text(tree),/保留备份并重建待上传历史/);
+  await all(tree).find(n=>n.type==='button').props.onClick();tree=h.render(props);
+  assert.deepEqual(calls[1].body,{previewId:'bound-preview'});assert.match(text(tree),/再次点击立即同步/);
 });

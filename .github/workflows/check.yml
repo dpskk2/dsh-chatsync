@@ -36,6 +36,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $electron = (Resolve-Path work/desktop-runtime/node_modules/electron/dist/electron.exe).Path
           $env:ELECTRON_RUN_AS_NODE = '1'
+          $env:DSH_GUI_TEST_EXE = $electron
           & $electron -p 'JSON.stringify(process.versions)'
           $testFiles = Get-ChildItem tests/*.test.mjs | ForEach-Object { $_.FullName }
           & $electron --test --test-concurrency=2 @testFiles

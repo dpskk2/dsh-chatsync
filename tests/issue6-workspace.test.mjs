@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
+import { previewWorkspaceHistory, applyWorkspaceHistory } from '../lib/workspace-history.js';
 import { SyncEngine } from '../lib/sync.js';
 import { syncIssues } from '../lib/diagnostics.js';
 import { transportable } from '../lib/scope.js';
@@ -201,12 +202,15 @@ test('issue 6: oversized installer never enters normal or exit snapshots; ignore
   assert.equal(fs.statSync(installer).size, 66 * 1024 * 1024);
 });
 
-test('issue 6: deleting an oversized file from old unpublished history still blocks upload and preserves history', { timeout: 30000 }, async t => {
+test('issue 6: deleted oversized history is blocked until an explicit checked rebuild preserves its backup', { timeout: 30000 }, async t => {
   const f = fixture(t);
   await f.engine.ensureWorkspaceMirror(f.ws.id, f.project, f.engine.loadConfig());
   const installer = path.join(f.project, 'old-installer.exe');
   fs.writeFileSync(installer, Buffer.alloc(66 * 1024 * 1024));
   f.local(['add', '.']); f.local(['commit', '-m', 'simulate old unsent oversized snapshot']);
+  await f.sync();
+  f.engine.verifyPrivateRemote = async () => ({ok:true});
+  await assert.rejects(previewWorkspaceHistory(f.engine, f.ws.id), /当前快照仍有/);
   fs.unlinkSync(installer); f.local(['add', '-A']); f.local(['commit', '-m', 'delete installer from current tree']);
   const before = f.local(['rev-parse', 'HEAD']);
   const result = await f.sync();
@@ -218,6 +222,15 @@ test('issue 6: deleting an oversized file from old unpublished history still blo
   assert.equal(report.findings[0].file, 'old-installer.exe');
   assert.match(syncIssues({ privacy: report })[0].action, /仅删除当前文件不能清除历史/);
   assert.notEqual(spawnSync('git', ['--git-dir=' + f.remote, 'rev-parse', '--verify', f.branch], { stdio: 'ignore' }).status, 0);
+  f.engine.verifyPrivateRemote = async () => ({ok:true});
+  const plan = await previewWorkspaceHistory(f.engine, f.ws.id);
+  assert.equal(f.local(['rev-parse','HEAD']),before, 'preview cannot move refs');
+  const applied = await applyWorkspaceHistory(f.engine, plan.previewId);
+  assert.equal(f.local(['rev-parse',applied.backupBranch]),before);
+  assert.equal(f.local(['cat-file','-s',applied.backupBranch+'~1:old-installer.exe']),String(66*1024*1024));
+  assert.equal(fs.existsSync(installer),false);
+  assert.deepEqual((await f.sync()).errors,[]);
+  assert.equal(f.git(['--git-dir='+f.remote,'ls-tree','-r',f.branch]),'');
 });
 
 test('issue 6: incomplete staged-size check stops before commit or transfer', async t => {
@@ -230,4 +243,34 @@ test('issue 6: incomplete staged-size check stops before commit or transfer', as
   assert.equal(result.synced, 0); assert.match(result.errors[0].error, /无法检查工作区暂存对象大小/);
   assert.equal(await f.engine.rev('HEAD', f.gitdir, f.project), null);
   assert.equal(fs.readFileSync(path.join(f.project, 'note.txt'), 'utf8'), 'preserved content\n');
+});
+
+
+test('issue 6: legacy project migration preserves an uncommitted local deletion', async t => {
+  const f=fixture(t);await f.engine.ensureWorkspaceMirror(f.ws.id,f.project,f.engine.loadConfig());
+  const file=path.join(f.project,'deleted.txt');fs.writeFileSync(file,'legacy original');
+  f.local(['add','.']);f.local(['commit','-m','legacy project']);fs.unlinkSync(file);
+  assert.deepEqual((await f.sync()).errors,[]);
+  assert.equal(fs.existsSync(file),false);
+  assert.equal(f.git(['--git-dir='+f.remote,'ls-tree','-r',f.branch]),'');
+});
+
+test('issue 6: history rebuild keeps the published parent and rejects stale previews',async t=>{
+  const f=fixture(t);fs.writeFileSync(path.join(f.project,'note.txt'),'published');await f.sync();
+  const published=f.git(['--git-dir='+f.remote,'rev-parse',f.branch]);
+  const large=path.join(f.project,'old.exe');fs.writeFileSync(large,Buffer.alloc(9*1024*1024));
+  f.local(['add','.']);f.local(['commit','-m','legacy oversized']);fs.unlinkSync(large);
+  f.local(['add','-A']);f.local(['commit','-m','remove from snapshot']);await f.sync();
+  f.engine.verifyPrivateRemote=async()=>({ok:true});
+  const plan=await previewWorkspaceHistory(f.engine,f.ws.id);
+  assert.equal(f.git(['--git-dir='+f.remote,'rev-parse',f.branch]),published);
+  const old=f.local(['rev-parse','HEAD']);
+  f.local(['commit','--allow-empty','-m','other process changes HEAD']);
+  await assert.rejects(applyWorkspaceHistory(f.engine,plan.previewId),/变化/);
+  assert.notEqual(f.local(['rev-parse','HEAD']),old);
+  const current=await previewWorkspaceHistory(f.engine,f.ws.id);
+  await applyWorkspaceHistory(f.engine,current.previewId);
+  assert.equal(f.local(['show','-s','--format=%P','HEAD']),published);
+  assert.deepEqual((await f.sync()).errors,[]);
+  assert.equal(f.local(['show','HEAD:note.txt']),'published');
 });

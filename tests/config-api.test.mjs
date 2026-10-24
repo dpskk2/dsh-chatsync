@@ -344,3 +344,20 @@ test('workspace history repair API requires an explicit POST preview and rejects
   const result=await request('workspace-history/preview',{workspaceId:'missing'});
   assert.equal(result.ok,false);assert.match(result.error,/连接仓库|项目/);
 });
+
+test('local storage API scans, saves retention and requires a concrete confirmed preview', async t => {
+  let file;
+  const request = host(t, {}, home => {
+    file = path.join(home, '.chatsync-local/config-history/fixture.json'); fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, 'backup');
+  });
+  assert.equal((await request('local-storage/policy', { retentionDays: 0 })).ok, true);
+  const scan = await request('local-storage/scan'); assert.equal(scan.ok, true);
+  const row = scan.items.find(item => item.path === file); assert.equal(row.protected, false);
+  assert.equal((await request('local-storage/scan', { mutation: true })).ok, false);
+  const preview = await request('local-storage/preview', { ids: [row.id] }); assert.equal(preview.ok, true);
+  assert.equal((await request('local-storage/apply', { token: preview.token })).ok, false);
+  assert.equal(fs.existsSync(file), true);
+  assert.equal((await request('local-storage/apply', { token: preview.token, confirm: true })).ok, true);
+  assert.equal(fs.existsSync(file), false);
+  assert.equal((await request('local-storage/policy', { retentionDays: -1 })).ok, false);
+});

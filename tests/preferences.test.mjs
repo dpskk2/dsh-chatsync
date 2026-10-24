@@ -36,7 +36,7 @@ function harness(fetchImpl, componentName = 'SyncPreferences', { timers = true, 
     useMemo: (fn) => fn(),
     useCallback: (fn) => fn,
   };
-  vm.runInNewContext(source.replace('module.exports = {', 'module.exports = { testComponents: { WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, showGroupingRepair, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, LocalPreview, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, StartupReview, SyncIssues, TransferLine, ProgressTip, STYLE, FootSyncButton },'), {
+  vm.runInNewContext(source.replace('module.exports = {', 'module.exports = { testComponents: { LocalStorage, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, showGroupingRepair, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, LocalPreview, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, StartupReview, SyncIssues, TransferLine, ProgressTip, STYLE, FootSyncButton },'), {
     window: { confirm, __ModuleLoader__: { load(def) { bundle = def.factory((name) => { assert.equal(name, 'react'); return react; }); } } },
     fetch: fetchImpl, AbortSignal,
     setTimeout, clearTimeout,
@@ -864,4 +864,29 @@ test('old project history offers a bound preview before any confirmed rebuild',a
   assert.match(text(tree),/保留备份并重建待上传历史/);
   await all(tree).find(n=>n.type==='button').props.onClick();tree=h.render(props);
   assert.deepEqual(calls[1].body,{previewId:'bound-preview'});assert.match(text(tree),/再次点击立即同步/);
+});
+
+test('local storage UI waits for inspection, previews selected items and requires confirmation before deletion', async () => {
+  const calls = [];
+  const item = { id: 'backup-a', name: '旧备份', path: 'C:/fixture/backup-a', bytes: 1024, category: 'config', protected: false };
+  const scan = { ok: true, totalBytes: 1024, policy: { retentionDays: 30 }, categories: [{ id: 'config', title: '配置历史', bytes: 1024, purpose: '恢复旧配置' }], items: [item], warnings: [], note: '逻辑大小' };
+  const h = harness((url, options) => {
+    const body = options?.body && JSON.parse(options.body); calls.push({ url, body });
+    if (url.endsWith('/preview')) return response({ ok: true, token: 'preview-token', items: [item], warning: '永久移除', separateConfirmation: true });
+    if (url.endsWith('/apply')) return response({ ok: true, removedBytes: 1024, results: [{ id: item.id, ok: true }] });
+    return response(scan);
+  }, 'LocalStorage');
+  let tree = h.render(); await h.effects(); assert.equal(calls.length, 0);
+  await all(tree).find(n => n.type === 'button' && text(n) === '查看占用并清理').props.onClick();
+  tree = h.render(); all(tree).find(n => n.type === 'input').props.onChange({ target: { checked: true } });
+  tree = h.render(); await all(tree).find(n => n.type === 'button' && text(n).startsWith('预览清理')).props.onClick();
+  const applyButton = () => all(h.render()).find(n => n.type === 'button' && text(n) === '永久清理所选本地备份');
+  assert.equal(applyButton().props.disabled, true); assert.equal(calls.some(c => c.url.endsWith('/apply')), false);
+  tree = h.render(); const confirmations = all(tree).filter(n => n.type === 'input').slice(-2);
+  confirmations[0].props.onChange({ target: { checked: true } }); assert.equal(applyButton().props.disabled, true);
+  confirmations[1].props.onChange({ target: { checked: true } }); assert.equal(applyButton().props.disabled, false);
+  await applyButton().props.onClick();
+  assert.deepEqual(calls.find(c => c.url.endsWith('/apply')).body, { token: 'preview-token', confirm: true, confirmSeparate: true });
+  assert.match(text(h.render()), /已移除/);
+  assert.ok(all(h.render({ busy: true })).filter(n => n.type === 'button').every(n => n.props.disabled));
 });

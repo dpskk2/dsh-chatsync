@@ -197,7 +197,11 @@ test('sync preserves intentional ungrouping instead of manufacturing registry re
 // Runtime status/host ownership is machine-local even though the historical
 // process lock uses a dot and the newer lifecycle files use a hyphen.
 test('lifecycle status and host ownership never enter scoped transport or previews', () => {
-  for (const file of ['.dsh-sync-status.json', '.dsh-sync-hosts/123.json', '.dsh-sync.process.lock', 'dsh-sync.json'])
+  for (const file of ['.dsh-sync-status.json', '.dsh-sync-hosts/123.json', '.dsh-sync.process.lock'])
     assert.equal(transportable(file), false, file);
+  assert.equal(transportable('dsh-sync.json'), true);
+  const preferences = settingsProjection(Buffer.from(JSON.stringify({ enabled: false, lifecycleAutomation: 1,
+    remote: 'https://example.invalid/local-only', proxy: 'local-proxy', workspaceBase: 'C:/local-only' })), 'dsh-sync.json');
+  assert.deepEqual(JSON.parse(preferences.value), { enabled: false, lifecycleAutomation: 1 });
   assert.equal(transportable('sessions/project/session-11111111-1111-1111-1111-111111111111/session.v4.jsonl'), true);
 });

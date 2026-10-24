@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([Parameter(Mandatory = $true)][string]$OutputDirectory)
+param([Parameter(Mandatory = $true)][string]$OutputDirectory, [switch]$ShortName)
 $ErrorActionPreference = 'Stop'
 $sourceRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $outputRoot = [IO.Path]::GetFullPath($OutputDirectory)
@@ -25,8 +25,26 @@ foreach ($name in $names) {
     New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
     Copy-Item -LiteralPath $source -Destination $destination
 }
+if ($ShortName) {
+    $convert = @'
+import fs from 'node:fs';
+import path from 'node:path';
+const stage = process.argv[1];
+const manifest = path.join(stage, 'package.json');
+const pkg = JSON.parse(fs.readFileSync(manifest));
+if (pkg.name !== '@dpskk2/dsh-chatsync') throw new Error('Unexpected source package identity');
+for (const file of ['lib/client.js', 'lib/updates.js', 'cordis.patch.yml']) {
+  const target = path.join(stage, file);
+  fs.writeFileSync(target, fs.readFileSync(target, 'utf8').replaceAll('@dpskk2/dsh-chatsync', 'chatsync').replaceAll('@dpskk2%2Fdsh-chatsync', 'chatsync'));
+}
+pkg.name = 'chatsync'; pkg.keywords = [...new Set(['chatsync', ...pkg.keywords])];
+fs.writeFileSync(manifest, JSON.stringify(pkg, null, 2) + '\n');
+'@
+    & node --input-type=module -e $convert $stage
+    if ($LASTEXITCODE -ne 0) { throw '短包名称转换失败。' }
+}
 Push-Location $stage
 try {
-    & npm pack --pack-destination $outputRoot --json | Tee-Object -FilePath (Join-Path $outputRoot 'pack.json')
+    & npm pack --ignore-scripts --pack-destination $outputRoot --json | Tee-Object -FilePath (Join-Path $outputRoot 'pack.json')
     if ($LASTEXITCODE -ne 0) { throw '本地打包失败。' }
 } finally { Pop-Location }

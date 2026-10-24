@@ -38,7 +38,8 @@ async function run(name, commandArgs) {
   };
   const interrupted = () => stop('interrupted');
   process.once('SIGINT', interrupted);
-  const timeout = setTimeout(() => stop('timeout'), 8 * 60 * 1000);
+  // Real Git fault and recovery cases on Windows may exceed eight minutes.
+  const timeout = setTimeout(() => stop('timeout'), 20 * 60 * 1000);
   for (const stream of [child.stdout, child.stderr]) stream.on('data', chunk => {
     bytes += chunk.length;
     if (bytes > 5 * 1024 * 1024) { stop('output limit'); return; }
@@ -62,7 +63,8 @@ const patch = suiteOK ? await run('patch', ['patch-version-agnostic-test.mjs']) 
 const patchAssertions = patch ? Number(patch.output.match(/(\d+) 个断言全部通过/)?.[1] ?? NaN) : null;
 const ok = suiteOK && patch.code === 0 && !patch.stoppedFor && !patch.failure && patchAssertions === 8;
 const result = { ok, completedAt: new Date().toISOString(), elapsedSeconds: (Date.now() - started) / 1000,
-  productVersion: JSON.parse(fs.readFileSync(path.join(repo, 'package.json'), 'utf8')).version, testFileConcurrency: 2,
+  productVersion: JSON.parse(fs.readFileSync(path.join(repo, 'package.json'), 'utf8')).version,
+  productBuild: JSON.parse(fs.readFileSync(path.join(repo, 'package.json'), 'utf8')).chatsyncBuild, testFileConcurrency: 2,
   runtime: { node: runtime.node, electron: runtime.electron, platform: process.platform },
   suite: { code: suite.code, stoppedFor: suite.stoppedFor, failure: suite.failure, tests, passed, failed, cancelled, skipped, logFile: suite.logFile },
   patch: patch && { code: patch.code, stoppedFor: patch.stoppedFor, failure: patch.failure, assertions: patchAssertions, logFile: patch.logFile } };

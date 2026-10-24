@@ -31,6 +31,19 @@
 
 官方参考：[DSH 启动器的 profile 说明](https://www.npmjs.com/package/@deepseek-ai/dsh-app-boot)、[pnpm 锁定文件说明](https://pnpm.io/lockfile)。实际解释以固定版本发布包为准，不用官网最新说明推断历史版本。
 
+## DSH 0.2.1-rc.3 补充核对
+
+2026-10-24 读取官方发布标签 [`dsh-v0.2.1-rc.3`](https://github.com/deepseek-ai/deepseek-harness/tree/dsh-v0.2.1-rc.3)，固定提交 `1f81c047fc48fa190a683e469daa699857e9afe8`。此项证据为发布源码核对，不沿用上述旧宿主的实机结论。
+
+- `packages/settings/settings/src/index.ts`：当前设置写入 profile patch；旧文件先改名为 `settings.yaml.imported`，然后逐节导入。
+- `packages/boot/app-boot/src/profile-context.ts`：profile patch 之后应用 home 下的 `cordis.patch.yml`；两个位置都可能影响最终设置。
+- `packages/client/ui-theme/src/index.ts`、`ui-chat/src/index.ts`：主题、三组字体和字号、工作步骤收起时机等为可配置偏好。
+- `packages/client/ui-settings-web-search/src/client/web-search-card-controller.ts`：搜索与抓取服务选择保存在 `web`，搜索配置在 `web-search-deepseek` / `web-deepseek-api`；密钥实际通过凭据服务另存。
+- `packages/llm/llm-pi-ai/src/config.ts`：自定义模型、推理配置和 `apiKeyEnv` 引用可共享；引用名不等于密钥内容。
+- `packages/client/ui-conversation/src/client/stores.ts`：未发送草稿和视图选择位于浏览器 `localStorage`，不属于数据目录会话日志；rc.3 的草稿修复不构成草稿跨机同步接口。
+
+同步适配与验证边界见 [rc.3 适配记录](dsh-0.2.1-rc.3-adaptation.md)。兼容范围仍只有最低版本要求，此目录不是版本白名单。
+
 ## 对比与恢复边界
 
 “预览双方原件”直接打开独立大窗口，可关闭或按 Esc 返回。左右按相同行高对齐，插入与删除以空白行补齐；红色 `−` 和绿色 `＋` 标出差异，滚动位置同步，并提供上一处、下一处差异。关闭只收起预览，不删除记录或改变同步结果。

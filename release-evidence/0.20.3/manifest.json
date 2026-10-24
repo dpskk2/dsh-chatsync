@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 1,
+  "version": "0.20.3",
+  "build": "2026-10-25-local-0.20.3",
+  "sourceSha256": "",
+  "packageSha256": "",
+  "checks": [
+    {
+      "id": "data-loss/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "data-loss/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "data-loss/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "data-loss/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "corruption-spread/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "corruption-spread/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "corruption-spread/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "corruption-spread/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "privacy/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "privacy/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "privacy/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "privacy/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "upgrade-environments/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "upgrade-environments/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "upgrade-environments/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "upgrade-environments/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "recovery/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "recovery/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "recovery/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "recovery/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "full-regression",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "candidate-install",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "restore-drill",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "physical-two-device-github",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    }
+  ]
+}

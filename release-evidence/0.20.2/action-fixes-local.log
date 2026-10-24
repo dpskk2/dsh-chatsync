@@ -1,0 +1,36 @@
+✔ issue 6: main-only remote accepts first workspace upload without global Git identity (1469.721202ms)
+✔ issue 6: empty remote and empty workspace are valid first-sync states (2601.102613ms)
+✔ issue 6: failed branch probe cannot turn an unreachable remote into first upload (1315.869235ms)
+✔ issue 6: changed identity and external duplicate config are repaired in the same engine (79.893652ms)
+✔ issue 6: real config lock is reported before any workspace transfer and retries after unlock (1349.455757ms)
+✔ issue 6: status failure surfaces Git reason and preserves dirty files against remote updates (1397.527753ms)
+✔ issue 6: add failure surfaces Git reason and preserves dirty files against remote updates (1422.412575ms)
+✔ issue 6: commit failure surfaces Git reason and preserves dirty files against remote updates (1449.739476ms)
+✔ issue 6: desktop Electron runtime is excluded before traversal; existing tracked copy leaves index only (280.775237ms)
+✔ issue 6: oversized installer never enters normal or exit snapshots; ignore then retry needs no history rewrite (2333.725488ms)
+✔ issue 6: deleted oversized history is blocked until an explicit checked rebuild preserves its backup (5245.13406ms)
+✔ issue 6: incomplete staged-size check stops before commit or transfer (1378.309093ms)
+✔ issue 6: legacy project migration preserves an uncommitted local deletion (1472.915462ms)
+✔ issue 6: history rebuild keeps the published parent and rejects stale previews (1789.235401ms)
+✔ legacy and cache cleanup cannot upload pending secrets before the normal privacy check (2905.629605ms)
+✔ legacy cleanup still scans and uploads selected executable configuration without repeated approval (1556.053111ms)
+✔ exit uploads and retries pin the checked commit when an external writer advances main or workspace (4326.337319ms)
+✔ more than 32 MiB of unique history is scanned in bounded batches and delivered through real Git (2656.648385ms)
+✔ a secret removed after a later large batch still blocks the whole unpublished history (2314.861738ms)
+✔ more than 5000 objects are inspected and malformed or oversized batch output fails closed (1575.759217ms)
+ℹ created 5100 fixture files: 689ms
+ℹ committed fixture: 787ms
+ℹ full independent object scan: 1251ms
+ℹ all malformed-output assertions completed: 1463ms
+✔ a branch changed during upload never sends the new unscanned secret or claims a completed handoff (1436.583309ms)
+✔ scanner reports categories only and distinguishes templates, private keys and compressed session content (2.052317ms)
+✔ new sensitive history blocks the first upload even after the current file is removed (2557.041056ms)
+✔ oversized and undecodable blobs pause upload instead of silently skipping inspection (1405.606635ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23756.443577

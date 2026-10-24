@@ -1,0 +1,624 @@
+{
+  "schemaVersion": 1,
+  "version": "0.20.2",
+  "build": "2026-10-24-release-0.20.2",
+  "sourceSha256": "66b05ca197ae9be3803e288bd15accc9772a0f856d1c65a813df9410949b92db",
+  "packageSha256": "f838d4375f674c1bcafd03821ef56546d9c4b9d42d52b862a295f0c05b57af74",
+  "checks": [
+    {
+      "id": "data-loss/source-review",
+      "status": "passed",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Frozen source 32c6380; implementation and entry/exit/failure paths reviewed",
+      "procedure": "Trace reported concerns through configuration, scope, session, project, privacy, lifecycle and recovery code; map regressions and limitations.",
+      "observed": "Source review completed within the recorded scope; no claim of exhaustive defect absence.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        }
+      ]
+    },
+    {
+      "id": "data-loss/automated",
+      "status": "passed",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "GitHub-hosted Linux and Windows; Node 24.19.0; Windows Electron 44.7.0 / Node 24.21.0",
+      "procedure": "Run the complete frozen-source suite on all three environments, supplement platform-only tests with actual Electron execution, verify terminal counts and all eight patch assertions.",
+      "observed": "All full suites have zero failed/cancelled tests. Linux: 381 passed/9 platform skips; Windows Node: 389 passed/1 GUI skip; Windows Electron: 390 passed/0 skips. Required platform checks supplemented by Electron. All patch assertions passed.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/ci-summary.json",
+          "sha256": "88653de7ebfea7450a60c02603fb916edbc56bc5439f513c52d2c9c62ce9507d"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-linux.log",
+          "sha256": "541217f07a0b38bc67214b41a9a663cea96aeb6ccb2d2b7ada59c8e119e214a2"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-windows-node.log",
+          "sha256": "49d383bb43d1871e40f811bf663cb2908a5c08a80fad1b13df1db10f766df703"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-windows-electron.log",
+          "sha256": "7e3f007ae725748c7ebaee8a2002b5d8665fbb74a92343ea9b62d0845031d678"
+        }
+      ]
+    },
+    {
+      "id": "data-loss/fault-injection",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    },
+    {
+      "id": "data-loss/native-runtime",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    },
+    {
+      "id": "corruption-spread/source-review",
+      "status": "passed",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Frozen source 32c6380; implementation and entry/exit/failure paths reviewed",
+      "procedure": "Trace reported concerns through configuration, scope, session, project, privacy, lifecycle and recovery code; map regressions and limitations.",
+      "observed": "Source review completed within the recorded scope; no claim of exhaustive defect absence.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        }
+      ]
+    },
+    {
+      "id": "corruption-spread/automated",
+      "status": "passed",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "GitHub-hosted Linux and Windows; Node 24.19.0; Windows Electron 44.7.0 / Node 24.21.0",
+      "procedure": "Run the complete frozen-source suite on all three environments, supplement platform-only tests with actual Electron execution, verify terminal counts and all eight patch assertions.",
+      "observed": "All full suites have zero failed/cancelled tests. Linux: 381 passed/9 platform skips; Windows Node: 389 passed/1 GUI skip; Windows Electron: 390 passed/0 skips. Required platform checks supplemented by Electron. All patch assertions passed.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/ci-summary.json",
+          "sha256": "88653de7ebfea7450a60c02603fb916edbc56bc5439f513c52d2c9c62ce9507d"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-linux.log",
+          "sha256": "541217f07a0b38bc67214b41a9a663cea96aeb6ccb2d2b7ada59c8e119e214a2"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-windows-node.log",
+          "sha256": "49d383bb43d1871e40f811bf663cb2908a5c08a80fad1b13df1db10f766df703"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-windows-electron.log",
+          "sha256": "7e3f007ae725748c7ebaee8a2002b5d8665fbb74a92343ea9b62d0845031d678"
+        }
+      ]
+    },
+    {
+      "id": "corruption-spread/fault-injection",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    },
+    {
+      "id": "corruption-spread/native-runtime",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    },
+    {
+      "id": "privacy/source-review",
+      "status": "passed",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Frozen source 32c6380; implementation and entry/exit/failure paths reviewed",
+      "procedure": "Trace reported concerns through configuration, scope, session, project, privacy, lifecycle and recovery code; map regressions and limitations.",
+      "observed": "Source review completed within the recorded scope; no claim of exhaustive defect absence.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        }
+      ]
+    },
+    {
+      "id": "privacy/automated",
+      "status": "passed",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "GitHub-hosted Linux and Windows; Node 24.19.0; Windows Electron 44.7.0 / Node 24.21.0",
+      "procedure": "Run the complete frozen-source suite on all three environments, supplement platform-only tests with actual Electron execution, verify terminal counts and all eight patch assertions.",
+      "observed": "All full suites have zero failed/cancelled tests. Linux: 381 passed/9 platform skips; Windows Node: 389 passed/1 GUI skip; Windows Electron: 390 passed/0 skips. Required platform checks supplemented by Electron. All patch assertions passed.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/ci-summary.json",
+          "sha256": "88653de7ebfea7450a60c02603fb916edbc56bc5439f513c52d2c9c62ce9507d"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-linux.log",
+          "sha256": "541217f07a0b38bc67214b41a9a663cea96aeb6ccb2d2b7ada59c8e119e214a2"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-windows-node.log",
+          "sha256": "49d383bb43d1871e40f811bf663cb2908a5c08a80fad1b13df1db10f766df703"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-windows-electron.log",
+          "sha256": "7e3f007ae725748c7ebaee8a2002b5d8665fbb74a92343ea9b62d0845031d678"
+        }
+      ]
+    },
+    {
+      "id": "privacy/fault-injection",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    },
+    {
+      "id": "privacy/native-runtime",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    },
+    {
+      "id": "upgrade-environments/source-review",
+      "status": "passed",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Frozen source 32c6380; implementation and entry/exit/failure paths reviewed",
+      "procedure": "Trace reported concerns through configuration, scope, session, project, privacy, lifecycle and recovery code; map regressions and limitations.",
+      "observed": "Source review completed within the recorded scope; no claim of exhaustive defect absence.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        }
+      ]
+    },
+    {
+      "id": "upgrade-environments/automated",
+      "status": "passed",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "GitHub-hosted Linux and Windows; Node 24.19.0; Windows Electron 44.7.0 / Node 24.21.0",
+      "procedure": "Run the complete frozen-source suite on all three environments, supplement platform-only tests with actual Electron execution, verify terminal counts and all eight patch assertions.",
+      "observed": "All full suites have zero failed/cancelled tests. Linux: 381 passed/9 platform skips; Windows Node: 389 passed/1 GUI skip; Windows Electron: 390 passed/0 skips. Required platform checks supplemented by Electron. All patch assertions passed.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/ci-summary.json",
+          "sha256": "88653de7ebfea7450a60c02603fb916edbc56bc5439f513c52d2c9c62ce9507d"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-linux.log",
+          "sha256": "541217f07a0b38bc67214b41a9a663cea96aeb6ccb2d2b7ada59c8e119e214a2"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-windows-node.log",
+          "sha256": "49d383bb43d1871e40f811bf663cb2908a5c08a80fad1b13df1db10f766df703"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-windows-electron.log",
+          "sha256": "7e3f007ae725748c7ebaee8a2002b5d8665fbb74a92343ea9b62d0845031d678"
+        }
+      ]
+    },
+    {
+      "id": "upgrade-environments/fault-injection",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    },
+    {
+      "id": "upgrade-environments/native-runtime",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    },
+    {
+      "id": "recovery/source-review",
+      "status": "passed",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Frozen source 32c6380; implementation and entry/exit/failure paths reviewed",
+      "procedure": "Trace reported concerns through configuration, scope, session, project, privacy, lifecycle and recovery code; map regressions and limitations.",
+      "observed": "Source review completed within the recorded scope; no claim of exhaustive defect absence.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        }
+      ]
+    },
+    {
+      "id": "recovery/automated",
+      "status": "passed",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "GitHub-hosted Linux and Windows; Node 24.19.0; Windows Electron 44.7.0 / Node 24.21.0",
+      "procedure": "Run the complete frozen-source suite on all three environments, supplement platform-only tests with actual Electron execution, verify terminal counts and all eight patch assertions.",
+      "observed": "All full suites have zero failed/cancelled tests. Linux: 381 passed/9 platform skips; Windows Node: 389 passed/1 GUI skip; Windows Electron: 390 passed/0 skips. Required platform checks supplemented by Electron. All patch assertions passed.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/ci-summary.json",
+          "sha256": "88653de7ebfea7450a60c02603fb916edbc56bc5439f513c52d2c9c62ce9507d"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-linux.log",
+          "sha256": "541217f07a0b38bc67214b41a9a663cea96aeb6ccb2d2b7ada59c8e119e214a2"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-windows-node.log",
+          "sha256": "49d383bb43d1871e40f811bf663cb2908a5c08a80fad1b13df1db10f766df703"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-windows-electron.log",
+          "sha256": "7e3f007ae725748c7ebaee8a2002b5d8665fbb74a92343ea9b62d0845031d678"
+        }
+      ]
+    },
+    {
+      "id": "recovery/fault-injection",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    },
+    {
+      "id": "recovery/native-runtime",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    },
+    {
+      "id": "full-regression",
+      "status": "passed",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "GitHub-hosted Linux and Windows; Node 24.19.0; Windows Electron 44.7.0 / Node 24.21.0",
+      "procedure": "Run the complete frozen-source suite on all three environments, supplement platform-only tests with actual Electron execution, verify terminal counts and all eight patch assertions.",
+      "observed": "All full suites have zero failed/cancelled tests. Linux: 381 passed/9 platform skips; Windows Node: 389 passed/1 GUI skip; Windows Electron: 390 passed/0 skips. Required platform checks supplemented by Electron. All patch assertions passed.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/ci-summary.json",
+          "sha256": "88653de7ebfea7450a60c02603fb916edbc56bc5439f513c52d2c9c62ce9507d"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-linux.log",
+          "sha256": "541217f07a0b38bc67214b41a9a663cea96aeb6ccb2d2b7ada59c8e119e214a2"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-windows-node.log",
+          "sha256": "49d383bb43d1871e40f811bf663cb2908a5c08a80fad1b13df1db10f766df703"
+        },
+        {
+          "path": "release-evidence/0.20.2/ci-windows-electron.log",
+          "sha256": "7e3f007ae725748c7ebaee8a2002b5d8665fbb74a92343ea9b62d0845031d678"
+        }
+      ]
+    },
+    {
+      "id": "candidate-install",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    },
+    {
+      "id": "restore-drill",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    },
+    {
+      "id": "physical-two-device-github",
+      "status": "not-verified",
+      "completedAt": "2026-10-24T02:42:11.210Z",
+      "environment": "Isolated automated evidence available; full physical Desktop and fault/lifecycle scenarios not completed",
+      "procedure": "Compare completed isolated checks with the full native/fault/install/restore/physical scenario; retain unexecuted scope as not-verified.",
+      "observed": "Some isolated automated fault and package checks passed; complete real DSH Desktop GUI/loading/cold-start/restore, physical two-device GitHub and full fault matrix remain unverified.",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.2/release-review.md",
+          "sha256": "6f473e2d6ece4ce87c8f4df4155fdb49016814572746df40443be681bfc91f74"
+        },
+        {
+          "path": "release-evidence/0.20.2/source-review.md",
+          "sha256": "ed323f2abf04cd8c3a33c7cac184b5daaedae31afb302fe4cd5ea7251f2fded5"
+        },
+        {
+          "path": "release-evidence/0.20.2/package-audit.json",
+          "sha256": "9555cae12be99d56fc2c507f80e938c14a4e558f8a66c94d2c89777e53da4057"
+        },
+        {
+          "path": "release-evidence/0.20.2/packed-audit.log",
+          "sha256": "bed1228b7f7da9947f09225d0f1453a46aea6676b092103faf71657948ba8b74"
+        }
+      ]
+    }
+  ],
+  "shortPackageSha256": "65f8fbd5bddd8bde07a10478c402418eb3d012fd73c04367c04b16abf0c79b02",
+  "ownerDecision": {
+    "version": "0.20.2",
+    "build": "2026-10-24-release-0.20.2",
+    "sourceSha256": "66b05ca197ae9be3803e288bd15accc9772a0f856d1c65a813df9410949b92db",
+    "packageSha256": "f838d4375f674c1bcafd03821ef56546d9c4b9d42d52b862a295f0c05b57af74",
+    "mode": "release-with-unverified-scenarios",
+    "requestedBy": "用户（仓库维护者，当前会话）",
+    "requestedAt": "2026-10-24T02:42:11.210Z",
+    "instruction": "落实成0.20.2版本并发布。继续修改并发布。完成任务并检查action的诸多报错。",
+    "reason": "用户在本轮已说明真实 DSH Desktop 窗口和物理双机尚未验收后，继续明确要求完成本版发布。本次依据当前连续发布指令，将未完成范围公开保留为 not-verified，并重新绑定当前源码与两个候选包；没有沿用旧版通过结论。源码审查、实际候选包核对和三套完整自动回归均无阻断；任何实际失败、缺失或哈希不一致仍阻断。",
+    "acceptedChecks": [
+      "data-loss/fault-injection",
+      "data-loss/native-runtime",
+      "corruption-spread/fault-injection",
+      "corruption-spread/native-runtime",
+      "privacy/fault-injection",
+      "privacy/native-runtime",
+      "upgrade-environments/fault-injection",
+      "upgrade-environments/native-runtime",
+      "recovery/fault-injection",
+      "recovery/native-runtime",
+      "candidate-install",
+      "restore-drill",
+      "physical-two-device-github"
+    ]
+  }
+}

@@ -1,0 +1,44 @@
+✔ R1: merge never overwrites an editor save after the exported project snapshot (4004.659914ms)
+✔ R2: cancellation aborts an isolated project conflict and retry never publishes markers (3597.066275ms)
+✔ R3: independent official codec rejects continuous but impossible events before upload and offline application (31.621548ms)
+✔ R4 and C3: YAML semantics survive comments, quoting and URL lists; removed providers never receive another key (5.855973ms)
+✔ R5/R6: corrupt registry and directory overrides stop; valid BOM override still selects its directory (22.97161ms)
+✔ R7: exit uploads cannot issue an application receipt for remote content not applied locally (1816.170156ms)
+✔ R8: Chinese project conflicts retain readable originals and merge with raw filenames (3481.517941ms)
+✔ R9/R10: child environments share the proxy and split UTF-8 remains intact (109.127407ms)
+✔ C1/C2: saved automatic choices survive host defaults; project and main use the same credential helper (73.185443ms)
+✔ project import preserves a new path created between retaining the inode and installing incoming data (13.132599ms)
+✔ interrupted project application restores a missing retained inode before any upload (9.988096ms)
+✔ R3: a forged semantic-invalid remote fast-forward is refused before application or publication (1660.942571ms)
+✔ R4: real two-copy settings roundtrip preserves values and machine-local provider keys (1886.958288ms)
+✔ project recovery vaults stay local and filesystem-root workspaces cannot bypass overlap protection (9.763061ms)
+✔ unsupported exclusive file installation stops before moving any project original (10.161968ms)
+✔ isolated exit workers inherit the public host catalog, validate sessions and upload a real snapshot (1438.875405ms)
+✔ CLI approval preserves offline import mode, lock waiting and saved outcome (106.703753ms)
+✔ early review and connection failure retain timing and distinct terminal progress (4.36996ms)
+﹣ offline task uses escaped long paths, current-user identity and preserved host overrides (1.952345ms) # SKIP
+﹣ task creation failure cleans temporary state and never launches a close (0.103966ms) # SKIP
+﹣ task start failure removes the unused task and reports failure (0.063777ms) # SKIP
+✔ unsupported hosts never schedule shutdown operations (0.94119ms)
+﹣ confirmed repair restarts wait for the repair worker, without running ordinary network sync (0.144538ms) # SKIP
+✔ imported conversation conflicts recover as independent forks with their original source identity (11.505804ms)
+✔ session import preflight is read-only and unsupported hosts retain originals (4.430863ms)
+✔ import creates a distinct ID, verifies readback and membership, and repeats without duplication (8.456616ms)
+✔ partial writes retry the journalled ID and preserve the verified prefix (6.951384ms)
+✔ stale preview, mismatched identity and missing attachment fail before session creation (7.054309ms)
+✔ changed recovered session is not overwritten by a repeated import (7.347983ms)
+✔ unknown formats and oversized original logs are refused (0.36456ms)
+✔ immutable fork plan survives an interrupted journal update and refuses tampering (7.290772ms)
+✔ existing replay identities keep their original lineage on retry (5.534428ms)
+✔ missing public fork capability and empty content never create a target session (4.559918ms)
+✔ unverified imports stop synchronization and exit upload before Git or projection writes (9.363392ms)
+✔ invalid host seed preparation does not create a pending journal or block synchronization (4.357112ms)
+✔ invalid public seed encoding is refused before journalling a new import identity (4.236801ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 4
+ℹ todo 0
+ℹ duration_ms 18308.383126

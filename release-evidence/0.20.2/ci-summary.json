@@ -1,0 +1,52 @@
+{
+  "sourceCommit": "32c63803e15ff5d6e706c3e3163c5e2027a6f799",
+  "runId": 40054214402,
+  "url": "https://github.com/dpskk2/dsh-chatsync/actions/runs/40054214402",
+  "completedAt": "2026-10-24T02:42:11.210Z",
+  "testFileConcurrency": 2,
+  "logNormalization": "CRLF normalized to LF; terminal results retained",
+  "results": [
+    {
+      "kind": "linux",
+      "jobId": 120753465071,
+      "url": "https://github.com/dpskk2/dsh-chatsync/actions/runs/40054214402/job/120753465071",
+      "tests": 390,
+      "pass": 381,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 9,
+      "patchAssertions": 8,
+      "conclusion": "success"
+    },
+    {
+      "kind": "windows-node",
+      "jobId": 120753465287,
+      "url": "https://github.com/dpskk2/dsh-chatsync/actions/runs/40054214402/job/120753465287",
+      "tests": 390,
+      "pass": 389,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "patchAssertions": 8,
+      "conclusion": "success"
+    },
+    {
+      "kind": "windows-electron",
+      "jobId": 120753465274,
+      "url": "https://github.com/dpskk2/dsh-chatsync/actions/runs/40054214402/job/120753465274",
+      "tests": 390,
+      "pass": 390,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "patchAssertions": 8,
+      "conclusion": "success"
+    }
+  ],
+  "requiredPlatformSkipsSupplemented": "Windows Electron full suite executes all 390 tests, including the GUI executable wait case; zero skipped.",
+  "runtime": {
+    "node": "24.19.0",
+    "electron": "44.7.0",
+    "electronNode": "24.21.0"
+  }
+}

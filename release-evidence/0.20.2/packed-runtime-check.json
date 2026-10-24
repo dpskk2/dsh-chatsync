@@ -1,0 +1,8 @@
+{
+  "version": "0.20.2",
+  "build": "2026-10-24-release-0.20.2",
+  "node": "v24.19.0",
+  "runtimeFilesVerified": 43,
+  "entryImport": true,
+  "packageSha256": "f838d4375f674c1bcafd03821ef56546d9c4b9d42d52b862a295f0c05b57af74"
+}

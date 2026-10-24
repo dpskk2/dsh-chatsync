@@ -1,0 +1,603 @@
+﻿2026-10-24T02:27:10.4597231Z Current runner version: '2.338.0'
+2026-10-24T02:27:10.4623934Z ##[group]Runner Image Provisioner
+2026-10-24T02:27:10.4624756Z Hosted Compute Agent
+2026-10-24T02:27:10.4625329Z Version: 20261021.618
+2026-10-24T02:27:10.4625955Z Commit: 21505ad2541d5be6135ed84fc33697146cf75b8e
+2026-10-24T02:27:10.4626670Z Build Date: 2026-10-21T00:45:21Z
+2026-10-24T02:27:10.4627321Z Worker ID: {ca4769c3-e83e-4398-b7ec-deab7e41b018}
+2026-10-24T02:27:10.4628007Z Region: westus
+2026-10-24T02:27:10.4628536Z Cloud: Azure
+2026-10-24T02:27:10.4629057Z ##[endgroup]
+2026-10-24T02:27:10.4630367Z ##[group]Operating System
+2026-10-24T02:27:10.4631082Z Microsoft Windows Server 2025
+2026-10-24T02:27:10.4631683Z 10.0.26100
+2026-10-24T02:27:10.4632190Z Datacenter
+2026-10-24T02:27:10.4632675Z ##[endgroup]
+2026-10-24T02:27:10.4633180Z ##[group]Runner Image
+2026-10-24T02:27:10.4633744Z Image: windows-2025-vs2026
+2026-10-24T02:27:10.4634310Z Version: 20261021.278.1
+2026-10-24T02:27:10.4635864Z Included Software: https://github.com/actions/runner-images/blob/win25-vs2026/20261021.278/images/windows/Windows2025-VS2026-Readme.md
+2026-10-24T02:27:10.4637612Z Image Release: https://github.com/actions/runner-images/releases/tag/win25-vs2026%2F20261021.278
+2026-10-24T02:27:10.4639173Z ##[endgroup]
+2026-10-24T02:27:10.4640259Z ##[group]GITHUB_TOKEN Permissions
+2026-10-24T02:27:10.4642059Z Contents: read
+2026-10-24T02:27:10.4642643Z Metadata: read
+2026-10-24T02:27:10.4643193Z ##[endgroup]
+2026-10-24T02:27:10.4645148Z Secret source: Actions
+2026-10-24T02:27:10.4646068Z Cache mode: write
+2026-10-24T02:27:10.4646735Z Prepare workflow directory
+2026-10-24T02:27:10.5011314Z Prepare all required actions
+2026-10-24T02:27:10.5060464Z Getting action download info
+2026-10-24T02:27:10.8287593Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-24T02:27:10.9660854Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-10-24T02:27:11.2538011Z Complete job name: check (windows-latest, electron)
+2026-10-24T02:27:11.4064123Z ##[group]Run actions/checkout@v4
+2026-10-24T02:27:11.4065128Z with:
+2026-10-24T02:27:11.4065565Z   repository: dpskk2/dsh-chatsync
+2026-10-24T02:27:11.4070255Z   token: ***
+2026-10-24T02:27:11.4070677Z   ssh-strict: true
+2026-10-24T02:27:11.4071107Z   ssh-user: git
+2026-10-24T02:27:11.4071538Z   persist-credentials: true
+2026-10-24T02:27:11.4072027Z   clean: true
+2026-10-24T02:27:11.4072459Z   sparse-checkout-cone-mode: true
+2026-10-24T02:27:11.4072990Z   fetch-depth: 1
+2026-10-24T02:27:11.4073414Z   fetch-tags: false
+2026-10-24T02:27:11.4073842Z   show-progress: true
+2026-10-24T02:27:11.4074282Z   lfs: false
+2026-10-24T02:27:11.4074672Z   submodules: false
+2026-10-24T02:27:11.4075307Z   set-safe-directory: true
+2026-10-24T02:27:11.4075864Z   allow-unsafe-pr-checkout: false
+2026-10-24T02:27:11.4076644Z ##[endgroup]
+2026-10-24T02:27:11.5557505Z Syncing repository: dpskk2/dsh-chatsync
+2026-10-24T02:27:11.5560406Z ##[group]Getting Git version info
+2026-10-24T02:27:11.5561751Z Working directory is 'D:\a\dsh-chatsync\dsh-chatsync'
+2026-10-24T02:27:11.6572330Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-10-24T02:27:11.9518975Z git version 2.56.0.windows.2
+2026-10-24T02:27:11.9575084Z ##[endgroup]
+2026-10-24T02:27:11.9597297Z Temporarily overriding HOME='D:\a\_temp\e3e91d3a-eebf-4f45-a324-b6093d3dd654' before making global git config changes
+2026-10-24T02:27:11.9599843Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-24T02:27:11.9609045Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\dsh-chatsync\dsh-chatsync
+2026-10-24T02:27:12.0233541Z Deleting the contents of 'D:\a\dsh-chatsync\dsh-chatsync'
+2026-10-24T02:27:12.0240282Z ##[group]Initializing the repository
+2026-10-24T02:27:12.0249141Z [command]"C:\Program Files\Git\bin\git.exe" init D:\a\dsh-chatsync\dsh-chatsync
+2026-10-24T02:27:12.1201669Z Initialized empty Git repository in D:/a/dsh-chatsync/dsh-chatsync/.git/
+2026-10-24T02:27:12.1248862Z [command]"C:\Program Files\Git\bin\git.exe" remote add origin https://github.com/dpskk2/dsh-chatsync
+2026-10-24T02:27:12.1898621Z ##[endgroup]
+2026-10-24T02:27:12.1899792Z ##[group]Disabling automatic garbage collection
+2026-10-24T02:27:12.1912721Z [command]"C:\Program Files\Git\bin\git.exe" config --local gc.auto 0
+2026-10-24T02:27:12.2390552Z ##[endgroup]
+2026-10-24T02:27:12.2392375Z ##[group]Setting up auth
+2026-10-24T02:27:12.2402265Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-24T02:27:12.2812442Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-24T02:27:13.6861727Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-24T02:27:13.7235427Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-10-24T02:27:14.2890101Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-24T02:27:14.3264352Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-10-24T02:27:14.8956685Z [command]"C:\Program Files\Git\bin\git.exe" config --local http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2026-10-24T02:27:14.9336738Z ##[endgroup]
+2026-10-24T02:27:14.9337693Z ##[group]Fetching the repository
+2026-10-24T02:27:14.9358629Z [command]"C:\Program Files\Git\bin\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +32c63803e15ff5d6e706c3e3163c5e2027a6f799:refs/remotes/origin/main
+2026-10-24T02:27:16.0567632Z From https://github.com/dpskk2/dsh-chatsync
+2026-10-24T02:27:16.0569551Z  * [new ref]         32c63803e15ff5d6e706c3e3163c5e2027a6f799 -> origin/main
+2026-10-24T02:27:16.0611518Z ##[endgroup]
+2026-10-24T02:27:16.0612071Z ##[group]Determining the checkout info
+2026-10-24T02:27:16.0615459Z ##[endgroup]
+2026-10-24T02:27:16.0631760Z [command]"C:\Program Files\Git\bin\git.exe" sparse-checkout disable
+2026-10-24T02:27:16.1170027Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all extensions.worktreeConfig
+2026-10-24T02:27:16.1556677Z ##[group]Checking out the ref
+2026-10-24T02:27:16.1569418Z [command]"C:\Program Files\Git\bin\git.exe" checkout --progress --force -B main refs/remotes/origin/main
+2026-10-24T02:27:16.2757777Z Switched to a new branch 'main'
+2026-10-24T02:27:16.2780008Z branch 'main' set up to track 'origin/main'.
+2026-10-24T02:27:16.2822554Z ##[endgroup]
+2026-10-24T02:27:16.3287472Z [command]"C:\Program Files\Git\bin\git.exe" log -1 --format=%H
+2026-10-24T02:27:16.3629202Z 32c63803e15ff5d6e706c3e3163c5e2027a6f799
+2026-10-24T02:27:16.4119306Z ##[group]Run actions/setup-node@v4
+2026-10-24T02:27:16.4119654Z with:
+2026-10-24T02:27:16.4119843Z   node-version: 24.19.0
+2026-10-24T02:27:16.4120074Z   always-auth: false
+2026-10-24T02:27:16.4120274Z   check-latest: false
+2026-10-24T02:27:16.4122937Z   token: ***
+2026-10-24T02:27:16.4123124Z ##[endgroup]
+2026-10-24T02:27:16.5761062Z Attempting to download 24.19.0...
+2026-10-24T02:27:16.5941674Z (node:7156) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-24T02:27:16.5943003Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-24T02:27:17.2120213Z Acquiring 24.19.0 - x64 from https://github.com/actions/node-versions/releases/download/24.19.0-30872449280/node-24.19.0-win32-x64.7z
+2026-10-24T02:27:17.6398510Z Extracting ...
+2026-10-24T02:27:19.9988443Z Adding to the cache ...
+2026-10-24T02:27:23.5516681Z ##[group]Environment details
+2026-10-24T02:27:24.6824961Z node: v24.19.0
+2026-10-24T02:27:24.6825398Z npm: 11.17.0
+2026-10-24T02:27:24.6825739Z yarn: 1.22.22
+2026-10-24T02:27:24.6828001Z ##[endgroup]
+2026-10-24T02:27:24.7160916Z ##[group]Run npm ci --ignore-scripts
+2026-10-24T02:27:24.7161336Z [36;1mnpm ci --ignore-scripts[0m
+2026-10-24T02:27:24.7833876Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-24T02:27:24.7834525Z ##[endgroup]
+2026-10-24T02:27:27.5956830Z 
+2026-10-24T02:27:27.5965761Z added 27 packages, and audited 28 packages in 2s
+2026-10-24T02:27:27.5966086Z 
+2026-10-24T02:27:27.5966259Z 1 package is looking for funding
+2026-10-24T02:27:27.5966542Z   run `npm fund` for details
+2026-10-24T02:27:27.5975738Z 
+2026-10-24T02:27:27.5975995Z found 0 vulnerabilities
+2026-10-24T02:27:29.3589231Z ##[group]Run npm install --prefix work/desktop-runtime --no-save --no-package-lock --no-audit --no-fund electron@44.7.0
+2026-10-24T02:27:29.3590392Z [36;1mnpm install --prefix work/desktop-runtime --no-save --no-package-lock --no-audit --no-fund electron@44.7.0[0m
+2026-10-24T02:27:29.3591142Z [36;1mif ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }[0m
+2026-10-24T02:27:29.3591650Z [36;1mnode work/desktop-runtime/node_modules/electron/install.js[0m
+2026-10-24T02:27:29.3592160Z [36;1mif ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }[0m
+2026-10-24T02:27:29.3592806Z [36;1m$electron = (Resolve-Path work/desktop-runtime/node_modules/electron/dist/electron.exe).Path[0m
+2026-10-24T02:27:29.3593666Z [36;1m"DSH_CI_ELECTRON=$electron" >> $env:GITHUB_ENV[0m
+2026-10-24T02:27:29.3666117Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-24T02:27:29.3666472Z env:
+2026-10-24T02:27:29.3666665Z   DSH_ISSUE4_CATALOG_ROOT: .
+2026-10-24T02:27:29.3666925Z ##[endgroup]
+2026-10-24T02:27:31.7750794Z 
+2026-10-24T02:27:31.7751592Z added 13 packages in 2s
+2026-10-24T02:27:36.0416205Z ##[group]Run node scripts/run-desktop-regression.mjs "$env:DSH_CI_ELECTRON"
+2026-10-24T02:27:36.0416847Z [36;1mnode scripts/run-desktop-regression.mjs "$env:DSH_CI_ELECTRON"[0m
+2026-10-24T02:27:36.0417319Z [36;1mif ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }[0m
+2026-10-24T02:27:36.0490348Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-24T02:27:36.0490712Z env:
+2026-10-24T02:27:36.0491169Z   DSH_CI_ELECTRON: D:\a\dsh-chatsync\dsh-chatsync\work\desktop-runtime\node_modules\electron\dist\electron.exe
+2026-10-24T02:27:36.0491735Z   DSH_ISSUE4_CATALOG_ROOT: .
+2026-10-24T02:27:36.0491981Z ##[endgroup]
+2026-10-24T02:27:36.7668886Z Desktop regression runtime: {"node":"24.21.0","acorn":"8.18.0","ada":"4.0.0","amaro":"1.1.11","ares":"1.34.8","brotli":"1.2.0","cldr":"48.0","icu":"78.2","llhttp":"9.4.3","merve":"1.2.2","modules":"149","napi":"10","nbytes":"0.1.4","ncrypto":"0.0.1","nghttp2":"1.70.0","nghttp3":"","ngtcp2":"","openssl":"0.0.0","simdjson":"4.6.7","simdutf":"7.7.0","sqlite":"3.53.4","tz":"2026d","undici":"7.29.1","unicode":"17.0","uv":"1.52.1","uvwasi":"0.0.23","v8":"15.2.124.28-electron.0","zlib":"1.3.2.1-motley","zstd":"1.6.0","electron":"44.7.0","chrome":"152.0.7977.130"}
+2026-10-24T02:27:36.7676056Z Starting waited Electron phase: --test
+2026-10-24T02:27:43.7676756Z ✔ issue 6: desktop Electron runtime is excluded before traversal; existing tracked copy leaves index only (6866.627ms)
+2026-10-24T02:27:43.7787417Z ℹ tests 1
+2026-10-24T02:27:43.7787766Z ℹ suites 0
+2026-10-24T02:27:43.7788335Z ℹ pass 1
+2026-10-24T02:27:43.7788691Z ℹ fail 0
+2026-10-24T02:27:43.7789132Z ℹ cancelled 0
+2026-10-24T02:27:43.7789973Z ℹ skipped 0
+2026-10-24T02:27:43.7790361Z ℹ todo 0
+2026-10-24T02:27:43.7790994Z ℹ duration_ms 6966.8293
+2026-10-24T02:27:43.7885909Z Electron phase terminated: {"phase":"--test","status":0,"signal":null,"elapsedMs":7020}
+2026-10-24T02:27:43.7887089Z Starting waited Electron phase: --test
+2026-10-24T02:28:17.3045263Z ✔ R1: merge never overwrites an editor save after the exported project snapshot (33250.6298ms)
+2026-10-24T02:28:45.2178936Z ✔ R2: cancellation aborts an isolated project conflict and retry never publishes markers (27865.2744ms)
+2026-10-24T02:28:45.6744009Z ✔ R3: independent official codec rejects continuous but impossible events before upload and offline application (498.2973ms)
+2026-10-24T02:28:45.6746310Z ✔ R4 and C3: YAML semantics survive comments, quoting and URL lists; removed providers never receive another key (5.3598ms)
+2026-10-24T02:28:46.1177713Z ✔ R5/R6: corrupt registry and directory overrides stop; valid BOM override still selects its directory (440.6277ms)
+2026-10-24T02:29:04.0520428Z ✔ R7: exit uploads cannot issue an application receipt for remote content not applied locally (17877.3425ms)
+2026-10-24T02:29:30.9372985Z ✔ R8: Chinese project conflicts retain readable originals and merge with raw filenames (26693.261ms)
+2026-10-24T02:29:31.1220657Z ✔ R9/R10: child environments share the proxy and split UTF-8 remains intact (439.5222ms)
+2026-10-24T02:29:33.2504139Z ✔ C1/C2: saved automatic choices survive host defaults; project and main use the same credential helper (1792.0356ms)
+2026-10-24T02:29:33.2506537Z ✔ project import preserves a new path created between retaining the inode and installing incoming data (173.2483ms)
+2026-10-24T02:29:33.2525526Z ✔ interrupted project application restores a missing retained inode before any upload (137.8721ms)
+2026-10-24T02:29:44.8735686Z ✔ R3: a forged semantic-invalid remote fast-forward is refused before application or publication (11630.2912ms)
+2026-10-24T02:30:01.1959676Z ✔ R4: real two-copy settings roundtrip preserves values and machine-local provider keys (16025.9408ms)
+2026-10-24T02:30:01.1962200Z ✔ project recovery vaults stay local and filesystem-root workspaces cannot bypass overlap protection (112.7895ms)
+2026-10-24T02:30:01.1964515Z ✔ unsupported exclusive file installation stops before moving any project original (138.5272ms)
+2026-10-24T02:30:05.0445503Z ✔ isolated exit workers inherit the public host catalog, validate sessions and upload a real snapshot (3988.8188ms)
+2026-10-24T02:30:05.0589359Z ✔ 空白会话(从未 turn/start)不再计入未分组 (8.8685ms)
+2026-10-24T02:30:05.0590536Z ✔ 开始过轮次的会话仍然计入未分组 (13.4723ms)
+2026-10-24T02:30:05.0591446Z ✔ 已登记的空白会话同样不计入(登记表优先,与是否空白无关) (9.045ms)
+2026-10-24T02:30:05.0592153Z ✔ 明文 session.jsonl 也按 turn/start 判定 (19.4279ms)
+2026-10-24T02:30:05.0592889Z ✔ 帧边界切断一行 JSON 时仍能识别 turn/start (5.4139ms)
+2026-10-24T02:30:05.0593525Z ✔ 日志追加轮次后判定缓存失效(同一引擎实例内) (6.575ms)
+2026-10-24T02:30:05.0594192Z ✔ 无法判定的日志按「有轮次」保守处理(宁可多报,不静默忽略真会话) (6.8981ms)
+2026-10-24T02:30:05.0595716Z ✔ 扫描/幽灵清理口径不受影响:localSessionIds 仍包含空白会话 (47.3165ms)
+2026-10-24T02:30:05.0596863Z ✔ CLI approval preserves offline import mode, lock waiting and saved outcome (120.7245ms)
+2026-10-24T02:30:05.0598364Z ✔ early review and connection failure retain timing and distinct terminal progress (19.5068ms)
+2026-10-24T02:30:05.0600638Z ✔ BOM settings preserve every choice; damaged settings never bootstrap or overwrite (56.4946ms)
+2026-10-24T02:30:05.0603602Z ✔ identical, nested and junction-aliased workspace targets stop before any project Git operation (6.6149ms)
+2026-10-24T02:30:05.0613368Z ✔ large valid session histories are fully scanned, including compressed suffix secrets (1998.5237ms)
+2026-10-24T02:30:05.0614895Z ✔ pending session application never publishes a successful other-device receipt (12444.9106ms)
+2026-10-24T02:30:05.0616470Z ✔ disabling session scope pauses existing partial application rather than secretly appending (31.0861ms)
+2026-10-24T02:30:05.0618107Z ✔ logical prefix comparison selects existing bytes while genuine branches remain independent (3.4505ms)
+2026-10-24T02:30:05.0619818Z ✔ recovery API explains saved records and identifies the actual build (49.6873ms)
+2026-10-24T02:30:05.0621135Z ✔ recovery archiving is reversible and corrupt or incomplete records remain visible (73.0916ms)
+2026-10-24T02:30:05.0622685Z ✔ status exposes current repair verification even with no prior sync and clears after acknowledgment (37.0847ms)
+2026-10-24T02:30:05.0624444Z ✔ the manual restart endpoint is removed while data repair remains available (5.509ms)
+2026-10-24T02:30:05.0625653Z ✔ local grouping diagnosis is available without a configured sync remote (5.4085ms)
+2026-10-24T02:30:05.0626894Z ✔ legacy mode changes do not control lifecycle automation; master switch does (114.1439ms)
+2026-10-24T02:30:05.0628146Z ✔ only GitHub connections are saved; invalid addresses preserve the old config (91.3391ms)
+2026-10-24T02:30:05.0629390Z ✔ one automatic API field saves both legacy flags and reports host overrides (61.5673ms)
+2026-10-24T02:30:05.0630734Z ✔ read-only preview and doctor do not initialize data, recovery rejects arbitrary paths (126.4439ms)
+2026-10-24T02:30:05.0631985Z ✔ update route reports the running version and rejects mutation requests (6.2377ms)
+2026-10-24T02:30:05.0633339Z ✔ content range API rejects nonboolean fields and persists the effective selection (82.8549ms)
+2026-10-24T02:30:05.0634693Z ✔ restart repair is enabled by default and preserves an explicit opt-out (852.152ms)
+2026-10-24T02:30:05.0635963Z ✔ connection API round trips HTTPS and SSH and preserves unrelated settings (222.4217ms)
+2026-10-24T02:30:05.0637196Z ✔ invalid connections are rejected without changing existing configuration (173.5722ms)
+2026-10-24T02:30:05.0638237Z ✔ saving preferences never overwrites malformed existing JSON (5.8885ms)
+2026-10-24T02:30:05.0639251Z ✔ overlapping connection and preference saves retain both changes (78.8938ms)
+2026-10-24T02:30:05.0640791Z ✔ config response reports effective host overrides, not just saved preferences (22.316ms)
+2026-10-24T02:30:05.0641951Z ✔ auto scheduling can be toggled and its interval changed from the API (38.5056ms)
+2026-10-24T02:30:05.0642969Z ✔ invalid scheduling values are rejected without changing the file (6.6946ms)
+2026-10-24T02:30:05.0645087Z ✔ status reports active sessions with the projection title for the restart guide (14.6193ms)
+2026-10-24T02:30:05.0646230Z ✔ removed independent backup routes are not registered (4.8273ms)
+2026-10-24T02:30:05.0647424Z ✔ connection API verifies a custom private destination while default setup stays offline (39.8542ms)
+2026-10-24T02:30:05.0648799Z ✔ sidebar visibility defaults on, persists separately and validates boolean values (41.4574ms)
+2026-10-24T02:30:05.0650317Z ✔ sidebar-only writes remain available during synchronization without allowing transfer configuration changes (23.5941ms)
+2026-10-24T02:30:05.0652005Z ✔ workspace history repair API requires an explicit POST preview and rejects arbitrary confirmation IDs (8.2224ms)
+2026-10-24T02:30:05.0653429Z ✔ new connections stay manual and legacy manual preferences never gain automatic transfers (1.5873ms)
+2026-10-24T02:30:05.0654811Z ✔ explicit lifecycle switches, existing auto mode and pauses retain their behavior (0.4376ms)
+2026-10-24T02:30:05.0656116Z ✔ host overrides remain effective and reading settings never rewrites their file (4.3035ms)
+2026-10-24T02:30:05.0657397Z ✔ GitHub-only parsing rejects other backends and credential-bearing addresses (0.5575ms)
+2026-10-24T02:30:05.0658830Z ✔ custom backup is verified for privacy and write access before saving, retaining other preferences (46.4046ms)
+2026-10-24T02:30:05.0660855Z ✔ unavailable, public, read-only and malformed custom repositories leave config byte-for-byte intact (17.9662ms)
+2026-10-24T02:30:05.0662333Z ✔ blank enables the default repository without a network call or repository creation (70.2325ms)
+2026-10-24T02:30:05.0663870Z ✔ changes during verification, active sync, process locks and host overrides cannot replace a destination (101.8691ms)
+2026-10-24T02:30:05.0665389Z ✔ the processing list follows the live sidebar even when the disk registry looks repaired (13.9261ms)
+2026-10-24T02:30:05.0666892Z ✔ wrong, duplicate and archived memberships are previewed and repaired with a reversible original (272.0471ms)
+2026-10-24T02:30:05.0668524Z ✔ plain torn tails, missing newline, seq gaps and complete compressed frames recover without renumbering (296.6128ms)
+2026-10-24T02:30:05.0689030Z ✔ stale previews, changed chosen logs and missing strict host validation stop before writing (57.4214ms)
+2026-10-24T02:30:05.0690490Z ✔ same-generation ambiguity archives the other original and refuses a changed selection (68.0989ms)
+2026-10-24T02:30:05.0692021Z ✔ corrupted registry can recover from a verified original; unknown missing content is never invented (107.7045ms)
+2026-10-24T02:30:05.0693595Z ✔ BOM-aware configuration history restores saved choices, and explicit rebuild stays manual (150.6079ms)
+2026-10-24T02:30:05.0695130Z ✔ a process killed after replacement resumes the same durable repair without truncating new edits (194.2937ms)
+2026-10-24T02:30:05.0696491Z ✔ completed repairs wait for explicit user verification before any transfer (21.5548ms)
+2026-10-24T02:30:05.0698041Z ✔ after restart repair can find intact history in the persistent transport without initializing or fetching (1786.9759ms)
+2026-10-24T02:30:05.0699561Z ✔ intentional and archived ungrouped sessions are visible context, not repair defects (10.8695ms)
+2026-10-24T02:30:05.0701334Z ✔ fixture teardown removes readonly Git objects, preserves junction targets and refuses other roots (1416.494ms)
+2026-10-24T02:30:05.0702726Z ✔ disk membership cannot hide a stale sidebar index; archives and blanks stay excluded (9.0325ms)
+2026-10-24T02:30:05.0704020Z ✔ a missing or mismatched cwd is reported without repeated automatic restarts (5.2414ms)
+2026-10-24T02:30:05.0705352Z ✔ live unarchive is detected before disk persistence and before project membership exists (4.3558ms)
+2026-10-24T02:30:05.0706837Z ✔ refresh diagnosis parses a session directory, excluding archived and blank sessions (4.2423ms)
+2026-10-24T02:30:05.0708242Z ✔ active-session deferral survives later sync outcomes and retries when idle (12.9321ms)
+2026-10-24T02:30:05.0710393Z ✔ cooldown prevents a repeating issue but permits a different grouping change within 12 hours (20.7528ms)
+2026-10-24T02:30:05.0712134Z ✔ monitor requires a stable local mismatch, never syncs, and respects offline/busy/disabled state (14.4562ms)
+2026-10-24T02:30:05.0713546Z ✔ Windows failures retain readable Chinese from GBK, UTF-8, and UTF-16 (0.6036ms)
+2026-10-24T02:30:05.0715031Z ✔ unknown activity, disabled automation, failed sync and unsupported projections cannot restart (3.8413ms)
+2026-10-24T02:30:05.0716743Z ✔ deleting a workspace never reconstructs it; archived accounting survives every sync hook (4.5047ms)
+2026-10-24T02:30:05.0718377Z ✔ sync provenance detects lost membership only while the original workspace remains unchanged (27.7823ms)
+2026-10-24T02:30:05.0719838Z ✔ three-way merge respects workspace deletion, member removal and unarchive (4.1563ms)
+2026-10-24T02:30:05.0721572Z ✔ offline task uses escaped long paths, current-user identity and preserved host overrides (4.7623ms)
+2026-10-24T02:30:05.0722928Z ✔ task creation failure cleans temporary state and never launches a close (2.2486ms)
+2026-10-24T02:30:05.0724089Z ✔ task start failure removes the unused task and reports failure (2.3509ms)
+2026-10-24T02:30:05.0725080Z ✔ unsupported hosts never schedule shutdown operations (0.619ms)
+2026-10-24T02:30:05.0725814Z ✔ confirmed repair restarts wait for the repair worker, without running ordinary network sync (2.0421ms)
+2026-10-24T02:30:05.0726748Z ✔ imported local and remote-only sessions retain project membership while deleted registrations are removed (1634.6473ms)
+2026-10-24T02:30:05.0727643Z ✔ imported histories use session conflict protection rather than opaque text replacement (1.106ms)
+2026-10-24T02:30:08.0636057Z ✔ the exact reported 7173 -> 7183 gap loses nine events and is rejected (120.6424ms)
+2026-10-24T02:30:08.0638249Z ✔ continuous external writer preserves both independent histories through a divergent merge; seed=17 (31820.3553ms)
+2026-10-24T02:30:08.0640520Z ✔ continuous external writer preserves both independent histories through a divergent merge; seed=42 (37860.1072ms)
+2026-10-24T02:30:08.0642979Z ✔ continuous external writer preserves both independent histories through a divergent merge; seed=20261018 (32013.1324ms)
+2026-10-24T02:30:08.0644670Z ✔ a large fast-forward cannot replace a log while an external writer appends (17642.7115ms)
+2026-10-24T02:30:24.0549975Z ✔ a partial compressed frame cannot propagate and its completed frame can be retried (16064.9018ms)
+2026-10-24T02:30:26.1534149Z ✔ compatibility: local-only snapshots keep large files during normal sync and exit (2996.268ms)
+2026-10-24T02:30:26.1536193Z ✔ compatibility: an unchanged oversized blob already in remote history does not block new small files (4768.1783ms)
+2026-10-24T02:30:26.1537784Z ✔ compatibility: pre-commit size check uses the same session limit as outgoing privacy scan (5415.8426ms)
+2026-10-24T02:30:26.1539385Z ✔ compatibility: exit still prevents oversized snapshots before remote visibility has been verified (2474.9941ms)
+2026-10-24T02:30:26.1541660Z ✔ compatibility: project ignore and nested Git exclusions still take precedence over large-file checks (5132.4389ms)
+2026-10-24T02:30:26.1543404Z ✔ compatibility: workspace disabled creates no mirror or snapshot even at exit (136.6874ms)
+2026-10-24T02:30:35.0621634Z ✔ compatibility: one blocked workspace does not block main data or another workspace (8910.6563ms)
+2026-10-24T02:30:38.8619933Z ✔ compatibility: raw Git failures explain the error without exposing credential values (3806.9247ms)
+2026-10-24T02:30:48.2604960Z ✔ compatibility: staged object metadata is checked in bounded batches, including unusual filenames (8960.1419ms)
+2026-10-24T02:30:54.2575361Z ✔ compatibility: copying a previously uploaded large blob adds no new object, while editing its content is blocked (6422.6286ms)
+2026-10-24T02:30:56.7093789Z ✔ compatibility: saved automation-off and explicit Git identity survive restart and manual sync (2453.8332ms)
+2026-10-24T02:30:57.4203311Z ✔ compatibility: truncated staged change listing is rejected in both normal and exit checks (790.8852ms)
+2026-10-24T02:31:01.9766648Z ✔ issue 6: main-only remote accepts first workspace upload without global Git identity (7291.7813ms)
+2026-10-24T02:31:01.9768440Z ✔ issue 6: empty remote and empty workspace are valid first-sync states (7442.9682ms)
+2026-10-24T02:31:01.9769836Z ✔ issue 6: failed branch probe cannot turn an unreachable remote into first upload (4646.3494ms)
+2026-10-24T02:31:01.9771319Z ✔ issue 6: changed identity and external duplicate config are repaired in the same engine (3500.9654ms)
+2026-10-24T02:31:01.9772922Z ✔ issue 6: real config lock is reported before any workspace transfer and retries after unlock (7436.6667ms)
+2026-10-24T02:31:01.9775337Z ✔ issue 6: status failure surfaces Git reason and preserves dirty files against remote updates (6781.8133ms)
+2026-10-24T02:31:08.7771647Z ✔ issue 6: add failure surfaces Git reason and preserves dirty files against remote updates (6861.3384ms)
+2026-10-24T02:31:16.0383312Z ✔ issue 6: commit failure surfaces Git reason and preserves dirty files against remote updates (7192.3522ms)
+2026-10-24T02:31:22.5109810Z ✔ issue 6: desktop Electron runtime is excluded before traversal; existing tracked copy leaves index only (6458.9167ms)
+2026-10-24T02:31:33.4959782Z ✔ issue 6: oversized installer never enters normal or exit snapshots; ignore then retry needs no history rewrite (11036.4363ms)
+2026-10-24T02:31:47.5276008Z ✔ issue 6: deleted oversized history is blocked until an explicit checked rebuild preserves its backup (14091.1475ms)
+2026-10-24T02:31:51.8855308Z ✔ issue 6: incomplete staged-size check stops before commit or transfer (4357.3228ms)
+2026-10-24T02:31:57.7518493Z ✔ issue 6: legacy project migration preserves an uncommitted local deletion (5656.2769ms)
+2026-10-24T02:32:08.3048675Z ✔ issue 6: history rebuild keeps the published parent and rejects stale previews (11391.1724ms)
+2026-10-24T02:32:08.3174326Z ✔ project locations load on expansion and save only the chosen local path (16.5794ms)
+2026-10-24T02:32:08.3176884Z ✔ data health scans only on demand and queues only the exact confirmed repair preview (2.2088ms)
+2026-10-24T02:32:08.3180719Z ✔ repair blockers open a dedicated repair page without acknowledging or starting sync (3.7394ms)
+2026-10-24T02:32:08.3183480Z ✔ repair verification stays visible and clears only after successful explicit acknowledgment (1.6958ms)
+2026-10-24T02:32:08.3185964Z ✔ daily summary shows effective automation and actionable state without connection metadata or manual restart (10.4107ms)
+2026-10-24T02:32:08.3187678Z ✔ ungrouped notice survives failed startup, deduplicates dismissal and rearms after unarchive (1.929ms)
+2026-10-24T02:32:08.3189252Z ✔ grouping automation respects busy and disabled state while explicit check can reopen it (1.4544ms)
+2026-10-24T02:32:08.3190902Z ✔ the processing page shows grouped tasks directly, with no folded repair area or automatic write (1.3025ms)
+2026-10-24T02:32:08.3192506Z ✔ the dedicated repair page receives grouping navigation and always renders its task area (0.9506ms)
+2026-10-24T02:32:08.3194062Z ✔ opening grouping repair previews the current issue and preserves an already queued plan (2.5046ms)
+2026-10-24T02:32:08.3195409Z ✔ startup errors stay nonmodal until an old-session send is attempted (2.3606ms)
+2026-10-24T02:32:08.3196600Z ✔ sidebar and settings expose progress without a cancellation action (2.6776ms)
+2026-10-24T02:32:08.3197970Z ✔ content changes save immediately, failed saves return to the confirmed selection (2.1904ms)
+2026-10-24T02:32:08.3199478Z ✔ manual transfer requires explicit preview confirmation and sends only its current ID (2.345ms)
+2026-10-24T02:32:08.3253364Z ✔ startup running, offline and old review snapshots never open a dialog by themselves (3.612ms)
+2026-10-24T02:32:08.3255094Z ✔ composer preflight rejects queue, steer and attachment sends before transport, and never resends automatically (1.577ms)
+2026-10-24T02:32:08.3257633Z ✔ startup distinguishes actual transfer percentage, unknown progress and confirmation (2.4605ms)
+2026-10-24T02:32:08.3259038Z ✔ local preview handles errors without claiming remote coverage (1.9044ms)
+2026-10-24T02:32:08.3260360Z ✔ switches save only their changed fields without a save button or setup navigation (2.4111ms)
+2026-10-24T02:32:08.3261607Z ✔ legacy auto mode never exposes periodic or idle upload controls (1.2927ms)
+2026-10-24T02:32:08.3262867Z ✔ one immediate master switch respects explicit pauses regardless of legacy mode (3.4732ms)
+2026-10-24T02:32:08.3264269Z ✔ default backup needs no address or checkbox and saves automatic repository creation (2.0286ms)
+2026-10-24T02:32:08.3266163Z ✔ configured backup hides its address until an explicit edit and cancel discards the draft without saving (2.0987ms)
+2026-10-24T02:32:08.3267630Z ✔ connection form submits a custom repository for server verification (1.5586ms)
+2026-10-24T02:32:08.3268928Z ✔ connection form preserves user input on failure and blocks writes while syncing (1.3708ms)
+2026-10-24T02:32:08.3270211Z ✔ background status refresh never replaces an unsaved connection draft (1.4217ms)
+2026-10-24T02:32:08.3271268Z ✔ failed config loading offers a working retry (1.3601ms)
+2026-10-24T02:32:08.3272193Z ✔ a malformed success response is a recoverable load error (1.2689ms)
+2026-10-24T02:32:08.3273362Z ✔ failed immediate toggles show the actual persisted value and the error (1.3608ms)
+2026-10-24T02:32:08.3274315Z ✔ syncing blocks immediate settings writes (3.1077ms)
+2026-10-24T02:32:08.3275534Z ✔ pending immediate saves prevent same-tick duplicate writes and report their pending state (1.5077ms)
+2026-10-24T02:32:08.3276888Z ✔ legacy conflict copies are read-only and never call a resolution endpoint (1.5029ms)
+2026-10-24T02:32:08.3277948Z ✔ patch status stays out of the sync status line (1.3435ms)
+2026-10-24T02:32:08.3279055Z ✔ unsupported old repository is shown without silently converting it (1.6919ms)
+2026-10-24T02:32:08.3280213Z ✔ first setup shows only the current step and saving advances (1.7286ms)
+2026-10-24T02:32:08.3281540Z ✔ daily sync is the default for configured users after restart, success or failure (2.9178ms)
+2026-10-24T02:32:08.3283243Z ✔ startup and exit choices save independently without an interval setting (1.4673ms)
+2026-10-24T02:32:08.3285435Z ✔ lost save response is reconciled with the committed configuration (1.3549ms)
+2026-10-24T02:32:08.3286850Z ✔ unconfirmed save disables controls until a successful reread (1.6237ms)
+2026-10-24T02:32:08.3288474Z ✔ host overrides are displayed without claiming the requested switch is enabled (1.3809ms)
+2026-10-24T02:32:08.3290106Z ✔ setup choices save in place and Continue advances without an interval write (1.7164ms)
+2026-10-24T02:32:08.3291609Z ✔ pending preferences prevent connection writes and starting a transfer (1.7168ms)
+2026-10-24T02:32:08.3292637Z ✔ legacy manual mode can enable lifecycle automation through the master switch (3.3343ms)
+2026-10-24T02:32:08.3293661Z ✔ recovery preview opens a dedicated dialog, closes while busy and can reopen (14.9062ms)
+2026-10-24T02:32:08.3294721Z ✔ comparison aligns insertions, marks changed rows and links both scroll axes (1.3296ms)
+2026-10-24T02:32:08.3295615Z ✔ binary previews do not manufacture text differences, and large text is explicitly limited (9.1484ms)
+2026-10-24T02:32:08.3296473Z ✔ recovery list omits file essays and keeps data repair outside conflict browsing (3.8378ms)
+2026-10-24T02:32:08.3298935Z ✔ historical originals stay collapsed and do not count as pending conflicts (1.8356ms)
+2026-10-24T02:32:08.3300049Z ✔ project restore sends the selected side and the preview hash, then refreshes records (1.95ms)
+2026-10-24T02:32:08.3301046Z ✔ global sidebar provider applies default visibility and retains main and settings entries when hidden (2.0585ms)
+2026-10-24T02:32:08.3302244Z ✔ sidebar header switch immediately removes and restores only the sidebar entry, even while syncing (2.0443ms)
+2026-10-24T02:32:08.3305109Z ✔ sidebar preference reconciles a lost save response and rejects duplicate pending saves (2.0736ms)
+2026-10-24T02:32:08.3306543Z ✔ daily and first setup headers always offer the sidebar visibility switch (1.9977ms)
+2026-10-24T02:32:08.3309220Z ✔ old project history offers a bound preview before any confirmed rebuild (1.0503ms)
+2026-10-24T02:32:08.3310365Z ✔ redaction preserves the original bytes, sequence and event structure for a separate import (2.9597ms)
+2026-10-24T02:32:08.3311194Z ✔ redaction refuses corrupt originals and a source without detected content (0.7048ms)
+2026-10-24T02:32:08.3312006Z ✔ ignore rules protect tracked sessions in a live tree without its own Git repository (1265.4356ms)
+2026-10-24T02:32:08.3312848Z ✔ scoped sync never exports an ignored local secret or imports over its local original (5708.9333ms)
+2026-10-24T02:32:08.3313700Z ✔ explicit examples in test source do not block but real credentials in tests still do (2.1463ms)
+2026-10-24T02:32:08.3314471Z ✔ sensitive findings expose line numbers without matched credential values (0.2231ms)
+2026-10-24T02:32:08.3315261Z ✔ parallel workspace failures retain independent reports and precise issues (1.3058ms)
+2026-10-24T02:33:06.2937602Z ✔ legacy and cache cleanup cannot upload pending secrets before the normal privacy check (14102.7214ms)
+2026-10-24T02:33:06.2944419Z ✔ legacy cleanup still scans and uploads selected executable configuration without repeated approval (8416.7774ms)
+2026-10-24T02:33:06.2946236Z ✔ exit uploads and retries pin the checked commit when an external writer advances main or workspace (21341.7279ms)
+2026-10-24T02:33:06.2948373Z ✔ more than 32 MiB of unique history is scanned in bounded batches and delivered through real Git (7441.2863ms)
+2026-10-24T02:33:06.2968843Z ✔ a secret removed after a later large batch still blocks the whole unpublished history (6476.7433ms)
+2026-10-24T02:33:06.2970700Z ✔ more than 5000 objects are inspected and malformed or oversized batch output fails closed (63461.1834ms)
+2026-10-24T02:33:06.2972062Z ℹ created 5100 fixture files: 50065ms
+2026-10-24T02:33:06.2972871Z ℹ committed fixture: 50903ms
+2026-10-24T02:33:06.2975230Z ℹ full independent object scan: 55297ms
+2026-10-24T02:33:06.2976188Z ℹ all malformed-output assertions completed: 57828ms
+2026-10-24T02:33:11.1224022Z ✔ a branch changed during upload never sends the new unscanned secret or claims a completed handoff (4835.571ms)
+2026-10-24T02:33:11.1226404Z ✔ scanner reports categories only and distinguishes templates, private keys and compressed session content (1.6952ms)
+2026-10-24T02:33:17.9339072Z ✔ new sensitive history blocks the first upload even after the current file is removed (6816.0182ms)
+2026-10-24T02:33:22.5356164Z ✔ oversized and undecodable blobs pause upload instead of silently skipping inspection (4688.2086ms)
+2026-10-24T02:33:22.5477591Z ✔ missing Git produces an error outcome and never starts workspace sync (13825.9739ms)
+2026-10-24T02:33:22.5478986Z ✔ auto setup refuses an existing public repository without saving remote (12.7055ms)
+2026-10-24T02:33:22.5480249Z ✔ auto setup refuses an unparseable visibility response (3.2477ms)
+2026-10-24T02:33:22.5482696Z ✔ manual remote verification fails closed and accepts private HTTPS or SSH (3.2268ms)
+2026-10-24T02:33:22.5484119Z ✔ sync aborts before initializing git if configured remote is not private (3.8062ms)
+2026-10-24T02:33:22.5485479Z ▶ repository failures show their cause and stop before any local or remote writes
+2026-10-24T02:33:22.5486385Z   ✔ device/API EOF (5.787ms)
+2026-10-24T02:33:22.5487131Z   ✔ DNS (2.4686ms)
+2026-10-24T02:33:22.5487505Z   ✔ proxy (2.3792ms)
+2026-10-24T02:33:22.5487818Z   ✔ timeout (4.4175ms)
+2026-10-24T02:33:22.5488159Z   ✔ logged out (7.6441ms)
+2026-10-24T02:33:22.5488503Z   ✔ expired token (10.6811ms)
+2026-10-24T02:33:22.5488931Z   ✔ missing/private inaccessible (7.4434ms)
+2026-10-24T02:33:22.5489366Z   ✔ forbidden (2.1512ms)
+2026-10-24T02:33:22.5489705Z   ✔ rate limit (2.2426ms)
+2026-10-24T02:33:22.5490021Z   ✔ CLI missing (2.1077ms)
+2026-10-24T02:33:22.5490868Z   ✔ service error (3.0231ms)
+2026-10-24T02:33:22.5491438Z   ✔ unknown error (2.4913ms)
+2026-10-24T02:33:22.5492120Z   ✔ invalid JSON (4.3674ms)
+2026-10-24T02:33:22.5492771Z   ✔ unknown visibility (7.509ms)
+2026-10-24T02:33:22.5493167Z   ✔ public (7.5388ms)
+2026-10-24T02:33:22.5493757Z ✔ repository failures show their cause and stop before any local or remote writes (73.8944ms)
+2026-10-24T02:33:22.5494475Z ✔ network failure during auto setup does not attempt to create a repository (1.894ms)
+2026-10-24T02:33:22.5495163Z ✔ a killed timed-out CLI carries a timeout reason even without stderr (278.4478ms)
+2026-10-24T02:33:22.5495940Z ✔ auto setup still creates a private repository after a missing repository response (19.1159ms)
+2026-10-24T02:33:22.5496632Z ✔ failed main sync never starts workspace syncing (26.8687ms)
+2026-10-24T02:33:22.5497267Z ✔ remote-head backup reports whether its branch reached the remote (2.1151ms)
+2026-10-24T02:33:22.5498013Z ✔ two backups within the same second retain separate readable Git branches (1742.5281ms)
+2026-10-24T02:33:22.5498811Z ✔ oversized subprocess output is stopped and never used as a successful API response (121.614ms)
+2026-10-24T02:33:22.5499700Z ✔ network timeout stops the owned subprocess tree and partial stdout never counts as success (1096.953ms)
+2026-10-24T02:33:22.5500520Z ✔ host registers three read-only tools, without transmitting content or changing data (88.5154ms)
+2026-10-24T02:33:22.5501279Z ✔ standalone diagnostic flags do not sync even with automatic repository defaults (291.9555ms)
+2026-10-24T02:33:22.5502065Z ✔ device evidence expires and never carries across a different remote or branch (11.976ms)
+2026-10-24T02:33:22.5502745Z ✔ the screenshot path is a ChatSync ledger, not the profile manifest (1.1347ms)
+2026-10-24T02:33:22.5503562Z ✔ profile manifest, lockfile and project manifest have different purposes and decisions (0.2411ms)
+2026-10-24T02:33:22.5504382Z ✔ version-specific settings migration and unverified host versions are explicit (0.8298ms)
+2026-10-24T02:33:22.5505254Z ✔ archiving preserves originals and restoration access, validates hashes and can be undone (133.437ms)
+2026-10-24T02:33:22.5506350Z ✔ repair previews and completed backups are history rather than unresolved merges (0.1822ms)
+2026-10-24T02:33:22.5507628Z ✔ selected restoration backs up the current file and can undo without touching unrelated files (263.4224ms)
+2026-10-24T02:33:22.5508578Z ✔ scoped import backups preview against the main home without requiring a workspace registration (156.1635ms)
+2026-10-24T02:33:22.5509436Z ✔ stale previews, corrupt originals and session restore all stop before writing (165.7348ms)
+2026-10-24T02:33:22.5510085Z ✔ empty files are kept distinct from deleted versions (194.016ms)
+2026-10-24T02:33:22.5510754Z ✔ restoration rolls back if recording the result fails after replacement (141.1296ms)
+2026-10-24T02:33:22.5511557Z ✔ path traversal and directory links cannot access outside recovery or workspace roots (68.7199ms)
+2026-10-24T02:33:22.5512350Z ✔ preview and diagnostics on a new home do not initialize Git or write state (49.914ms)
+2026-10-24T02:33:27.9128164Z ✔ release checklist starts with all 24 mandatory items pending (1.0834ms)
+2026-10-24T02:33:27.9130475Z ✔ complete committed evidence for the exact candidate passes; adding evidence does not change source fingerprint (3176.1803ms)
+2026-10-24T02:33:27.9132205Z ✔ pending, failed, skipped, interrupted and missing checks block release (9263.8204ms)
+2026-10-24T02:33:27.9137646Z ✔ repeated evidence IDs cannot replace a missing runtime check (4315.6254ms)
+2026-10-24T02:33:27.9141400Z ✔ uncommitted changes block release even if the index fingerprint is unchanged (3155.8949ms)
+2026-10-24T02:33:27.9143618Z ✔ committed source changes invalidate previous evidence (3389.1194ms)
+2026-10-24T02:33:27.9146162Z ✔ changed or missing candidate package blocks release (4729.1453ms)
+2026-10-24T02:33:27.9148804Z ✔ missing, changed, empty or out-of-scope evidence blocks release (5076.9869ms)
+2026-10-24T02:33:27.9154072Z ✔ wrong version, missing review details, future dates and absent artifacts block release (3029.9637ms)
+2026-10-24T02:33:27.9158106Z ✔ explicit owner decision preserves unverified status and remains bound to candidate (5282.7971ms)
+2026-10-24T02:33:27.9160375Z ✔ owner decision cannot excuse failed, missing, pending or skipped checks (7226.0423ms)
+2026-10-24T02:33:27.9165826Z ✔ owner decision cannot bypass regression, automated tests, source review or failed installation (7124.6991ms)
+2026-10-24T02:33:27.9168788Z ✔ unverified scenarios still require complete committed evidence and decision metadata (4532.7843ms)
+2026-10-24T02:33:27.9295118Z ✔ repository setup notices external edits and replaces duplicate transport settings (1761.5367ms)
+2026-10-24T02:33:27.9296845Z ✔ repository setup stops when required local configuration cannot be read or written (988.1978ms)
+2026-10-24T02:33:27.9298571Z [dsh-chatsync] ctx.get("agents") 异常,改用会话日志兜底: get failed
+2026-10-24T02:33:27.9299304Z [dsh-chatsync] agents.list() 异常,会话活动按未知处理: list failed
+2026-10-24T02:33:27.9300056Z ✔ automatic restart waits for transfer completion, result persistence and lock release (25.7861ms)
+2026-10-24T02:33:27.9301035Z ✔ automatic restart leaves a manual prompt for unknown activity, active sessions and transfer failure (2.6932ms)
+2026-10-24T02:33:27.9301902Z ✔ unreadable session storage is unknown rather than confirmed idle (1.5514ms)
+2026-10-24T02:33:27.9302635Z ✔ agents 服务可用且有一个 running 会话 → source=agents 且 activeIds 命中 (1.9953ms)
+2026-10-24T02:33:27.9303248Z ✔ agents 服务全为 idle → activeCount=0 但 available 仍为 true (1.4894ms)
+2026-10-24T02:33:27.9303855Z ✔ agents 服务缺失/抛错/返回非数组 → 不抛异常且不误判活跃 (2.985ms)
+2026-10-24T02:33:27.9304393Z ✔ 无 agents 服务时用会话日志 mtime 判定活跃(窗口内活跃/窗口外不活跃) (7.9828ms)
+2026-10-24T02:33:27.9305018Z ✔ 有活跃会话时 Web 宿主的 scheduleRestart 被守卫拦下(不创建 schtasks) (2.6809ms)
+2026-10-24T02:33:27.9305617Z ✔ 用户已确认的手动重启(force:true)不受活跃会话守卫拦截(仍不会真调度) (1.7462ms)
+2026-10-24T02:33:27.9306090Z ✔ 无活跃会话时不触发守卫(保持既有宿主判定) (2.0522ms)
+2026-10-24T02:33:27.9306604Z ✔ the Web restart path is limited to the DSH Web host (0.9838ms)
+2026-10-24T02:33:27.9307526Z ✔ standalone sync cannot schedule the Web restart task (2.5782ms)
+2026-10-24T02:33:27.9308187Z ✔ desktop restart requires the explicit manual confirmation path (1.0221ms)
+2026-10-24T02:33:27.9309008Z ✔ auto restart after repair covers both hosts and only forces the desktop host (3.2091ms)
+2026-10-24T02:33:27.9309781Z ✔ two host engines cannot sync the same DSH home at once (18.8656ms)
+2026-10-24T02:33:36.8331454Z ✔ ordinary startup uploads repeated package and lock changes without approval, including after engine recreation (10961.1832ms)
+2026-10-24T02:33:52.4317754Z ✔ automatic first upload stops, stale confirmation cannot authorize changed contents, ordinary edits need no new confirmation (15288.4955ms)
+2026-10-24T02:34:18.5813933Z ✔ remote executable configuration stays off disk until the current preview is accepted (26315.8696ms)
+2026-10-24T02:34:40.2803551Z ✔ mass deletion pauses upload and preserves the remote files until approved (21922.8096ms)
+2026-10-24T02:34:40.2944398Z ✔ failed startup retries with bounded backoff, while success, cancellation and privacy stop retries (3.9408ms)
+2026-10-24T02:34:40.2946828Z ✔ new connections stay manual while startup and exit options remain selectable (0.2281ms)
+2026-10-24T02:34:40.2948519Z ✔ both legacy modes and old intervals create no editing or periodic work (1.3663ms)
+2026-10-24T02:34:40.2950047Z ✔ startup is executed once independently of legacy manual mode (0.9897ms)
+2026-10-24T02:34:40.2951516Z ✔ explicit startup or master disable is respected (0.5423ms)
+2026-10-24T02:34:40.2952919Z ✔ disposal cancels a queued startup without scheduling retries (0.516ms)
+2026-10-24T02:34:40.2954579Z ✔ failed startup does not silently retry while the person edits (0.7262ms)
+2026-10-24T02:34:40.2956488Z ✔ first scoped clone reuses local history without borrowing storage or seeding unsent commits (6609.3362ms)
+2026-10-24T02:34:40.2958323Z ✔ reusing a transport never stacks progress callbacks across retries (4503.8141ms)
+2026-10-24T02:34:40.2960037Z ✔ an interrupted clone is archived and retried without touching local originals (6389.2546ms)
+2026-10-24T02:34:40.2961612Z ✔ workspace network operations run after the short local import transaction (2583.4818ms)
+2026-10-24T02:34:40.2963167Z ✔ scope selection validates booleans and settings preserve local secrets even inside provider arrays (6.4711ms)
+2026-10-24T02:34:40.2964829Z ✔ scoped transport keeps excluded remote data and local fields, and reenable takes unchanged remote updates (41778.6994ms)
+2026-10-24T02:34:40.2966758Z ✔ sync preserves intentional ungrouping instead of manufacturing registry repair (8618.6423ms)
+2026-10-24T02:34:40.2968042Z ✔ lifecycle status and host ownership never enter scoped transport or previews (0.4256ms)
+2026-10-24T02:34:55.2922275Z ✔ only pre-existing unchecked sessions are blocked, with host admission checked before any side effect (2.156ms)
+2026-10-24T02:34:55.2924333Z ✔ real Git remote update is applied and verified before old-session sends are released, independent of project failure (16575.7248ms)
+2026-10-24T02:34:55.3024841Z ✔ released v0/v1 packed rows count every event and preserve original multi-frame bytes (9.4141ms)
+2026-10-24T02:34:55.3026930Z ✔ legacy packed rows reject gaps, overlaps and malformed envelopes even for identical inputs (1.6415ms)
+2026-10-24T02:34:55.3028496Z ✔ append-only histories retain bytes, references and event order (0.3439ms)
+2026-10-24T02:34:55.3029888Z ✔ overlapping sequence numbers on independent branches are never mixed (0.8365ms)
+2026-10-24T02:34:55.3031324Z ✔ rewritten seeds, different headers and malformed rows are not normalized (0.541ms)
+2026-10-24T02:34:55.3032895Z ✔ concatenated compressed frames are read completely and preserved without recompression (1.0224ms)
+2026-10-24T02:34:55.3034367Z ✔ frame boundaries do not depend on magic bytes inside raw content (0.4525ms)
+2026-10-24T02:34:55.3036072Z ✔ imported conversation conflicts recover as independent forks with their original source identity (64.6607ms)
+2026-10-24T02:34:55.3037785Z ✔ session import preflight is read-only and unsupported hosts retain originals (31.3929ms)
+2026-10-24T02:34:55.3039486Z ✔ import creates a distinct ID, verifies readback and membership, and repeats without duplication (62.0254ms)
+2026-10-24T02:34:55.3041073Z ✔ partial writes retry the journalled ID and preserve the verified prefix (54.1049ms)
+2026-10-24T02:34:55.3042654Z ✔ stale preview, mismatched identity and missing attachment fail before session creation (36.2165ms)
+2026-10-24T02:34:55.3044182Z ✔ changed recovered session is not overwritten by a repeated import (54.1313ms)
+2026-10-24T02:34:55.3045434Z ✔ unknown formats and oversized original logs are refused (0.4081ms)
+2026-10-24T02:34:55.3047107Z ✔ immutable fork plan survives an interrupted journal update and refuses tampering (71.5459ms)
+2026-10-24T02:34:55.3048856Z ✔ existing replay identities keep their original lineage on retry (46.3815ms)
+2026-10-24T02:34:55.3050419Z ✔ missing public fork capability and empty content never create a target session (40.7715ms)
+2026-10-24T02:34:55.3052087Z ✔ unverified imports stop synchronization and exit upload before Git or projection writes (56.5761ms)
+2026-10-24T02:34:55.3053788Z ✔ invalid host seed preparation does not create a pending journal or block synchronization (31.012ms)
+2026-10-24T02:34:55.3055387Z ✔ invalid public seed encoding is refused before journalling a new import identity (34.8884ms)
+2026-10-24T02:34:55.3056982Z ✔ relocation archives only after verified import and retains original bytes and import state (88.1812ms)
+2026-10-24T02:34:55.3058485Z ✔ active or changed originals and failed imports never archive the source (32.2077ms)
+2026-10-24T02:34:55.3060557Z ✔ only explicit receipts retire identities; bad receipts cannot silently resurrect them (7.5984ms)
+2026-10-24T02:34:55.3062136Z ✔ an explicit local deletion receipt blocks a stale remote log and archive registration (10419.4606ms)
+2026-10-24T02:34:58.2167217Z ✔ offline Windows probe excludes only itself and continues to reject another Desktop process (4852.4387ms)
+2026-10-24T02:34:58.2169190Z ✔ offline repair backs up plain and compressed prefixes and leaves public readback pending (265.0421ms)
+2026-10-24T02:34:58.2170878Z ✔ offline confirmation, live or uninspectable hosts refuse all session writes (69.9379ms)
+2026-10-24T02:34:58.2174796Z ✔ stale previews, changed prefixes, seed or plan corruption stop before replacement (93.0052ms)
+2026-10-24T02:34:58.2179111Z ✔ journal failure after replacement rolls back and keeps immutable repair originals (114.8569ms)
+2026-10-24T02:34:58.2183137Z ✔ repair rollback preserves concurrent edits and refuses undo after host verification (155.9484ms)
+2026-10-24T02:34:58.2187206Z ✔ a host appearing after backup and a file changed during rollback both prevent writes (153.3799ms)
+2026-10-24T02:34:58.2195261Z ✔ ambiguous generations and directory links cannot select an unrelated session log (63.3068ms)
+2026-10-24T02:34:58.2198995Z ✔ standalone repair preview never syncs and missing offline parameters fail closed (313.4106ms)
+2026-10-24T02:34:58.2214197Z ✔ process interruption after replacement leaves a durable backup that can undo locally (225.9474ms)
+2026-10-24T02:35:14.8711723Z ✔ seq gaps, duplicates and identical corrupt buffers fail validation (4.344ms)
+2026-10-24T02:35:14.8714145Z ✔ live idle hosts never replace existing log bytes or an open writer handle; offline sync imports later (19395.5635ms)
+2026-10-24T02:35:29.6599842Z ✔ an append during network wait aborts materialization without losing a byte (14744.5447ms)
+2026-10-24T02:35:44.1413108Z ✔ a corrupt remote fast-forward is rejected before checkout and publication (14514.3471ms)
+2026-10-24T02:35:44.5875825Z ✔ a corrupt local snapshot is never committed or uploaded (459.5948ms)
+2026-10-24T02:35:58.5524491Z ✔ cancelling isolated integration after network completion preserves the original and removes its worktree (13953.3756ms)
+2026-10-24T02:36:13.1017399Z ✔ cancelling during a local transaction finishes file, HEAD and index together (14548.1656ms)
+2026-10-24T02:36:23.5732537Z ✔ legacy packed snapshots upload and download verbatim alongside migrated logs (10159.4011ms)
+2026-10-24T02:36:23.5737012Z ✔ active or unknown host state defers manual and startup sync before Git work (111.6274ms)
+2026-10-24T02:36:23.5738267Z ✔ a live host lease also protects external CLI imports (94.2739ms)
+2026-10-24T02:36:23.5739398Z ✔ workspace mirrors cannot bypass log protection through overlapping data paths (96.5483ms)
+2026-10-24T02:36:38.9813515Z ✔ new log versions in existing session directories are deferred in a live host (15401.545ms)
+2026-10-24T02:36:42.6022551Z ✔ exit worker waits for its parent and records actual snapshot completion (3720.2231ms)
+2026-10-24T02:36:42.6162923Z ✔ session titles come from the live agents service first, then from the projection cache (8.4414ms)
+2026-10-24T02:36:42.6165071Z ✔ title shapes are tolerated and long titles are trimmed for the overlay (1.8674ms)
+2026-10-24T02:36:42.6166724Z ✔ projection cache reads are safe and the probe carries titles only when asked (5.0779ms)
+2026-10-24T02:36:42.6168833Z ✔ released v0/v1 packed rows retain original bytes and logical sequence continuity (9.6707ms)
+2026-10-24T02:36:42.6170354Z ✔ packed rows still reject gaps, overlaps, malformed runs, modern packed rows and torn tails (6.4978ms)
+2026-10-24T02:36:42.6172062Z ✔ real Git sync accepts archived packed v0 beside a current log and applies only the current generation (17557.9429ms)
+2026-10-24T02:36:42.6173600Z ✔ only the highest generation is applied, and two current candidates are refused (0.7117ms)
+2026-10-24T02:36:42.6175221Z ✔ identical and prefix gap logs, duplicate seq and torn tails are refused in plain and compressed logs (2.0309ms)
+2026-10-24T02:36:42.6176724Z ✔ a held writer defers import and a released writer permits prefix continuation (43.1519ms)
+2026-10-24T02:36:42.6178123Z ✔ an append between stat and writer acquisition is read fresh and never truncated (6.8683ms)
+2026-10-24T02:36:42.6179589Z ✔ failed partial appends retain a full retry seed and complete before the next export (53.4452ms)
+2026-10-24T02:36:42.6181064Z ✔ missing public host capabilities and remote deletion preserve the local original (4.1543ms)
+2026-10-24T02:36:42.6182668Z ✔ a corrupted fetched log never reaches the host tree, and a corrected remote can be retried (7214.6678ms)
+2026-10-24T02:36:42.6184371Z ✔ real Git merge cannot overwrite a separate producer appending nine events to the host tree (22133.9597ms)
+2026-10-24T02:36:42.6185905Z ✔ native and imported log names use the same discovery and generation rules (6.5674ms)
+2026-10-24T02:36:42.6187323Z ✔ all selectors agree that compression does not change the generation, including v0 → v1 (31.5432ms)
+2026-10-24T02:36:42.6189373Z ✔ ambiguous highest generations are never picked arbitrarily; an unambiguous successor remains usable (5.4636ms)
+2026-10-24T02:36:42.6191241Z ✔ upgrade from a legacy home Git repository preserves originals and exchanges current logs beside v0/v1 archives (15972.3431ms)
+2026-10-24T02:36:42.6193209Z ✔ startup failure includes file-level issues and technical detail in the modal snapshot (19.9852ms)
+2026-10-24T02:36:42.6194572Z ✔ startup can approve its exact pending transfer without leaving the modal (11.4329ms)
+2026-10-24T02:36:42.6195878Z ✔ a saved offline preview is recomputed on startup and can be left offline (12.7935ms)
+2026-10-24T02:36:42.6197209Z ✔ confirmation of an old snapshot displays a new preview instead of reporting success (7.3022ms)
+2026-10-24T02:36:42.6198482Z ✔ background startup never schedules a restart while editing is allowed (20.119ms)
+2026-10-24T02:36:42.6199701Z ✔ startup progress snapshot does not scan sessions or expose configuration (5.9801ms)
+2026-10-24T02:36:42.6201160Z ✔ manual cancellation targets exactly one run, waits for local work and never reports success (68.4851ms)
+2026-10-24T02:36:42.6202657Z ✔ background startup cancellation is available without a global offline dialog (40.7804ms)
+2026-10-24T02:36:42.6203951Z ✔ startup and exit protection round trip independently of manual mode (47.4299ms)
+2026-10-24T02:36:42.6205258Z ✔ required startup failure remains visible until retry or explicit offline choice (8.6737ms)
+2026-10-24T02:36:42.6206621Z ✔ required startup succeeds through retry without changing the manual preference (7.6527ms)
+2026-10-24T02:36:42.6208286Z ✔ running startup can be cancelled and a late result cannot reopen the gate (23.7917ms)
+2026-10-24T02:36:42.6209625Z ✔ a saved lock collision does not permanently fail subsequent startup attempts (9.245ms)
+2026-10-24T02:36:42.6210943Z ✔ startup waits for an exit upload lock then continues without a false failure (266.4019ms)
+2026-10-24T02:36:42.6212334Z ✔ cancel while waiting leaves the other process lock intact and permits a later retry (283.3566ms)
+2026-10-24T02:36:42.6214121Z ✔ manual cancel interrupts a real stalled Git network command and releases the process lock for retry (2811.2042ms)
+2026-10-24T02:36:42.6215565Z ✔ cancel allows a local operation to finish before releasing the lock (370.6892ms)
+2026-10-24T02:36:42.6216920Z ✔ Windows GUI sync invocation waits for its actual exit and returns its exit code (1578.2998ms)
+2026-10-24T02:36:42.6218323Z ✔ carriage return progress reports the latest percentage and supports split chunks (2.0305ms)
+2026-10-24T02:36:42.6219689Z ✔ lock polling updates live progress without duplicating the elapsed-time stage (1.4896ms)
+2026-10-24T02:36:56.5133786Z ✔ divergent session logs bypass Git text merging and retain both original histories (18274.5568ms)
+2026-10-24T02:36:56.5135200Z ✔ two isolated DSH homes exchange files through a real Git remote (30533.1626ms)
+2026-10-24T02:37:49.2947548Z ✔ first sync uploads workspace files and second device restores them under its own base (52868.1978ms)
+2026-10-24T02:37:49.3088370Z ✔ stable versions compare numerically, without downgrading local builds (1.3158ms)
+2026-10-24T02:37:49.3089614Z ✔ checks npm latest and matching release, shares requests and caches for six hours (0.8119ms)
+2026-10-24T02:37:49.3090903Z ✔ unavailable network retries later; missing or mismatched notes never invent release contents (0.9287ms)
+2026-10-24T02:37:49.3092691Z ✔ startup reminder appears once per version and remains available in settings after closing (18.6284ms)
+2026-10-24T02:37:49.3094014Z ✔ clipboard success guides PowerShell; failure displays selectable command (4.9149ms)
+2026-10-24T02:37:49.3095525Z ✔ quiet when no release or check failed; busy sync defers first display (4.7176ms)
+2026-10-24T02:37:49.3096911Z ✔ registered startup overlay mounts the update popup without opening settings or relying on a removed sidebar footer (3.5383ms)
+2026-10-24T02:37:49.3098222Z ✔ global popup positions itself in the viewport when no footer anchor exists (1.6481ms)
+2026-10-24T02:37:49.3098963Z ℹ tests 390
+2026-10-24T02:37:49.3099287Z ℹ suites 0
+2026-10-24T02:37:49.3099608Z ℹ pass 390
+2026-10-24T02:37:49.3099939Z ℹ fail 0
+2026-10-24T02:37:49.3100636Z ℹ cancelled 0
+2026-10-24T02:37:49.3100968Z ℹ skipped 0
+2026-10-24T02:37:49.3101314Z ℹ todo 0
+2026-10-24T02:37:49.3101674Z ℹ duration_ms 605470.7368
+2026-10-24T02:37:49.3212297Z Electron phase terminated: {"phase":"--test","status":0,"signal":null,"elapsedMs":605531}
+2026-10-24T02:37:49.3213391Z Starting waited Electron phase: patch-version-agnostic-test.mjs
+2026-10-24T02:37:49.6636305Z 场景1 通过:版本不符 + 内容一致(历史备份名)→ fake-patch: 已应用(重启 dsh 生效)
+2026-10-24T02:37:49.6650873Z 场景2 通过:内容真变 → fake-patch: 目标文件已变化,补丁需重新适配
+2026-10-24T02:37:49.6665938Z 场景3 通过:幂等 → fake-patch: 与补丁文件一致
+2026-10-24T02:37:49.6677290Z 场景4 通过:旧补丁不盲目覆盖 → fake-patch: 旧补丁标记不足以验证兼容性,已暂停覆盖
+2026-10-24T02:37:49.6721963Z 场景5 通过:首次套用 + 规范名备份版本无关 → fake-patch: 已应用(重启 dsh 生效)
+2026-10-24T02:37:49.6722274Z 
+2026-10-24T02:37:49.6722461Z 8 个断言全部通过 ✓
+2026-10-24T02:37:49.6847929Z Electron phase terminated: {"phase":"patch-version-agnostic-test.mjs","status":0,"signal":null,"elapsedMs":364}
+2026-10-24T02:37:49.8185176Z ##[group]Run node scripts/check-package-contents.mjs
+2026-10-24T02:37:49.8185724Z [36;1mnode scripts/check-package-contents.mjs[0m
+2026-10-24T02:37:49.8270413Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-24T02:37:49.8270980Z env:
+2026-10-24T02:37:49.8271519Z   DSH_CI_ELECTRON: D:\a\dsh-chatsync\dsh-chatsync\work\desktop-runtime\node_modules\electron\dist\electron.exe
+2026-10-24T02:37:49.8272129Z ##[endgroup]
+2026-10-24T02:37:50.8936477Z {
+2026-10-24T02:37:50.8937084Z   "ok": true,
+2026-10-24T02:37:50.8937536Z   "files": 65,
+2026-10-24T02:37:50.8937986Z   "unpackedSize": 927888,
+2026-10-24T02:37:50.8938747Z   "requiredFiles": 60,
+2026-10-24T02:37:50.8939328Z   "checkedLocalLinks": 48
+2026-10-24T02:37:50.8939915Z }
+2026-10-24T02:37:51.0503058Z Post job cleanup.
+2026-10-24T02:37:51.2062975Z (node:2440) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-24T02:37:51.2064957Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-24T02:37:51.2532633Z Post job cleanup.
+2026-10-24T02:37:51.4783612Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-10-24T02:37:51.5150335Z git version 2.56.0.windows.2
+2026-10-24T02:37:51.5232014Z Temporarily overriding HOME='D:\a\_temp\bb176d38-b680-4f32-afcb-64ad0c55cf25' before making global git config changes
+2026-10-24T02:37:51.5233567Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-24T02:37:51.5245325Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\dsh-chatsync\dsh-chatsync
+2026-10-24T02:37:51.5674417Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-24T02:37:51.6053798Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-24T02:37:52.1572925Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-24T02:37:52.1908380Z http.https://github.com/.extraheader
+2026-10-24T02:37:52.1953530Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all http.https://github.com/.extraheader
+2026-10-24T02:37:52.2344311Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-10-24T02:37:52.8232250Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-24T02:37:52.8625223Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-10-24T02:37:53.4756717Z Cleaning up orphan processes
+2026-10-24T02:37:53.5075294Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -1,0 +1,18 @@
+{
+  "version": "0.20.2",
+  "sourceCommit": "32c63803e15ff5d6e706c3e3163c5e2027a6f799",
+  "packager": "npm 11.17.0",
+  "files": 65,
+  "unpackedBytes": 912933,
+  "mainSha256": "f838d4375f674c1bcafd03821ef56546d9c4b9d42d52b862a295f0c05b57af74",
+  "shortSha256": "65f8fbd5bddd8bde07a10478c402418eb3d012fd73c04367c04b16abf0c79b02",
+  "identityChanges": [
+    "cordis.patch.yml",
+    "lib/client.js",
+    "lib/updates.js",
+    "package.json"
+  ],
+  "allMainFilesEqualSource": true,
+  "runtimeFiles": 43,
+  "readmesMatch": true
+}

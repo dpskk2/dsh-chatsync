@@ -1,0 +1,38 @@
+✔ R1: merge never overwrites an editor save after the exported project snapshot (3803.385111ms)
+✔ R2: cancellation aborts an isolated project conflict and retry never publishes markers (3668.365055ms)
+✔ R3: independent official codec rejects continuous but impossible events before upload and offline application (36.915527ms)
+✔ R4 and C3: YAML semantics survive comments, quoting and URL lists; removed providers never receive another key (5.690207ms)
+✔ R5/R6: corrupt registry and directory overrides stop; valid BOM override still selects its directory (24.531519ms)
+✔ R7: exit uploads cannot issue an application receipt for remote content not applied locally (1805.462369ms)
+✔ R8: Chinese project conflicts retain readable originals and merge with raw filenames (3443.075737ms)
+✔ R9/R10: child environments share the proxy and split UTF-8 remains intact (178.251633ms)
+✔ C1/C2: saved automatic choices survive host defaults; project and main use the same credential helper (83.719865ms)
+✔ project import preserves a new path created between retaining the inode and installing incoming data (17.191669ms)
+✔ interrupted project application restores a missing retained inode before any upload (12.586927ms)
+✔ R3: a forged semantic-invalid remote fast-forward is refused before application or publication (1675.802847ms)
+✔ R4: real two-copy settings roundtrip preserves values and machine-local provider keys (1859.020996ms)
+✔ project recovery vaults stay local and filesystem-root workspaces cannot bypass overlap protection (8.702469ms)
+✔ unsupported exclusive file installation stops before moving any project original (12.00221ms)
+✔ isolated exit workers inherit the public host catalog, validate sessions and upload a real snapshot (1335.910976ms)
+✔ issue 6: main-only remote accepts first workspace upload without global Git identity (1457.955302ms)
+✔ issue 6: empty remote and empty workspace are valid first-sync states (2586.372177ms)
+✔ issue 6: failed branch probe cannot turn an unreachable remote into first upload (1327.7659ms)
+✔ issue 6: changed identity and external duplicate config are repaired in the same engine (79.187337ms)
+✔ issue 6: real config lock is reported before any workspace transfer and retries after unlock (1350.395563ms)
+✔ issue 6: status failure surfaces Git reason and preserves dirty files against remote updates (1431.905497ms)
+✔ issue 6: add failure surfaces Git reason and preserves dirty files against remote updates (1423.566692ms)
+✔ issue 6: commit failure surfaces Git reason and preserves dirty files against remote updates (1475.08051ms)
+✔ issue 6: desktop Electron runtime is excluded before traversal; existing tracked copy leaves index only (300.0895ms)
+✔ issue 6: oversized installer never enters normal or exit snapshots; ignore then retry needs no history rewrite (2714.922622ms)
+✔ issue 6: deleted oversized history is blocked until an explicit checked rebuild preserves its backup (6405.09348ms)
+✔ issue 6: incomplete staged-size check stops before commit or transfer (1327.892126ms)
+✔ issue 6: legacy project migration preserves an uncommitted local deletion (1391.496619ms)
+✔ issue 6: history rebuild keeps the published parent and rejects stale previews (1687.752676ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25071.79604

@@ -1,0 +1,151 @@
+{
+  "reviewedAt": "2026-10-24T01:50:38.557Z",
+  "reports": [
+    {
+      "run": 40050795913,
+      "id": 120742791583,
+      "name": "check (windows-latest, electron)",
+      "steps": [
+        "Verify Electron desktop Node runtime"
+      ],
+      "contexts": [
+        "2026-10-24T01:46:46.1704116Z ✖ issue 6: desktop Electron runtime is excluded before traversal; existing tracked copy leaves index only (1194.7921ms)\r",
+        "2026-10-24T01:46:46.1704628Z   Error: Invalid package C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\chatsync-issue6-Jkk1WK\\home\\electron\\default_app.asar\r",
+        "2026-10-24T01:46:46.1705020Z       at createError (node:electron/js2c/node_init:1:3320)\r",
+        "2026-10-24T01:46:46.1705344Z       at readFileFromArchiveSync (node:electron/js2c/node_init:1:11583)\r",
+        "2026-10-24T01:46:46.1705650Z       at Object.readFileSync (node:electron/js2c/node_init:1:12448)\r",
+        "2026-10-24T01:46:46.1706248Z       at TestContext.<anonymous> (file:///D:/a/dsh-chatsync/dsh-chatsync/tests/issue6-workspace.test.mjs:163:19)\r",
+        "2026-10-24T01:46:46.1707332Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)\r",
+        "2026-10-24T01:46:46.2029904Z ##[error]Process completed with exit code 1.\r",
+        "2026-10-24T01:46:46.2224352Z Post job cleanup.\r",
+        "2026-10-24T01:46:46.3223518Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" version\r",
+        "2026-10-24T01:46:46.3463011Z git version 2.56.0.windows.2\r",
+        "2026-10-24T01:46:46.3517615Z Temporarily overriding HOME='D:\\a\\_temp\\4fea360a-e412-44d9-839b-b33e373cbcb4' before making global git config changes\r"
+      ]
+    },
+    {
+      "run": 40050695676,
+      "id": 120742477062,
+      "name": "check (windows-latest, electron)",
+      "steps": [
+        "Verify Electron desktop Node runtime"
+      ],
+      "contexts": [
+        "2026-10-24T01:47:05.5966885Z ✖ issue 6: desktop Electron runtime is excluded before traversal; existing tracked copy leaves index only (1233.8545ms)\r",
+        "2026-10-24T01:47:05.5967618Z   Error: Invalid package C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\chatsync-issue6-6DQ5BX\\home\\electron\\default_app.asar\r",
+        "2026-10-24T01:47:05.5968140Z       at createError (node:electron/js2c/node_init:1:3320)\r",
+        "2026-10-24T01:47:05.5968546Z       at readFileFromArchiveSync (node:electron/js2c/node_init:1:11583)\r",
+        "2026-10-24T01:47:05.5968959Z       at Object.readFileSync (node:electron/js2c/node_init:1:12448)\r",
+        "2026-10-24T01:47:05.5969761Z       at TestContext.<anonymous> (file:///D:/a/dsh-chatsync/dsh-chatsync/tests/issue6-workspace.test.mjs:163:19)\r",
+        "2026-10-24T01:47:05.5971244Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)\r",
+        "2026-10-24T01:47:05.6309255Z ##[error]Process completed with exit code 1.\r",
+        "2026-10-24T01:47:05.6547169Z Post job cleanup.\r",
+        "2026-10-24T01:47:05.7938571Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" version\r",
+        "2026-10-24T01:47:05.8216676Z git version 2.56.0.windows.2\r",
+        "2026-10-24T01:47:05.8270038Z Temporarily overriding HOME='D:\\a\\_temp\\4a5ef20c-d54f-4171-bc12-ca2878e2d459' before making global git config changes\r"
+      ]
+    },
+    {
+      "run": 40050502003,
+      "id": 120741882266,
+      "name": "check (windows-latest, node)",
+      "steps": [
+        "Verify sync and upgrade compatibility"
+      ],
+      "contexts": [
+        "2026-10-24T01:45:30.4419362Z ✖ more than 5000 objects are inspected and malformed or oversized batch output fails closed (92291.5001ms)\r",
+        "2026-10-24T01:45:30.4420367Z   'test timed out after 90000ms'\r",
+        "2026-10-24T01:45:30.5046325Z ##[error]Process completed with exit code 1.\r",
+        "2026-10-24T01:45:30.5356228Z Post job cleanup.\r",
+        "2026-10-24T01:45:30.7311845Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" version\r",
+        "2026-10-24T01:45:30.7644458Z git version 2.56.0.windows.2\r",
+        "2026-10-24T01:45:30.7707888Z Temporarily overriding HOME='D:\\a\\_temp\\a4ee691e-438c-4113-a4e5-456af8440097' before making global git config changes\r"
+      ]
+    },
+    {
+      "run": 40049880708,
+      "id": 120739986486,
+      "name": "check (windows-latest)",
+      "steps": [
+        "Verify Electron desktop Node runtime"
+      ],
+      "contexts": [
+        "2026-10-24T01:36:33.2018467Z \u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m     | \u001b[31;1m               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\u001b[0m\r",
+        "2026-10-24T01:36:33.2020163Z \u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[31;1m\u001b[31;1m\u001b[36;1m     | \u001b[31;1mCannot find path 'D:\\a\\dsh-chatsync\\dsh-chatsync\\work\\desktop-runtime\\node_modules\\electron\\dist\\electron.exe'\u001b[0m\r",
+        "2026-10-24T01:36:33.2021616Z \u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[31;1m\u001b[31;1m\u001b[36;1m\u001b[31;1m\u001b[36;1m     | \u001b[31;1mbecause it does not exist.\u001b[0m\r",
+        "2026-10-24T01:36:33.2532592Z ##[error]Process completed with exit code 1.\r",
+        "2026-10-24T01:36:33.2810110Z Post job cleanup.\r",
+        "2026-10-24T01:36:33.4624626Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" version\r",
+        "2026-10-24T01:36:33.5106398Z git version 2.56.0.windows.2\r",
+        "2026-10-24T01:36:33.5181360Z Temporarily overriding HOME='D:\\a\\_temp\\18660249-3f50-4ae1-8ce3-fc6e8555a38d' before making global git config changes\r"
+      ]
+    },
+    {
+      "run": 40049374116,
+      "id": 120738351169,
+      "name": "check (windows-latest)",
+      "steps": [
+        "Verify Electron desktop Node runtime"
+      ],
+      "contexts": [
+        "2026-10-24T01:28:55.6740492Z \u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m     | \u001b[31;1m               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\u001b[0m\r",
+        "2026-10-24T01:28:55.6742601Z \u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[31;1m\u001b[31;1m\u001b[36;1m     | \u001b[31;1mCannot find path 'D:\\a\\dsh-chatsync\\dsh-chatsync\\work\\desktop-runtime\\node_modules\\electron\\dist\\electron.exe'\u001b[0m\r",
+        "2026-10-24T01:28:55.6744554Z \u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[31;1m\u001b[31;1m\u001b[36;1m\u001b[31;1m\u001b[36;1m     | \u001b[31;1mbecause it does not exist.\u001b[0m\r",
+        "2026-10-24T01:28:55.7433581Z ##[error]Process completed with exit code 1.\r",
+        "2026-10-24T01:28:55.7776898Z Post job cleanup.\r",
+        "2026-10-24T01:28:55.9612853Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" version\r",
+        "2026-10-24T01:28:56.0031077Z git version 2.56.0.windows.2\r",
+        "2026-10-24T01:28:56.0099239Z Temporarily overriding HOME='D:\\a\\_temp\\3ba46149-acf3-4c68-80cb-e4b56e972771' before making global git config changes\r"
+      ]
+    },
+    {
+      "run": 40049124109,
+      "id": 120737556119,
+      "name": "check (windows-latest)",
+      "steps": [
+        "Verify Electron desktop Node runtime"
+      ],
+      "contexts": [
+        "2026-10-24T01:27:04.6018314Z \u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m     | \u001b[31;1m               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\u001b[0m\r",
+        "2026-10-24T01:27:04.6020138Z \u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[31;1m\u001b[31;1m\u001b[36;1m     | \u001b[31;1mCannot find path 'D:\\a\\dsh-chatsync\\dsh-chatsync\\work\\desktop-runtime\\node_modules\\electron\\dist\\electron.exe'\u001b[0m\r",
+        "2026-10-24T01:27:04.6021746Z \u001b[31;1m\u001b[0m\u001b[36;1m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[0m\u001b[36;1m\u001b[31;1m\u001b[31;1m\u001b[36;1m\u001b[31;1m\u001b[36;1m     | \u001b[31;1mbecause it does not exist.\u001b[0m\r",
+        "2026-10-24T01:27:04.6572429Z ##[error]Process completed with exit code 1.\r",
+        "2026-10-24T01:27:04.6919578Z Post job cleanup.\r",
+        "2026-10-24T01:27:04.8920033Z [command]\"C:\\Program Files\\Git\\bin\\git.exe\" version\r",
+        "2026-10-24T01:27:04.9359139Z git version 2.56.0.windows.2\r",
+        "2026-10-24T01:27:04.9437346Z Temporarily overriding HOME='D:\\a\\_temp\\d1dbca86-37bd-4e14-972b-8f1caa9cf03c' before making global git config changes\r"
+      ]
+    },
+    {
+      "run": 39920522686,
+      "id": 120304364193,
+      "name": "publish",
+      "steps": [
+        "Pack candidate and verify local safety evidence"
+      ],
+      "historical": true,
+      "contexts": [
+        "2026-10-23T07:52:00.6323243Z ##[endgroup]",
+        "2026-10-23T07:52:01.1666737Z 禁止定版/发布：",
+        "2026-10-23T07:52:01.1667031Z - 候选安装包缺失或 SHA-256 不一致",
+        "2026-10-23T07:52:01.1713249Z ##[error]Process completed with exit code 1.",
+        "2026-10-23T07:52:01.1816746Z Post job cleanup.",
+        "2026-10-23T07:52:01.2420361Z [command]/usr/bin/git version",
+        "2026-10-23T07:52:01.2458662Z git version 2.55.0",
+        "2026-10-23T07:52:01.2488345Z Temporarily overriding HOME='/home/runner/work/_temp/1b3289c5-35c5-49a5-a6cb-4e0af50e672e' before making global git config changes"
+      ]
+    },
+    {
+      "run": 40053096655,
+      "id": 120750039771,
+      "name": "Windows Electron ASAR probe",
+      "rootCause": "Fixture teardown used Electron virtual lstat on an opaque invalid ASAR. Fixed only isolated teardown to use original-fs; product filesystem unchanged."
+    },
+    {
+      "run": 40053287143,
+      "id": 120750504526,
+      "name": "Linux timing assertion",
+      "rootCause": "Real 10ms timer was asserted as an exact minimum elapsed stage; replaced by controlled clock asserting exact 25ms and 5ms. Other matrix jobs now continue for independent evidence."
+    }
+  ]
+}

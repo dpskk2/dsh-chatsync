@@ -154,16 +154,22 @@ test('a secret removed after a later large batch still blocks the whole unpublis
   assert.notEqual(spawnSync('git', ['--git-dir', remote, 'rev-parse', '--verify', 'main'], { stdio: 'ignore' }).status, 0);
 });
 
-test('more than 5000 objects are inspected and malformed or oversized batch output fails closed', { timeout: 90000 }, async t => {
+test('more than 5000 objects are inspected and malformed or oversized batch output fails closed', { timeout: process.platform === 'win32' ? 180000 : 90000 }, async t => {
+  // Windows runner filesystem setup exceeded 90s once. Keep all 5100 objects
+  // and all negative assertions; product Git command timeouts remain unchanged.
+  const started = Date.now(), phase = name => t.diagnostic(name + ': ' + (Date.now() - started) + 'ms');
   const { home, engine } = gitFixture(t);
   assert.equal(await engine.ensureRepo(engine.loadConfig()), true);
   const folder = path.join(home, 'many'); fs.mkdirSync(folder);
   for (let i = 0; i < 5100; i++) fs.writeFileSync(path.join(folder, i + '.txt'), 'unique-' + i);
   assert.equal(engine.ok(await engine.git(['add', '.'])), true);
+  phase('created 5100 fixture files');
   assert.equal(engine.ok(await engine.git(['commit', '-m', 'many fixture objects'])), true);
+  phase('committed fixture');
   engine.progress = { running: true, label: '准备上传测试内容…' };
   const report = await scanOutgoing(engine, 'main');
   assert.ok(report.checked > 5000); assert.deepEqual(report.findings, []);
+  phase('full independent object scan');
   assert.equal(engine.progress.label, '准备上传测试内容…');
   const original = engine.gitInput.bind(engine);
   engine.gitInput = async (...args) => {
@@ -180,6 +186,7 @@ test('more than 5000 objects are inspected and malformed or oversized batch outp
   await assert.rejects(scanOutgoing(engine, 'main'), /大小不正确/);
   engine.gitInput = async (...args) => args[0].includes('rev-list') ? { code: 0, out: '', err: '', outputLimit: true } : original(...args);
   await assert.rejects(scanOutgoing(engine, 'main'), /枚举/);
+  phase('all malformed-output assertions completed');
 });
 
 test('a branch changed during upload never sends the new unscanned secret or claims a completed handoff', { timeout: 90000 }, async t => {

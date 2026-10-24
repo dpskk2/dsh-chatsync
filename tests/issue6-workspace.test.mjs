@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { previewWorkspaceHistory, applyWorkspaceHistory } from '../lib/workspace-history.js';
 import { SyncEngine } from '../lib/sync.js';
@@ -160,7 +161,10 @@ test('issue 6: desktop Electron runtime is excluded before traversal; existing t
   fs.writeFileSync(path.join(f.home, '.gitignore'), '# user rule\nprivate-notes/\n');
   assert.equal(await f.engine.ensureRepo(f.engine.loadConfig()), true);
   assert.equal((await f.engine.git(['ls-files', '--', 'electron'])).out, '');
-  assert.equal(fs.readFileSync(path.join(runtime, 'default_app.asar'), 'utf8'), 'synthetic runtime');
+  // This deliberately invalid archive is an opaque disk fixture. Electron's
+  // normal fs must remain patched for the product traversal assertions below.
+  const fixtureFs = process.versions.electron ? createRequire(import.meta.url)('original-fs') : fs;
+  assert.equal(fixtureFs.readFileSync(path.join(runtime, 'default_app.asar'), 'utf8'), 'synthetic runtime');
   assert.match(fs.readFileSync(path.join(f.home, '.gitignore'), 'utf8'), /^\/electron\/$/m);
   assert.match(fs.readFileSync(path.join(f.home, '.gitignore'), 'utf8'), /^private-notes\/$/m);
   // Simulate Electron's patched fs throwing if the runtime is touched.

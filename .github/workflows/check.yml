@@ -34,6 +34,8 @@ jobs:
         run: |
           npm install --prefix work/desktop-runtime --no-save --no-package-lock --no-audit --no-fund electron@44.7.0
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node work/desktop-runtime/node_modules/electron/install.js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $electron = (Resolve-Path work/desktop-runtime/node_modules/electron/dist/electron.exe).Path
           $env:ELECTRON_RUN_AS_NODE = '1'
           $env:DSH_GUI_TEST_EXE = $electron

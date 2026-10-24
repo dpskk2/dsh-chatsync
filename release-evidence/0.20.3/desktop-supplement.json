@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "completedAt": "2026-10-24T18:04:45.992Z",
+  "waitedWith": "Node spawnSync",
+  "checks": [
+    {
+      "name": "gui",
+      "code": 0,
+      "signal": null,
+      "commandArgs": [
+        "--expose-internals",
+        "--test",
+        "--test-name-pattern=Windows GUI sync invocation",
+        "tests/startup-control.test.mjs"
+      ]
+    },
+    {
+      "name": "patch",
+      "code": 0,
+      "signal": null,
+      "commandArgs": [
+        "--expose-internals",
+        "patch-version-agnostic-test.mjs"
+      ]
+    }
+  ]
+}

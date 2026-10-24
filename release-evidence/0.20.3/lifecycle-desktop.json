@@ -1,0 +1,168 @@
+{
+  "root": "<user-profile>\\AppData\\Local\\Temp\\chatsync-lifecycle-desktop-zn4W3t",
+  "physicalMachines": 1,
+  "dshVersion": "0.2.1-rc.3",
+  "electron": "44.7.0",
+  "node": "24.21.0",
+  "remote": "local bare Git; fixture-only private-visibility substitution",
+  "electronWindowOpened": false,
+  "checks": [
+    "Configured real Desktop Host finishes startup sync before use",
+    "Editing for 31 seconds leaves the post-startup commit unchanged and the new session absent remotely despite legacy interval/debounce",
+    "Official shutdown IPC → shutdown-complete → Host exit 0 → detached production exit worker uploads host-written session and records success",
+    "Unavailable remote after normal close records failure instead of false success; local session remains"
+  ],
+  "seedCommit": "49a0bbc9e1f8ca774f0bf5c01e5ad54b8759c637",
+  "startupCommit": "e482646d05b27969732110a38aa6dc8c86f57210",
+  "exitDurationMs": 7539,
+  "exitStatus": {
+    "at": 1792864874205,
+    "hostPid": 6748,
+    "source": "exit",
+    "result": {
+      "committed": true,
+      "pushed": true,
+      "workspaces": {
+        "skipped": "disabled",
+        "total": 0,
+        "synced": 0,
+        "pushed": 0,
+        "pulled": 0,
+        "errors": []
+      },
+      "durationMs": 5634,
+      "stages": [
+        {
+          "stage": "start",
+          "label": "开始同步",
+          "ms": 3
+        },
+        {
+          "stage": "verify",
+          "label": "检查同步仓库连接与权限…",
+          "ms": 1
+        },
+        {
+          "stage": "analyze",
+          "label": "核对本机会话、附件与设置…",
+          "ms": 905
+        },
+        {
+          "stage": "fetch",
+          "label": "获取远端状态…",
+          "ms": 1059
+        },
+        {
+          "stage": "commit",
+          "label": "提交本地快照…",
+          "ms": 721
+        },
+        {
+          "stage": "analyze",
+          "label": "比对本地与远端…",
+          "ms": 99
+        },
+        {
+          "stage": "push",
+          "label": "推送到远端…",
+          "ms": 88
+        },
+        {
+          "stage": "privacy",
+          "label": "检查待上传历史，请稍候…",
+          "ms": 401
+        },
+        {
+          "stage": "push",
+          "label": "推送到远端…",
+          "ms": 576
+        },
+        {
+          "stage": "handoff",
+          "label": "记录设备交接…",
+          "ms": 1780
+        }
+      ],
+      "transfers": [
+        {
+          "op": "push",
+          "pct": 100,
+          "done": 10,
+          "total": 10,
+          "size": 2601,
+          "speed": 2663383,
+          "totalObjects": 10,
+          "reused": 0,
+          "packReused": 0,
+          "label": "主仓库"
+        }
+      ],
+      "repoSize": 0,
+      "contentScope": {
+        "sessions": true,
+        "attachments": false,
+        "settings": false
+      }
+    }
+  },
+  "remoteCommit": "870070a1fee424ffc96a15b3212266894b3cc705",
+  "failureStatus": {
+    "at": 1792864883245,
+    "hostPid": 14220,
+    "source": "exit",
+    "result": {
+      "committed": true,
+      "pushed": false,
+      "error": "push",
+      "durationMs": 4389,
+      "stages": [
+        {
+          "stage": "start",
+          "label": "开始同步",
+          "ms": 3
+        },
+        {
+          "stage": "verify",
+          "label": "检查同步仓库连接与权限…",
+          "ms": 1
+        },
+        {
+          "stage": "analyze",
+          "label": "核对本机会话、附件与设置…",
+          "ms": 565
+        },
+        {
+          "stage": "fetch",
+          "label": "获取远端状态…",
+          "ms": 1516
+        },
+        {
+          "stage": "commit",
+          "label": "提交本地快照…",
+          "ms": 370
+        },
+        {
+          "stage": "push",
+          "label": "首次推送到远端…",
+          "ms": 71
+        },
+        {
+          "stage": "privacy",
+          "label": "检查待上传历史，请稍候…",
+          "ms": 274
+        },
+        {
+          "stage": "push",
+          "label": "首次推送到远端…",
+          "ms": 1588
+        }
+      ],
+      "transfers": []
+    }
+  },
+  "ok": true,
+  "sourceCommit": "51e4d118da6aae73f2654068db7c34539d57374c",
+  "sourceSha256": "d3013ad0f1e9739097517d649baf1e5e68d9cde2abda8e00345408320a067f08",
+  "completedAt": "2026-10-24T18:01:23.4497298Z",
+  "loadedFrom": "Frozen maintenance source; final tgz files independently verified by candidate-scoped.json and candidate-short.json. Local bare Git only."
+}

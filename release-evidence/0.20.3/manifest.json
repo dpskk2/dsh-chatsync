@@ -2,248 +2,824 @@
   "schemaVersion": 1,
   "version": "0.20.3",
   "build": "2026-10-25-release-0.20.3",
-  "sourceSha256": "",
-  "packageSha256": "",
+  "sourceSha256": "fb6f2b3db1d6ed4941eeb90d7c31dcd698ebf812423d6bac028665dedc4887d9",
+  "packageSha256": "7b669364085d1d8bae4fdeb1a20c81847963b1190a656304add09c893d946748",
+  "shortPackageSha256": "419bda15d1e1535237376fdd48b76319ce4f9c826f17cac77e87d2027d5690bf",
   "checks": [
     {
       "id": "data-loss/source-review",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "Frozen source plus reviewed documentation/instruction-only final delta",
+      "procedure": "Trace public entry, snapshot/projection, merge, application, push/receipt and recovery; review original preservation and stop paths described per L/C/P/U/R scenario in source-review.md",
+      "observed": "Current implementation paths reviewed per scenario; no unresolved source blocker found in recorded scope. Runtime/fault/physical evidence remains distinct.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/source-review.md",
+          "sha256": "1a876e62e6f37e7ec0e2b58c589afd1aeca71eb3f06945775c9d059ea1a82195"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        }
+      ]
     },
     {
       "id": "data-loss/automated",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "GitHub Actions Linux/Windows Node 24.19.0 and Windows Electron 44.7.0 / Node 24.21.0",
+      "procedure": "Execute complete suites on the recorded CI commit; inspect actual terminal counts and patch results, platform supplements, and final package/source/runtime byte equivalence",
+      "observed": "Linux 401 passed/9 platform skips; Windows Node 409 passed/1 GUI skip; Windows Electron 410 passed/0 skips. All have zero failures/cancellations and eight patch assertions; required platform skips supplemented by actual Electron execution.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/ci-summary.json",
+          "sha256": "a0dadcd1f2fc2697f21db2ab9ef41646bbfd57a53177e1b39cb79120bdd41c3d"
+        },
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-linux.log",
+          "sha256": "b28d4bd6c3cb4f6fa6ff02f69fb666c58c9eb76f7cce232047c47e789d945229"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-windows-node.log",
+          "sha256": "d878475bf0c4fb47b29f385eb19171a33ed5e23576d6d3138844ffe57ea58368"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-windows-electron.log",
+          "sha256": "14b04eb79d5dfcdf1ea2757955ff0cf75f0c3a3be4af09e0f6e33f24117622ab"
+        }
+      ]
     },
     {
       "id": "data-loss/fault-injection",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     },
     {
       "id": "data-loss/native-runtime",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     },
     {
       "id": "corruption-spread/source-review",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "Frozen source plus reviewed documentation/instruction-only final delta",
+      "procedure": "Trace public entry, snapshot/projection, merge, application, push/receipt and recovery; review original preservation and stop paths described per L/C/P/U/R scenario in source-review.md",
+      "observed": "Current implementation paths reviewed per scenario; no unresolved source blocker found in recorded scope. Runtime/fault/physical evidence remains distinct.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/source-review.md",
+          "sha256": "1a876e62e6f37e7ec0e2b58c589afd1aeca71eb3f06945775c9d059ea1a82195"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        }
+      ]
     },
     {
       "id": "corruption-spread/automated",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "GitHub Actions Linux/Windows Node 24.19.0 and Windows Electron 44.7.0 / Node 24.21.0",
+      "procedure": "Execute complete suites on the recorded CI commit; inspect actual terminal counts and patch results, platform supplements, and final package/source/runtime byte equivalence",
+      "observed": "Linux 401 passed/9 platform skips; Windows Node 409 passed/1 GUI skip; Windows Electron 410 passed/0 skips. All have zero failures/cancellations and eight patch assertions; required platform skips supplemented by actual Electron execution.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/ci-summary.json",
+          "sha256": "a0dadcd1f2fc2697f21db2ab9ef41646bbfd57a53177e1b39cb79120bdd41c3d"
+        },
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-linux.log",
+          "sha256": "b28d4bd6c3cb4f6fa6ff02f69fb666c58c9eb76f7cce232047c47e789d945229"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-windows-node.log",
+          "sha256": "d878475bf0c4fb47b29f385eb19171a33ed5e23576d6d3138844ffe57ea58368"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-windows-electron.log",
+          "sha256": "14b04eb79d5dfcdf1ea2757955ff0cf75f0c3a3be4af09e0f6e33f24117622ab"
+        }
+      ]
     },
     {
       "id": "corruption-spread/fault-injection",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     },
     {
       "id": "corruption-spread/native-runtime",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     },
     {
       "id": "privacy/source-review",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "Frozen source plus reviewed documentation/instruction-only final delta",
+      "procedure": "Trace public entry, snapshot/projection, merge, application, push/receipt and recovery; review original preservation and stop paths described per L/C/P/U/R scenario in source-review.md",
+      "observed": "Current implementation paths reviewed per scenario; no unresolved source blocker found in recorded scope. Runtime/fault/physical evidence remains distinct.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/source-review.md",
+          "sha256": "1a876e62e6f37e7ec0e2b58c589afd1aeca71eb3f06945775c9d059ea1a82195"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        }
+      ]
     },
     {
       "id": "privacy/automated",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "GitHub Actions Linux/Windows Node 24.19.0 and Windows Electron 44.7.0 / Node 24.21.0",
+      "procedure": "Execute complete suites on the recorded CI commit; inspect actual terminal counts and patch results, platform supplements, and final package/source/runtime byte equivalence",
+      "observed": "Linux 401 passed/9 platform skips; Windows Node 409 passed/1 GUI skip; Windows Electron 410 passed/0 skips. All have zero failures/cancellations and eight patch assertions; required platform skips supplemented by actual Electron execution.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/ci-summary.json",
+          "sha256": "a0dadcd1f2fc2697f21db2ab9ef41646bbfd57a53177e1b39cb79120bdd41c3d"
+        },
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-linux.log",
+          "sha256": "b28d4bd6c3cb4f6fa6ff02f69fb666c58c9eb76f7cce232047c47e789d945229"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-windows-node.log",
+          "sha256": "d878475bf0c4fb47b29f385eb19171a33ed5e23576d6d3138844ffe57ea58368"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-windows-electron.log",
+          "sha256": "14b04eb79d5dfcdf1ea2757955ff0cf75f0c3a3be4af09e0f6e33f24117622ab"
+        }
+      ]
     },
     {
       "id": "privacy/fault-injection",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     },
     {
       "id": "privacy/native-runtime",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     },
     {
       "id": "upgrade-environments/source-review",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "Frozen source plus reviewed documentation/instruction-only final delta",
+      "procedure": "Trace public entry, snapshot/projection, merge, application, push/receipt and recovery; review original preservation and stop paths described per L/C/P/U/R scenario in source-review.md",
+      "observed": "Current implementation paths reviewed per scenario; no unresolved source blocker found in recorded scope. Runtime/fault/physical evidence remains distinct.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/source-review.md",
+          "sha256": "1a876e62e6f37e7ec0e2b58c589afd1aeca71eb3f06945775c9d059ea1a82195"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        }
+      ]
     },
     {
       "id": "upgrade-environments/automated",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "GitHub Actions Linux/Windows Node 24.19.0 and Windows Electron 44.7.0 / Node 24.21.0",
+      "procedure": "Execute complete suites on the recorded CI commit; inspect actual terminal counts and patch results, platform supplements, and final package/source/runtime byte equivalence",
+      "observed": "Linux 401 passed/9 platform skips; Windows Node 409 passed/1 GUI skip; Windows Electron 410 passed/0 skips. All have zero failures/cancellations and eight patch assertions; required platform skips supplemented by actual Electron execution.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/ci-summary.json",
+          "sha256": "a0dadcd1f2fc2697f21db2ab9ef41646bbfd57a53177e1b39cb79120bdd41c3d"
+        },
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-linux.log",
+          "sha256": "b28d4bd6c3cb4f6fa6ff02f69fb666c58c9eb76f7cce232047c47e789d945229"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-windows-node.log",
+          "sha256": "d878475bf0c4fb47b29f385eb19171a33ed5e23576d6d3138844ffe57ea58368"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-windows-electron.log",
+          "sha256": "14b04eb79d5dfcdf1ea2757955ff0cf75f0c3a3be4af09e0f6e33f24117622ab"
+        }
+      ]
     },
     {
       "id": "upgrade-environments/fault-injection",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     },
     {
       "id": "upgrade-environments/native-runtime",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     },
     {
       "id": "recovery/source-review",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "Frozen source plus reviewed documentation/instruction-only final delta",
+      "procedure": "Trace public entry, snapshot/projection, merge, application, push/receipt and recovery; review original preservation and stop paths described per L/C/P/U/R scenario in source-review.md",
+      "observed": "Current implementation paths reviewed per scenario; no unresolved source blocker found in recorded scope. Runtime/fault/physical evidence remains distinct.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/source-review.md",
+          "sha256": "1a876e62e6f37e7ec0e2b58c589afd1aeca71eb3f06945775c9d059ea1a82195"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        }
+      ]
     },
     {
       "id": "recovery/automated",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "GitHub Actions Linux/Windows Node 24.19.0 and Windows Electron 44.7.0 / Node 24.21.0",
+      "procedure": "Execute complete suites on the recorded CI commit; inspect actual terminal counts and patch results, platform supplements, and final package/source/runtime byte equivalence",
+      "observed": "Linux 401 passed/9 platform skips; Windows Node 409 passed/1 GUI skip; Windows Electron 410 passed/0 skips. All have zero failures/cancellations and eight patch assertions; required platform skips supplemented by actual Electron execution.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/ci-summary.json",
+          "sha256": "a0dadcd1f2fc2697f21db2ab9ef41646bbfd57a53177e1b39cb79120bdd41c3d"
+        },
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-linux.log",
+          "sha256": "b28d4bd6c3cb4f6fa6ff02f69fb666c58c9eb76f7cce232047c47e789d945229"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-windows-node.log",
+          "sha256": "d878475bf0c4fb47b29f385eb19171a33ed5e23576d6d3138844ffe57ea58368"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-windows-electron.log",
+          "sha256": "14b04eb79d5dfcdf1ea2757955ff0cf75f0c3a3be4af09e0f6e33f24117622ab"
+        }
+      ]
     },
     {
       "id": "recovery/fault-injection",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     },
     {
       "id": "recovery/native-runtime",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     },
     {
       "id": "full-regression",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "GitHub Actions Linux/Windows Node 24.19.0 and Windows Electron 44.7.0 / Node 24.21.0",
+      "procedure": "Execute complete suites on the recorded CI commit; inspect actual terminal counts and patch results, platform supplements, and final package/source/runtime byte equivalence",
+      "observed": "Linux 401 passed/9 platform skips; Windows Node 409 passed/1 GUI skip; Windows Electron 410 passed/0 skips. All have zero failures/cancellations and eight patch assertions; required platform skips supplemented by actual Electron execution.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/ci-summary.json",
+          "sha256": "a0dadcd1f2fc2697f21db2ab9ef41646bbfd57a53177e1b39cb79120bdd41c3d"
+        },
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-linux.log",
+          "sha256": "b28d4bd6c3cb4f6fa6ff02f69fb666c58c9eb76f7cce232047c47e789d945229"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-windows-node.log",
+          "sha256": "d878475bf0c4fb47b29f385eb19171a33ed5e23576d6d3138844ffe57ea58368"
+        },
+        {
+          "path": "release-evidence/0.20.3/ci-windows-electron.log",
+          "sha256": "14b04eb79d5dfcdf1ea2757955ff0cf75f0c3a3be4af09e0f6e33f24117622ab"
+        }
+      ]
     },
     {
       "id": "candidate-install",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     },
     {
       "id": "restore-drill",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     },
     {
       "id": "physical-two-device-github",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-24T18:18:01.522Z",
+      "reviewer": "Codex",
+      "environment": "One physical Windows machine; isolated real DSH Desktop Host 0.2.1-rc.3, Electron 44.7.0, Node 24.21.0; no physical two-device GitHub acceptance",
+      "procedure": "Compare executed isolated package/lifecycle checks with every mandatory scenario in validation-scope.md; retain all incomplete scope as not-verified",
+      "observed": "Partial isolated checks passed; complete fault, native window, recovery and physical two-device requirements remain unverified as listed. No incomplete scenario is converted to passed.",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.20.3/validation-scope.md",
+          "sha256": "d91bd682a1f5ceaa4534fa5bdb699519d67b27da43e80ac5e4a401cf971c682e"
+        },
+        {
+          "path": "release-evidence/0.20.3/package-audit.json",
+          "sha256": "868627fba5af6c22cb201121ef87713379fb492765b349721d8146c056db25cc"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-scoped.json",
+          "sha256": "66d60db631b8d5e5da595b9b79c244ca60f3f13e1731d9bd224e9aa4ba9db07b"
+        },
+        {
+          "path": "release-evidence/0.20.3/candidate-short.json",
+          "sha256": "0c120f44a886cf889bc4ebb0e8539689e6c47c450aae29bcaa84c1594907746a"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-desktop.json",
+          "sha256": "d6fd2e0bce13f6ec1947aecd636bb8a1f3e283b9c9d5990d2303486d9f9f0f71"
+        },
+        {
+          "path": "release-evidence/0.20.3/lifecycle-initial-failure.json",
+          "sha256": "f90a2cd2f3479ef184ffe3b9ac8234bd48b2e8eb846c6d63d45c73092dec7bf5"
+        },
+        {
+          "path": "release-evidence/0.20.3/release-review.md",
+          "sha256": "f1a374d330d0d9b36b129fb4c3dce369a7970fda4cadbdf334ef9633e82b7c12"
+        }
+      ]
     }
-  ]
+  ],
+  "ownerDecision": {
+    "version": "0.20.3",
+    "build": "2026-10-25-release-0.20.3",
+    "sourceSha256": "fb6f2b3db1d6ed4941eeb90d7c31dcd698ebf812423d6bac028665dedc4887d9",
+    "packageSha256": "7b669364085d1d8bae4fdeb1a20c81847963b1190a656304add09c893d946748",
+    "shortPackageSha256": "419bda15d1e1535237376fdd48b76319ce4f9c826f17cac77e87d2027d5690bf",
+    "mode": "release-with-unverified-scenarios",
+    "requestedAt": "2026-10-24T18:18:01.522Z",
+    "requestedBy": "用户（仓库维护者，本轮直接确认）",
+    "instruction": "允许本版有限验证发布；在github、npm发布。删掉agentsmd的内容。",
+    "reason": "用户在知悉物理双机实网、完整窗口操作及完整故障/恢复验收未完成后，明确允许本版有限验证发布；本决定重新绑定最终候选，仅接受列出的 not-verified 项。最后仅清空 AGENTS 并对齐中英文 README，运行代码/测试/依赖/工作流未变，最终包运行文件与已加载候选等价，未重复运行整套测试。",
+    "acceptedChecks": [
+      "data-loss/fault-injection",
+      "data-loss/native-runtime",
+      "corruption-spread/fault-injection",
+      "corruption-spread/native-runtime",
+      "privacy/fault-injection",
+      "privacy/native-runtime",
+      "upgrade-environments/fault-injection",
+      "upgrade-environments/native-runtime",
+      "recovery/fault-injection",
+      "recovery/native-runtime",
+      "candidate-install",
+      "restore-drill",
+      "physical-two-device-github"
+    ]
+  }
 }

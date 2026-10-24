@@ -1,0 +1,89 @@
+{
+  "testedAt": "2026-10-24T17:57:28.016Z",
+  "node": "v24.21.0",
+  "catalog": "0.2.1-rc.3",
+  "complete": true,
+  "sourceHashes": {
+    "lib/sync.js": "abeb2bdd665985689c64a266cbb258dcf8d3127a4da95aee7dbcd5f4f2281b90",
+    "lib/merge.js": "d9ab2307ee5c86165be0d77af8fb84006eeb71758de064f66b66dd6a83410d1c",
+    "lib/session-safety.js": "51fb22817dd2e1d75dcae35f277434d8dd272cdb777e9923617940f002163f75",
+    "lib/scheduler.js": "ce1c3e614d07411415cea9a4204f4571575f9f8019a3dd4775ac2ba1cf4fd5e2"
+  },
+  "records": [
+    {
+      "case": "reported-gap",
+      "eventsBefore": 7174,
+      "missing": 9,
+      "rejected": true,
+      "officialCodec": true
+    },
+    {
+      "case": "continuous-writer",
+      "seed": 17,
+      "baseEvents": 7174,
+      "appendedDuringSync": 387,
+      "syncCyclesWhileWriting": 3,
+      "deferredPartialSnapshots": 0,
+      "verifiedRemoteCommits": 7,
+      "finalEvents": 7562,
+      "missingEvents": 0,
+      "exactBytesPreserved": true,
+      "bothDevicesReadableByCodec": true,
+      "distinctForkPreserved": true,
+      "sha256": "26859dbf07452f775b2be6b9ec45c71c8ae401498317d66b0a38582fae9f0c83",
+      "remoteOriginalSha256": "bb21434aebbf6be7857653b15edfffa0b4547e14a66ad675b1bbcf1274ab3636",
+      "officialCodec": true
+    },
+    {
+      "case": "continuous-writer",
+      "seed": 42,
+      "baseEvents": 7174,
+      "appendedDuringSync": 432,
+      "syncCyclesWhileWriting": 3,
+      "deferredPartialSnapshots": 0,
+      "verifiedRemoteCommits": 7,
+      "finalEvents": 7607,
+      "missingEvents": 0,
+      "exactBytesPreserved": true,
+      "bothDevicesReadableByCodec": true,
+      "distinctForkPreserved": true,
+      "sha256": "e233da3e3a198ebfbaffde2a1053055eb6dfa8ecae08b18f12b6b74bb15677a4",
+      "remoteOriginalSha256": "12638020ac3db1672b81a8053db8a42690c88f4fcf4df76f93815acea040d401",
+      "officialCodec": true
+    },
+    {
+      "case": "continuous-writer",
+      "seed": 20261018,
+      "baseEvents": 7174,
+      "appendedDuringSync": 370,
+      "syncCyclesWhileWriting": 3,
+      "deferredPartialSnapshots": 0,
+      "verifiedRemoteCommits": 7,
+      "finalEvents": 7545,
+      "missingEvents": 0,
+      "exactBytesPreserved": true,
+      "bothDevicesReadableByCodec": true,
+      "distinctForkPreserved": true,
+      "sha256": "3abdc07a5382cf9a9cdd197eb59ebd7029c2a94c1f038989e2e5fe88b917747e",
+      "remoteOriginalSha256": "175fa7bcaaba6ebff65d5b84b73f0d237106ca53e6b6d430ea1c2c45765206f9",
+      "officialCodec": true
+    },
+    {
+      "case": "fast-forward-with-writer",
+      "baseEvents": 7174,
+      "appendedDuringSync": 48,
+      "missingEvents": 0,
+      "exactBytesPreserved": true,
+      "deferred": true,
+      "sha256": "57fb69278c181fb055ce2313c6a0a2411b9e3486838f629f5344342be201ccf3",
+      "officialCodec": true
+    },
+    {
+      "case": "partial-frame",
+      "rejected": true,
+      "remoteUnchangedUntilComplete": true,
+      "retryPassed": true,
+      "officialCodec": true
+    }
+  ]
+}

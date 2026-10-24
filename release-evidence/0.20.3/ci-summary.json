@@ -1,0 +1,52 @@
+{
+  "ok": true,
+  "completedAt": "2026-10-24T18:18:01.522Z",
+  "version": "0.20.3",
+  "build": "2026-10-25-release-0.20.3",
+  "sourceSha256": "fb6f2b3db1d6ed4941eeb90d7c31dcd698ebf812423d6bac028665dedc4887d9",
+  "packageSha256": "7b669364085d1d8bae4fdeb1a20c81847963b1190a656304add09c893d946748",
+  "shortPackageSha256": "419bda15d1e1535237376fdd48b76319ce4f9c826f17cac77e87d2027d5690bf",
+  "runId": 40118692108,
+  "runUrl": "https://github.com/dpskk2/dsh-chatsync/actions/runs/40118692108",
+  "testedSourceCommit": "51e4d118da6aae73f2654068db7c34539d57374c",
+  "finalSourceCommit": "f55e271adeecaac805c920a721e5b3377d97021d",
+  "postTestChanges": [
+    "AGENTS.md",
+    "README.en.md",
+    "README.md"
+  ],
+  "postTestChangeReview": "Only owner-requested empty AGENTS and upstream Chinese README compatibility wording plus English translation. All product runtime, tests, dependencies, verification scripts and workflows match the successful CI commit. Both final tarballs independently match all 45 runtime hashes of the native-tested packages.",
+  "jobs": [
+    {
+      "label": "linux-node",
+      "file": "ci-linux.log",
+      "tests": 410,
+      "passed": 401,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 9,
+      "patchAssertions": 8
+    },
+    {
+      "label": "windows-node",
+      "file": "ci-windows-node.log",
+      "tests": 410,
+      "passed": 409,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "patchAssertions": 8
+    },
+    {
+      "label": "windows-electron",
+      "file": "ci-windows-electron.log",
+      "tests": 410,
+      "passed": 410,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "patchAssertions": 8
+    }
+  ],
+  "platformSkipCoverage": "All required Windows cases, including the GUI executable exit check, executed in the Windows Electron full suite with zero skips."
+}

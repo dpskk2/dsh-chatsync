@@ -1,0 +1,21 @@
+{
+  "root": "<isolated-test-root>",
+  "physicalMachines": 1,
+  "dshVersion": "0.2.1-rc.3",
+  "electron": "44.7.0",
+  "node": "24.21.0",
+  "remote": "local bare Git; fixture-only private-visibility substitution",
+  "electronWindowOpened": false,
+  "checks": [
+    "Configured real Desktop Host finishes startup sync before use"
+  ],
+  "ok": false,
+  "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'f0f42f5c30f6c6b67c940ee34edeaf337ab2ccba'\n- 'd838d2faf99412374f5061e0b50891ea2821bfc7'\n",
+  "initialResultRemainsFailed": true,
+  "rootCause": "Harness compared with seed commit before startup. The complete immutable diff consists only of adding maintained .gitignore rules during startup; no edited session was uploaded during editing.",
+  "changedPaths": [
+    ".gitignore"
+  ],
+  "correctiveCommit": "51e4d118da6aae73f2654068db7c34539d57374c",
+  "recheck": "lifecycle-desktop.json"
+}

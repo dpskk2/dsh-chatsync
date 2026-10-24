@@ -72,14 +72,20 @@ await ctx.sessions.flush(session);await writer.close();res.writeHead(200,{'Conte
     electron:process.versions.electron,node:process.versions.node,remote:'local bare Git; fixture-only private-visibility substitution',electronWindowOpened:false,checks:[]};
   try{
     host=await boot();const baseline=await host.request('/lifecycle-fixture/create',{});assert.equal(baseline.ok,true,JSON.stringify(baseline));await close();
-    const engine=acceptFixturePreviews(new SyncEngine(home));const seed=await engine.syncOnce('fixture-seed',{forceCommit:true,offlineApply:true});assert.equal(seed.error,undefined,JSON.stringify(seed));const before=remoteHead();assert.ok(before);
+    const engine=acceptFixturePreviews(new SyncEngine(home));const seed=await engine.syncOnce('fixture-seed',{forceCommit:true,offlineApply:true});assert.equal(seed.error,undefined,JSON.stringify(seed));const seedHead=remoteHead();assert.ok(seedHead);
     Object.assign(cfg,{enabled:true,autoPullOnStart:true,autoPushOnExit:true,mode:'auto',intervalSeconds:30,eventDebounceSeconds:5});write();
     host=await boot();let ready;
     for(let i=0;i<120;i++){ready=await host.request('/dsh-sync/api/status');if(ready.startup.phase!=='running')break;await sleep(250);}
     assert.equal(ready.startup.phase,'ready',JSON.stringify(ready.startup));evidence.checks.push('Configured real Desktop Host finishes startup sync before use');
+    // Startup may legitimately commit ignore-rule maintenance. Editing must be
+    // compared with the completed startup, not the earlier seed snapshot.
+    const before=remoteHead();assert.ok(before);evidence.seedCommit=seedHead;evidence.startupCommit=before;
     const added=await host.request('/lifecycle-fixture/create',{});assert.equal(added.ok,true,JSON.stringify(added));
     // Legacy short interval and debounce values cannot trigger a save.
-    await sleep(31000);assert.equal(remoteHead(),before);evidence.checks.push('Editing for 31 seconds does not upload despite legacy 30-second interval and 5-second debounce');
+    await sleep(31000);assert.equal(remoteHead(),before);
+    const duringEditing=execFileSync('git',['--git-dir',remote,'ls-tree','-r','--name-only','main'],{windowsHide:true,encoding:'utf8'});
+    assert.ok(!duringEditing.includes(added.id),'Editing uploaded the new session before exit');
+    evidence.checks.push('Editing for 31 seconds leaves the post-startup commit unchanged and the new session absent remotely despite legacy interval/debounce');
     const at=Date.now();await close();const status=await awaitExit();
     assert.equal(status.result.error,undefined,JSON.stringify(status));assert.equal(status.result.pushed,true,JSON.stringify(status));assert.notEqual(remoteHead(),before);
     const listed=execFileSync('git',['--git-dir',remote,'ls-tree','-r','--name-only','main'],{windowsHide:true,encoding:'utf8'});

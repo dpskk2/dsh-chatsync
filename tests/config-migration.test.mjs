@@ -6,8 +6,10 @@ import path from 'node:path';
 import { resolveSyncConfig, SyncEngine } from '../lib/sync.js';
 import { parseSyncRemote } from '../lib/remote.js';
 
-test('new connections stay manual and legacy manual preferences never gain automatic transfers', () => {
-  assert.equal(resolveSyncConfig().enabled, false);
+test('new connections enable automation and legacy manual preferences never gain automatic transfers', () => {
+  assert.equal(resolveSyncConfig().enabled, true);
+  assert.equal(resolveSyncConfig({enabled:false}).enabled, false);
+  assert.equal(resolveSyncConfig({lifecycleAutomation:1,enabled:false},{enabled:true}).enabled, false);
   for (const enabled of [undefined, true, false]) {
     const old = { mode: 'manual', remote: 'https://github.com/a/data', ...(enabled === undefined ? {} : {enabled}) };
     const result = resolveSyncConfig(old);

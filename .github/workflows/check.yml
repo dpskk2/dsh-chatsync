@@ -26,6 +26,23 @@ jobs:
         env:
           DSH_ISSUE4_CATALOG_ROOT: .
         run: npm test
+      - name: Verify Electron desktop Node runtime
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          DSH_ISSUE4_CATALOG_ROOT: .
+        run: |
+          npm install --prefix work/desktop-runtime --no-save --no-package-lock --no-audit --no-fund electron@44.7.0
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $electron = (Resolve-Path work/desktop-runtime/node_modules/electron/dist/electron.exe).Path
+          $env:ELECTRON_RUN_AS_NODE = '1'
+          & $electron -p 'JSON.stringify(process.versions)'
+          $testFiles = Get-ChildItem tests/*.test.mjs | ForEach-Object { $_.FullName }
+          & $electron --test --test-concurrency=2 @testFiles
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $electron patch-version-agnostic-test.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Verify install package contents and documentation links
         run: node scripts/check-package-contents.mjs
 

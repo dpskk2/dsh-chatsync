@@ -1,7 +1,7 @@
 {
   "name": "@dpskk2/dsh-chatsync",
-  "version": "0.20.1",
-  "chatsyncBuild": "2026-10-23-release-0.20.1",
+  "version": "0.20.2",
+  "chatsyncBuild": "2026-10-24-release-0.20.2",
   "description": "换台电脑，接着聊。同步会话、附件、设置和项目文件。",
   "keywords": [
     "dsh",
@@ -36,7 +36,8 @@
     "docs/data-repair-0.20.1.md",
     "docs/assets",
     "docs/release-0.20.0-validation.md",
-    "docs/release-0.20.1-validation.md"
+    "docs/release-0.20.1-validation.md",
+    "docs/release-0.20.2-validation.md"
   ],
   "dsh": {
     "bundle": {
@@ -75,5 +76,8 @@
     "@deepseek-ai/dsh": {
       "optional": true
     }
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-session-format-catalog": "0.2.0-rc.2"
   }
 }

@@ -9,7 +9,7 @@ import { SyncEngine } from '../lib/sync.js';
 import { normalizeScope, settingsProjection, restoreLocalSettings, transportable, scopeMirrorPath } from '../lib/scope.js';
 import { parseYaml } from '../lib/yaml.js';
 import { acceptFixturePreviews } from './helpers/reviewed-sync.mjs';
-import { attachFixturePersistence } from './helpers/session-persistence.mjs';
+import { fixtureCatalog, attachFixturePersistence } from './helpers/session-persistence.mjs';
 
 test('first scoped clone reuses local history without borrowing storage or seeding unsent commits', { timeout: 60000 }, async t => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-reference-'));
@@ -173,6 +173,7 @@ test('sync preserves intentional ungrouping instead of manufacturing registry re
   const engine = new SyncEngine(home, { remote, autoRepo: false, workspaceSync: false,
     contentScope: { sessions: true, attachments: false, settings: false } });
   engine.verifyPrivateRemote = async () => ({ ok: true });
+  engine.loadTransferCatalog = async () => fixtureCatalog;
   const sessionId = 'session-11111111-1111-1111-1111-111111111111';
   const cwd = path.join(home, 'project'); fs.mkdirSync(cwd);
   const log = path.join(home, 'sessions', 'group', sessionId, 'session.jsonl');

@@ -1,6 +1,8 @@
+import { fixtureCatalog } from './session-persistence.mjs';
 // Test-only simulation of explicitly accepting previews for known isolated fixtures.
 // Production sync is never bypassed; each approval uses the exact preview just returned.
 export function acceptFixturePreviews(engine) {
+  engine.loadTransferCatalog ||= async () => fixtureCatalog;
   const original = engine.syncOnce.bind(engine);
   engine.syncOnce = async (reason, opts = {}) => {
     let result = await original(reason, opts);

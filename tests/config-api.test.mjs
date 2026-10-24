@@ -111,7 +111,7 @@ test('one automatic API field saves both legacy flags and reports host overrides
   for(const automatic of [null,'yes',1]) assert.equal((await request('config',{automatic})).ok,false);
   assert.equal((await request('config',{automatic:true,mode:'manual'})).ok,false);
   const forced=host(t,{mode:'auto',enabled:false});
-  assert.equal((await forced('config',{automatic:true})).config.automatic,false);
+  assert.equal((await forced('config',{automatic:true})).config.automatic,true, 'an explicit saved lifecycle choice takes precedence over host defaults');
 });
 
 test('read-only preview and doctor do not initialize data, recovery rejects arbitrary paths', async t => {

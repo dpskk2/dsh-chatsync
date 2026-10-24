@@ -5,6 +5,14 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      release_tag:
+        required: true
+        type: string
+      source_ref:
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -13,9 +21,13 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -24,9 +36,12 @@ jobs:
       - name: Pin packager
         run: npm install --global npm@11.17.0 --ignore-scripts
 
+      - name: Install verification dependencies
+        run: npm ci --ignore-scripts
+
       - name: Sanity check tag vs package version
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
+          TAG="${RELEASE_TAG#v}"
           PKG="$(node -p 'require("./package.json").version')"
           if [ "$TAG" != "$PKG" ]; then
             echo "::error::Tag version ($TAG) does not match package.json version ($PKG)" >&2
@@ -36,7 +51,7 @@ jobs:
       - name: Prepare release notes and source archive
         run: |
           node scripts/release-notes.mjs
-          git -c core.autocrlf=false archive --format=zip --prefix="dsh-chatsync-${GITHUB_REF_NAME}/" --output="dsh-chatsync-${GITHUB_REF_NAME}-source.zip" HEAD
+          git -c core.autocrlf=false archive --format=zip --prefix="dsh-chatsync-${RELEASE_TAG}/" --output="dsh-chatsync-${RELEASE_TAG}-source.zip" HEAD
 
       - name: Verify release gates and update targets
         # Full product regression is recorded in the candidate-bound evidence.
@@ -55,6 +70,18 @@ jobs:
           echo "RELEASE_PACKAGE=work/release/$PACKAGE" >> "$GITHUB_ENV"
           node scripts/pack-short-name.mjs work/short-package --verify > work/release/short.json
           echo "SHORT_PACKAGE=$(node -p 'JSON.parse(require("fs").readFileSync("work/release/short.json", "utf8")).file')" >> "$GITHUB_ENV"
+
+      - name: Create verified release tag when called after CI
+        if: inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          HEAD="$(git rev-parse HEAD)"
+          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" > /tmp/release-tag.txt; then
+            test "$(cut -f1 /tmp/release-tag.txt)" = "$HEAD"
+          else
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$RELEASE_TAG" -f "sha=$HEAD"
+          fi
 
       - name: Publish verified package to npm
         run: |
@@ -76,7 +103,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="$GITHUB_REF_NAME"
+          TAG="$RELEASE_TAG"
           ARCHIVE="dsh-chatsync-${TAG}-source.zip"
           sha256sum "$ARCHIVE" > SHA256SUMS.txt
           (cd work/release && sha256sum "$(basename "$RELEASE_PACKAGE")") >> SHA256SUMS.txt

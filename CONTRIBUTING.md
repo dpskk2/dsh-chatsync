@@ -51,7 +51,7 @@ Release 的源码 ZIP 由 `git archive` 打包对应标签下全部受版本控�
 
 ## 验证
 
-需要 Node.js（建议 24）和 Git。项目采用原生 ESM，无运行时 npm 依赖，无需构建。
+需要 Node.js（建议 24）和 Git。项目采用原生 ESM，无运行时 npm 依赖，无需构建。开发验证先执行 `npm ci --ignore-scripts` 安装锁定的官方格式校验依赖；这些依赖不随插件作为运行依赖安装。
 
 ```sh
 git clone https://github.com/dpskk2/dsh-chatsync.git

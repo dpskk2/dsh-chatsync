@@ -136,7 +136,7 @@ test('cancelling during a local transaction finishes file, HEAD and index togeth
 test('legacy packed snapshots upload and download verbatim alongside migrated logs', { timeout: 90_000 }, async t => {
   const h = fixture(t);
   const legacyRel = rel.replace('session.v4.', 'session.');
-  const legacy = encode([{ type: 'session', version: 0 }, { type: 'text-chunks', seq0: 0, time0: 100,
+  const legacy = encode([{ type: 'session', version: 0, id: rows(0)[0].id }, { type: 'text-chunks', seq0: 0, time0: 100,
     data: { turn: 0, step: 0, index: 0, dt: [1], texts: ['a', 'b'] } }, { type: 'event', seq: 2 }]);
   h.write(h.a, encode(rows(3)));
   fs.writeFileSync(path.join(h.a.home, legacyRel), legacy);

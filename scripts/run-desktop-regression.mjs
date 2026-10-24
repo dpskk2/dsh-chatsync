@@ -12,8 +12,11 @@ const versions = JSON.parse(execFileSync(executable, ['-p', 'JSON.stringify(proc
 assert.equal(versions.electron, '44.7.0');
 console.log('Desktop regression runtime: ' + JSON.stringify(versions));
 const files = fs.readdirSync('tests').filter(file => file.endsWith('.test.mjs')).sort().map(file => path.join('tests', file));
-for (const args of [['--test', '--test-concurrency=2', ...files], ['patch-version-agnostic-test.mjs']]) {
-  const result = spawnSync(executable, args, { env, windowsHide: true, stdio: 'inherit' });
+for (const args of [['--test', '--test-concurrency=2', '--test-timeout=300000', ...files], ['patch-version-agnostic-test.mjs']]) {
+  console.log('Starting waited Electron phase: ' + args[0]);
+  const started = Date.now();
+  const result = spawnSync(executable, args, { env, windowsHide: true, stdio: 'inherit', timeout: 20 * 60 * 1000 });
+  console.log('Electron phase terminated: ' + JSON.stringify({ phase: args[0], status: result.status, signal: result.signal, elapsedMs: Date.now() - started }));
   if (result.error) throw result.error;
   if (result.status !== 0) process.exit(result.status ?? 1);
 }

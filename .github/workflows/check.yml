@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     strategy:
@@ -20,6 +24,7 @@ jobs:
           - os: windows-latest
             runtime: electron
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,7 +38,8 @@ jobs:
         env:
           DSH_ISSUE4_CATALOG_ROOT: .
         run: npm test
-      - name: Verify Electron desktop Node runtime
+      - name: Install Electron desktop verification runtime
+        timeout-minutes: 10
         if: matrix.runtime == 'electron'
         shell: pwsh
         env:
@@ -44,7 +50,16 @@ jobs:
           node work/desktop-runtime/node_modules/electron/install.js
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $electron = (Resolve-Path work/desktop-runtime/node_modules/electron/dist/electron.exe).Path
-          node scripts/run-desktop-regression.mjs $electron
+          "DSH_CI_ELECTRON=$electron" >> $env:GITHUB_ENV
+
+      - name: Verify Electron desktop Node runtime
+        if: matrix.runtime == 'electron'
+        timeout-minutes: 22
+        shell: pwsh
+        env:
+          DSH_ISSUE4_CATALOG_ROOT: .
+        run: |
+          node scripts/run-desktop-regression.mjs "$env:DSH_CI_ELECTRON"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Verify install package contents and documentation links

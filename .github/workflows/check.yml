@@ -2,7 +2,7 @@ name: Check
 
 on:
   push:
-    branches: [main]
+    branches: [main, release/0.20.2]
   pull_request:
 
 permissions:
@@ -12,7 +12,13 @@ jobs:
   check:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            runtime: node
+          - os: windows-latest
+            runtime: node
+          - os: windows-latest
+            runtime: electron
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -23,11 +29,12 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Verify sync and upgrade compatibility
+        if: matrix.runtime == 'node'
         env:
           DSH_ISSUE4_CATALOG_ROOT: .
         run: npm test
       - name: Verify Electron desktop Node runtime
-        if: runner.os == 'Windows'
+        if: matrix.runtime == 'electron'
         shell: pwsh
         env:
           DSH_ISSUE4_CATALOG_ROOT: .
@@ -51,7 +58,7 @@ jobs:
 
   publish-approved-candidate:
     if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'release: v0.20.2 [publish]')
+      github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/release/0.20.2') && startsWith(github.event.head_commit.message, 'release: v0.20.2 [publish]')
     needs: check
     permissions:
       contents: write

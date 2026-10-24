@@ -195,3 +195,14 @@ test('project recovery vaults stay local and filesystem-root workspaces cannot b
   assert.equal(fs.readFileSync(file,'utf8'),'original');
   assert.equal(fs.readFileSync(path.join(a.project+'.chatsync-backups','unrelated'),'utf8'),'keep');
 });
+
+
+test('unsupported exclusive file installation stops before moving any project original',t=>{
+  const h=fixture(t),a=h.make('a');h.write(a,'ORIGINAL');const target=path.join(a.project,'note.txt'),before=fs.readFileSync(target);
+  const original=fs.linkSync;let renamed=false;const rename=fs.renameSync;
+  fs.linkSync=()=>{const e=new Error('filesystem has no hard links');e.code='ENOTSUP';throw e;};
+  fs.renameSync=(...args)=>{if(args[0]===target)renamed=true;return rename(...args);};
+  try{assert.throws(()=>applyProjectFile(a.engine,a.ws,a.project,'note.txt',digest(before),Buffer.from('REMOTE')),/no hard links/);}
+  finally{fs.linkSync=original;fs.renameSync=rename;}
+  assert.equal(renamed,false);assert.deepEqual(fs.readFileSync(target),before);
+});

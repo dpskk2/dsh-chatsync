@@ -109,8 +109,14 @@ jobs:
         id: short
         run: |
           PKG="$(node -p 'require("./package.json").version')"
-          if npm view "chatsync@$PKG" version >/dev/null 2>&1; then
-            npm pack "chatsync@$PKG" --ignore-scripts --pack-destination /tmp
+          if npm view "chatsync@$PKG" version --prefer-online >/dev/null 2>&1; then
+            for attempt in {1..12}; do
+              if npm pack "chatsync@$PKG" --ignore-scripts --prefer-online --pack-destination /tmp; then
+                break
+              fi
+              if [ "$attempt" = 12 ]; then exit 1; fi
+              sleep 5
+            done
             cmp "$SHORT_PACKAGE" "/tmp/$(basename "$SHORT_PACKAGE")"
           else
             # Print authentication diagnostics without dumping OIDC request URLs or tokens.
@@ -169,6 +175,12 @@ jobs:
           cmp "$RELEASE_PACKAGE" "work/published-npm/$(basename "$RELEASE_PACKAGE")"
           sha256sum work/published/*.tgz work/published/*source.zip work/published-npm/*.tgz
           if [ "${{ steps.short.outcome }}" = success ]; then
-            npm pack chatsync@0.20.2 --ignore-scripts --pack-destination work/published-npm
+            for attempt in {1..12}; do
+              if npm pack chatsync@0.20.2 --ignore-scripts --prefer-online --pack-destination work/published-npm; then
+                break
+              fi
+              if [ "$attempt" = 12 ]; then exit 1; fi
+              sleep 5
+            done
             cmp "$SHORT_PACKAGE" "work/published-npm/$(basename "$SHORT_PACKAGE")"
           fi

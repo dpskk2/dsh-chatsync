@@ -1,7 +1,7 @@
 <div align="center">
 
 # chatsync 接着聊
-（99%AIGC⚠️）
+（本插件99%内容由AI生成、维护）
 ### 换台电脑，继续做。
 
 把 DeepSeek Harness（DSH）的会话、附件、设置和项目文件带到另一台电脑。<br>

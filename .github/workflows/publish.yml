@@ -2,6 +2,7 @@ name: Publish npm and GitHub Release
 
 on:
   push:
+    branches: [release/0.20.2-recovery]
     tags:
       - 'v*'
   workflow_dispatch:
@@ -25,12 +26,18 @@ jobs:
        startsWith(github.event.workflow_run.head_commit.message, 'release: v0.20.2 [publish]'))
     runs-on: ubuntu-latest
     env:
-      RELEASE_TAG: ${{ github.event_name == 'workflow_run' && 'v0.20.2' || github.ref_name }}
+      RELEASE_TAG: ${{ (github.event_name == 'workflow_run' || github.ref == 'refs/heads/release/0.20.2-recovery') && 'v0.20.2' || github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+          ref: ${{ github.ref == 'refs/heads/release/0.20.2-recovery' && 'v0.20.2' || github.event.workflow_run.head_sha || github.ref }}
+
+      - name: Verify immutable recovery target
+        if: github.ref == 'refs/heads/release/0.20.2-recovery'
+        run: |
+          test "$(git rev-parse HEAD)" = 845da641fe123042b7803963ae48c02d7b7cfc0f
+          test "$(git ls-remote origin refs/tags/v0.20.2 | cut -f1)" = 845da641fe123042b7803963ae48c02d7b7cfc0f
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -65,6 +72,7 @@ jobs:
           node scripts/check-package-contents.mjs
 
       - name: Pack candidate and verify local safety evidence
+        id: gates
         run: |
           mkdir -p work/release
           npm pack --ignore-scripts --json --pack-destination work/release > work/release/pack.json
@@ -86,7 +94,8 @@ jobs:
             gh api "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$RELEASE_TAG" -f "sha=$HEAD"
           fi
 
-      - name: Publish verified package to npm
+      - name: Publish or verify scoped npm package
+        id: scoped
         run: |
           PKG="$(node -p 'require("./package.json").version')"
           if npm view "@dpskk2/dsh-chatsync@$PKG" version >/dev/null 2>&1; then
@@ -95,18 +104,33 @@ jobs:
           else
             npm publish "$RELEASE_PACKAGE" --ignore-scripts --provenance --access public
           fi
+
+      - name: Publish or verify short npm package
+        id: short
+        run: |
+          PKG="$(node -p 'require("./package.json").version')"
           if npm view "chatsync@$PKG" version >/dev/null 2>&1; then
             npm pack "chatsync@$PKG" --ignore-scripts --pack-destination /tmp
             cmp "$SHORT_PACKAGE" "/tmp/$(basename "$SHORT_PACKAGE")"
           else
-            npm publish "$SHORT_PACKAGE" --ignore-scripts --provenance --access public
+            # Print authentication diagnostics without dumping OIDC request URLs or tokens.
+            set +e
+            npm publish "$SHORT_PACKAGE" --ignore-scripts --provenance --access public --loglevel verbose > work/release/short-publish.log 2>&1
+            status=$?
+            set -e
+            node --input-type=module -e 'import fs from "node:fs"; for (const line of fs.readFileSync("work/release/short-publish.log","utf8").split("\n")) if (/^npm (error|notice)|^npm verbose oidc /.test(line)) console.log(line);'
+            exit "$status"
           fi
 
       - name: Publish GitHub Release with source and changelog
+        if: ${{ !cancelled() && steps.gates.outcome == 'success' && steps.scoped.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="$RELEASE_TAG"
+          if [ "${{ steps.short.outcome }}" != success ]; then
+            printf '\n**短包发布状态：** npm 尚未接受 chatsync@0.20.2 的发布认证。请使用 @dpskk2/dsh-chatsync@0.20.2 或下方已核对的安装包；短包 npm 发布完成后会移除此提示。\n' >> release-notes.md
+          fi
           ARCHIVE="dsh-chatsync-${TAG}-source.zip"
           sha256sum "$ARCHIVE" > SHA256SUMS.txt
           (cd work/release && sha256sum "$(basename "$RELEASE_PACKAGE")") >> SHA256SUMS.txt
@@ -116,4 +140,35 @@ jobs:
             gh release edit "$TAG" --notes-file release-notes.md
           else
             gh release create "$TAG" "$ARCHIVE" "$RELEASE_PACKAGE" "$SHORT_PACKAGE" SHA256SUMS.txt --verify-tag --title "$TAG" --notes-file release-notes.md
+          fi
+
+      - name: Verify downloaded Release assets and published npm bytes
+        if: ${{ !cancelled() && steps.gates.outcome == 'success' && steps.scoped.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p work/published work/published-npm
+          gh release download "$RELEASE_TAG" --dir work/published
+          (cd work/published && sha256sum --check SHA256SUMS.txt)
+          cmp "$RELEASE_PACKAGE" "work/published/$(basename "$RELEASE_PACKAGE")"
+          cmp "$SHORT_PACKAGE" "work/published/$(basename "$SHORT_PACKAGE")"
+          python3 - <<'PY'
+          import pathlib, subprocess, zipfile
+          archive = pathlib.Path("work/published/dsh-chatsync-v0.20.2-source.zip")
+          prefix = "dsh-chatsync-v0.20.2/"
+          tracked = subprocess.check_output(["git","ls-files","-z"]).decode().split("\0")
+          tracked = {p for p in tracked if p}
+          with zipfile.ZipFile(archive) as z:
+              files = {n[len(prefix):] for n in z.namelist() if not n.endswith("/")}
+              assert files == tracked, (files - tracked, tracked - files)
+              for p in sorted(tracked):
+                  assert z.read(prefix+p) == subprocess.check_output(["git","show","HEAD:"+p]), p
+          print("Source ZIP verified against every tracked file:",len(tracked))
+          PY
+          npm pack @dpskk2/dsh-chatsync@0.20.2 --ignore-scripts --pack-destination work/published-npm
+          cmp "$RELEASE_PACKAGE" "work/published-npm/$(basename "$RELEASE_PACKAGE")"
+          sha256sum work/published/*.tgz work/published/*source.zip work/published-npm/*.tgz
+          if [ "${{ steps.short.outcome }}" = success ]; then
+            npm pack chatsync@0.20.2 --ignore-scripts --pack-destination work/published-npm
+            cmp "$SHORT_PACKAGE" "work/published-npm/$(basename "$SHORT_PACKAGE")"
           fi

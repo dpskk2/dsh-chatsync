@@ -100,4 +100,4 @@ For an existing `@dpskk2/dsh-chatsync` installation, replace `chatsync` with tha
 
 ## Compatibility
 
-DSH >= 0.2.0-rc.1; Desktop 0.2.1-rc.2 or newer recommended. Standalone use requires Node.js >= 24. Desktop uses its bundled runtime. See the [validation record](docs/release-0.20.1-validation.md) for the actual verification scope.
+DSH >= 0.2.0-rc.1; Desktop 0.2.1-rc.3 or newer recommended. Standalone use requires Node.js >= 24. Desktop uses its bundled runtime. See the [validation record](docs/release-0.20.1-validation.md) for the actual verification scope.

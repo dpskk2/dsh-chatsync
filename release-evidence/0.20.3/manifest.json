@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "version": "0.20.3",
-  "build": "2026-10-25-local-0.20.3",
+  "build": "2026-10-25-release-0.20.3",
   "sourceSha256": "",
   "packageSha256": "",
   "checks": [

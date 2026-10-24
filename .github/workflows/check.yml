@@ -2,7 +2,7 @@ name: Check
 
 on:
   push:
-    branches: [main, release/0.20.2]
+    branches: [main, 'codex/release-*']
   pull_request:
 
 permissions:

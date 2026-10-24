@@ -6,6 +6,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { profile, bootHost, stopHost, repo } from './native-fixture.mjs';
 import { digest } from '../lib/recovery.js';
+import { sourceFingerprint } from './check-release-safety.mjs';
 
 const [packageArg, outputArg] = process.argv.slice(2);
 if (!packageArg || !outputArg || process.argv.length !== 4) throw new Error('Usage: node scripts/check-local-package-desktop.mjs <package.tgz> <new outputs directory>');
@@ -28,11 +29,15 @@ if (!process.versions.electron) {
   const source = JSON.parse(fs.readFileSync(path.join(repo, 'package.json')));
   assert.equal(packed.version, source.version); assert.equal(packed.chatsyncBuild, source.chatsyncBuild);
   let verifiedRuntimeFiles = 0;
+  const loadedFileHashes = {};
   for (const relative of fs.readdirSync(path.join(repo, 'lib'), { recursive: true })) {
     const own = path.join(repo, 'lib', relative); if (!fs.statSync(own).isFile()) continue;
-    let expected = fs.readFileSync(own);
+    // The release artifact uses Git blob bytes, independently of Windows CRLF.
+    let expected = execFileSync('git', ['show', 'HEAD:lib/' + relative.replaceAll('\\', '/')], { cwd: repo, windowsHide: true });
     if (packed.name === 'chatsync' && ['client.js', 'updates.js'].includes(relative)) expected = Buffer.from(expected.toString().replaceAll('@dpskk2/dsh-chatsync', 'chatsync').replaceAll('@dpskk2%2Fdsh-chatsync', 'chatsync'));
-    assert.deepEqual(fs.readFileSync(path.join(packedRoot, 'lib', relative)), expected, relative); verifiedRuntimeFiles++;
+    const actual = fs.readFileSync(path.join(packedRoot, 'lib', relative));
+    assert.deepEqual(actual, expected, relative); verifiedRuntimeFiles++;
+    loadedFileHashes['lib/' + relative.replaceAll('\\', '/')] = digest(actual);
   }
   // The fixture helper generates a source junction; replace only that verified junction.
   const profileRoot = profile(home, [], 'desktop'), sourceLink = path.join(profileRoot, 'node_modules', source.name);
@@ -58,6 +63,8 @@ if (!process.versions.electron) {
   git(['add', '.'], oldTree); git(['commit', '-m', 'synthetic snapshot'], oldTree); git(['push', '-u', 'origin', 'main'], oldTree);
   const runtime = path.join(installation, 'resources/app.asar/dsh');
   const evidence = { version: packed.version, build: packed.chatsyncBuild, packageName: packed.name, packageSha256: digest(fs.readFileSync(packageFile)),
+    sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8', windowsHide: true }).trim(),
+    sourceSha256: sourceFingerprint(repo), loadedFileHashes,
     verifiedRuntimeFiles, physicalMachines: 1, githubUsed: false, nativeDesktopWindow: false,
     runtime: { electron: process.versions.electron, node: process.versions.node,
       dsh: JSON.parse(fs.readFileSync(path.join(runtime, 'node_modules/@deepseek-ai/dsh/package.json'))).version }, checks: [] };

@@ -5,10 +5,6 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
-  workflow_run:
-    workflows: [Check]
-    types: [completed]
-    branches: [release/0.20.2]
 
 permissions:
   contents: write
@@ -16,21 +12,15 @@ permissions:
 
 jobs:
   publish:
-    if: >-
-      github.event_name != 'workflow_run' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.event == 'push' &&
-       github.event.workflow_run.head_repository.full_name == github.repository &&
-       github.event.workflow_run.head_branch == 'release/0.20.2' &&
-       startsWith(github.event.workflow_run.head_commit.message, 'release: v0.20.2 [publish]'))
     runs-on: ubuntu-latest
     env:
-      RELEASE_TAG: ${{ github.event_name == 'workflow_run' && 'v0.20.2' || github.ref_name }}
+      RELEASE_TAG: ${{ github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+          ref: ${{ github.ref }}
+          fetch-depth: 1
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -73,18 +63,6 @@ jobs:
           echo "RELEASE_PACKAGE=work/release/$PACKAGE" >> "$GITHUB_ENV"
           node scripts/pack-short-name.mjs work/short-package --verify > work/release/short.json
           echo "SHORT_PACKAGE=$(node -p 'JSON.parse(require("fs").readFileSync("work/release/short.json", "utf8")).file')" >> "$GITHUB_ENV"
-
-      - name: Create verified release tag when called after CI
-        if: github.event_name == 'workflow_run'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          HEAD="$(git rev-parse HEAD)"
-          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" > /tmp/release-tag.txt; then
-            test "$(cut -f1 /tmp/release-tag.txt)" = "$HEAD"
-          else
-            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$RELEASE_TAG" -f "sha=$HEAD"
-          fi
 
       - name: Publish verified package to npm
         run: |

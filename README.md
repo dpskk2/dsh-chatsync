@@ -8,7 +8,7 @@
 
 [![npm](https://img.shields.io/npm/v/chatsync?color=2563eb)](https://www.npmjs.com/package/chatsync)
 [![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.2.0--rc.1-0f766e)](#兼容性)
-[![Desktop](https://img.shields.io/badge/Desktop-%E6%8E%A8%E8%8D%90%200.2.1--rc.2-2563eb)](#兼容性)
+[![Desktop](https://img.shields.io/badge/Desktop-%E6%8E%A8%E8%8D%90%200.2.1--rc.3-2563eb)](#兼容性)
 [![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A524-43853d)](#兼容性)
 [![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
 

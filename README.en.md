@@ -118,7 +118,7 @@ Divergent conversations are retained as separate versions. Remote deletion does 
 
 ## Compatibility
 
-Supports DSH Web and Windows Desktop, with a minimum version of **0.2.0-rc.1**. **Desktop 0.2.1-rc.2 or newer is recommended**. Standalone use requires **Node.js 24 or newer**; Desktop uses its bundled runtime.
+Supports DSH Web and Windows Desktop, with a minimum version of **0.2.0-rc.1**. **Desktop 0.2.1-rc.3 or newer is recommended**. Standalone use requires **Node.js 24 or newer**; Desktop uses its bundled runtime.
 
 See the [version validation record](docs/release-0.20.1-validation.md) for the environments actually tested and the remaining gaps.
 

@@ -82,21 +82,45 @@ test('oversized request bodies are rejected without being buffered completely', 
   assert.match(result.body.error, /过大/);
 });
 
-test('imported files are replaced atomically, keep permissions and write through symbolic links', { skip: process.platform === 'win32' && 'POSIX permission bits and unprivileged symlinks' }, t => {
+test('imported files are replaced atomically and keep permissions', t => {
   const dir = tempDir(t, 'dsh-replace-bytes-');
   const file = path.join(dir, 'settings.yaml');
   fs.writeFileSync(file, 'old: 1\n'); fs.chmodSync(file, 0o640);
+  // Windows only keeps the read-only bit, so compare with what chmod actually produced.
+  const mode = process.platform === 'win32' ? fs.statSync(file).mode & 0o777 : 0o640;
   replaceBytes(file, Buffer.from('new: 2\n'));
   assert.equal(fs.readFileSync(file, 'utf8'), 'new: 2\n');
-  assert.equal(fs.statSync(file).mode & 0o777, 0o640);
+  assert.equal(fs.statSync(file).mode & 0o777, mode);
   assert.deepEqual(fs.readdirSync(dir), ['settings.yaml'], 'no temporary file is left behind');
+  replaceBytes(path.join(dir, 'nested', 'new.json'), Buffer.from('{}'));
+  assert.equal(fs.readFileSync(path.join(dir, 'nested', 'new.json'), 'utf8'), '{}');
+});
+
+test('imported files write through symbolic links instead of replacing them', t => {
+  const dir = tempDir(t, 'dsh-replace-link-');
   const real = path.join(dir, 'dotfiles-settings.yaml'), link = path.join(dir, 'linked.yaml');
-  fs.writeFileSync(real, 'a: 1\n'); fs.symlinkSync(real, link);
+  fs.writeFileSync(real, 'a: 1\n');
+  try { fs.symlinkSync(real, link); } catch (error) {
+    // Windows without Developer Mode cannot create file symlinks; drive the same
+    // branch by reporting the existing file as a link and check where bytes land.
+    if (error.code !== 'EPERM') throw error;
+    fs.writeFileSync(link, 'a: 1\n');
+    const lstat = fs.lstatSync;
+    t.mock.method(fs, 'lstatSync', (target, ...rest) => {
+      const stat = lstat(target, ...rest);
+      if (target === link) stat.isSymbolicLink = () => true;
+      return stat;
+    });
+    const rename = t.mock.method(fs, 'renameSync');
+    replaceBytes(link, Buffer.from('a: 2\n'));
+    assert.equal(rename.mock.callCount(), 0, 'a link is never replaced by rename');
+    assert.equal(fs.readFileSync(link, 'utf8'), 'a: 2\n');
+    assert.deepEqual(fs.readdirSync(dir).sort(), ['dotfiles-settings.yaml', 'linked.yaml']);
+    return;
+  }
   replaceBytes(link, Buffer.from('a: 2\n'));
   assert.ok(fs.lstatSync(link).isSymbolicLink());
   assert.equal(fs.readFileSync(real, 'utf8'), 'a: 2\n');
-  replaceBytes(path.join(dir, 'nested', 'new.json'), Buffer.from('{}'));
-  assert.equal(fs.readFileSync(path.join(dir, 'nested', 'new.json'), 'utf8'), '{}');
 });
 
 test('a temporary file left by an interrupted import is never transported', () => {

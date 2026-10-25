@@ -14,6 +14,8 @@ const executable = desktop ? path.join(process.env.LOCALAPPDATA, 'Programs/DeepS
 const prefix = desktop ? ['--expose-internals'] : [];
 const env = { ...process.env };
 if (desktop) env.ELECTRON_RUN_AS_NODE = '1'; else delete env.ELECTRON_RUN_AS_NODE;
+// The Windows GUI invocation case needs the real GUI executable, as in run-desktop-regression.mjs.
+if (desktop) env.DSH_GUI_TEST_EXE = executable;
 const versions = spawnSync(executable, [...prefix, '-p', 'JSON.stringify(process.versions)'],
   { env, windowsHide: true, encoding: 'utf8', timeout: 10000 });
 if (versions.status !== 0) throw new Error('Unable to inspect the chosen runtime');

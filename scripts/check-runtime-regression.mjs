@@ -59,7 +59,7 @@ const suite = await run('suite', ['--test', '--test-concurrency=2', ...files]);
 const count = label => Number(suite.output.match(new RegExp('(?:^|\\n)ℹ ' + label + ' (\\d+)'))?.[1] ?? NaN);
 const tests = count('tests'), passed = count('pass'), failed = count('fail'), cancelled = count('cancelled'), skipped = count('skipped');
 const suiteOK = suite.code === 0 && !suite.stoppedFor && !suite.failure && Number.isInteger(tests) && tests > 0 && passed === tests && failed === 0 && cancelled === 0 && skipped === 0;
-const patch = suiteOK ? await run('patch', ['patch-version-agnostic-test.mjs']) : null;
+const patch = suiteOK ? await run('patch', ['tests/patch-version-agnostic.mjs']) : null;
 const patchAssertions = patch ? Number(patch.output.match(/(\d+) 个断言全部通过/)?.[1] ?? NaN) : null;
 const ok = suiteOK && patch.code === 0 && !patch.stoppedFor && !patch.failure && patchAssertions === 8;
 const result = { ok, completedAt: new Date().toISOString(), elapsedSeconds: (Date.now() - started) / 1000,

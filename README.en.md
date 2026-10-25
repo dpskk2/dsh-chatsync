@@ -8,7 +8,7 @@ Your data stays in your own **private GitHub repository**.
 
 [![npm](https://img.shields.io/npm/v/chatsync?color=2563eb)](https://www.npmjs.com/package/chatsync)
 [![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.2.0--rc.1-0f766e)](#compatibility)
-[![Desktop](https://img.shields.io/badge/Desktop-0.2.1--rc.2%20recommended-2563eb)](#compatibility)
+[![Desktop](https://img.shields.io/badge/Desktop-0.2.1--rc.3%20recommended-2563eb)](#compatibility)
 [![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A524-43853d)](#compatibility)
 [![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
 
@@ -27,6 +27,8 @@ Your data stays in your own **private GitHub repository**.
 ## Installation
 
 First, make sure DSH opens normally. Install [Git](https://git-scm.com/downloads/) and [GitHub CLI](https://cli.github.com/), and use a network connection that can reach GitHub.
+
+Without a manually specified proxy, sync uses proxy environment variables first, then the current Windows system proxy. Changing the Windows proxy port requires no restart. Set a previously saved fixed proxy to an empty string or `auto` to enable automatic selection; see [proxy configuration](docs/configuration.md).
 
 **Recommended: install in DSH.** Open **Plugins → Add Plugin** and enter `chatsync`.
 
@@ -120,7 +122,7 @@ Divergent conversations are retained as separate versions. Remote deletion does 
 
 Supports DSH Web and Windows Desktop, with a minimum version of **0.2.0-rc.1**. **Desktop 0.2.1-rc.3 or newer is recommended**. Standalone use requires **Node.js 24 or newer**; Desktop uses its bundled runtime.
 
-See the [version validation record](docs/release-0.20.1-validation.md) for the environments actually tested and the remaining gaps.
+See the [version validation record](docs/release-0.20.3-validation.md) for the environments actually tested and the remaining gaps.
 
 ## Help and development
 

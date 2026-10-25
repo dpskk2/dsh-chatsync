@@ -9,13 +9,13 @@
  * 场景5:无备份 + 版本匹配 → 首次套用:自动捕获规范名备份 original-index.js,再打补丁;
  *        随后把安装版本改成不符且内容仍等于该备份 → 仍按「已应用」套用(规范名同样生效)。
  *
- * 运行:node patch-version-agnostic-test.mjs
+ * 运行:node tests/patch-version-agnostic.mjs
  */
 import assert from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { applyPatchToTargets, formatApplyResults } from "./lib/patches.js";
+import { applyPatchToTargets, formatApplyResults } from "../lib/patches.js";
 
 const home = fs.mkdtempSync(path.join(os.tmpdir(), "patch-test-"));
 let passed = 0;

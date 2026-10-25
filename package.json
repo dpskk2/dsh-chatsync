@@ -16,7 +16,7 @@
   ],
   "type": "module",
   "scripts": {
-    "test": "node --test --test-concurrency=2 tests/*.test.mjs && node patch-version-agnostic-test.mjs"
+    "test": "node --test --test-concurrency=2 tests/*.test.mjs && node tests/patch-version-agnostic.mjs"
   },
   "main": "lib/index.js",
   "files": [

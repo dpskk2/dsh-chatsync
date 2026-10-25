@@ -36,7 +36,7 @@ function harness(fetchImpl, componentName = 'SyncPreferences', { timers = true, 
     useMemo: (fn) => fn(),
     useCallback: (fn) => fn,
   };
-  vm.runInNewContext(source.replace('module.exports = {', 'module.exports = { testComponents: { LocalStorage, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, showGroupingRepair, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, LocalPreview, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, StartupReview, SyncIssues, TransferLine, ProgressTip, STYLE, FootSyncButton },'), {
+  vm.runInNewContext(source.replace('module.exports = {', 'module.exports = { testComponents: { LocalStorage, RemoteCleanup, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, showGroupingRepair, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, LocalPreview, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, StartupReview, SyncIssues, TransferLine, ProgressTip, STYLE, FootSyncButton },'), {
     window: { confirm, __ModuleLoader__: { load(def) { bundle = def.factory((name) => { assert.equal(name, 'react'); return react; }); } } },
     fetch: fetchImpl, AbortSignal,
     setTimeout, clearTimeout,
@@ -790,6 +790,28 @@ test('historical originals stay collapsed and do not count as pending conflicts'
   const history=all(h.render()).find(n=>n.type==='details');
   history.props.onToggle({currentTarget:{open:true}});
   assert.equal(all(h.render()).filter(n=>n.type?.name==='RecoveryItem').length,1);
+});
+
+test('remote cleanup waits for every computer, and only retired ones can be confirmed past',async()=>{
+  const calls=[];
+  const preview={ok:true,files:['ext-bridge-token','profiles/desktop/package.json'],minVersion:'0.21.0',previewId:'p1',
+    blockers:[{deviceId:'d1',deviceName:'设备 d1',reason:'仍是 0.20.3',appliedAt:1}]};
+  const h=harness((url,options)=>{calls.push({url,body:options?.body&&JSON.parse(options.body)});
+    return response(options?.method==='POST'?{ok:true,removed:2}:preview);},'RemoteCleanup');
+  h.render();
+  await all(h.render()).find(n=>n.type==='button'&&text(n)==='检查').props.onClick();
+  let tree=h.render();
+  assert.match(text(tree),/远端有 2 个文件不再同步/);
+  assert.match(text(tree),/还没有确认升级到 0\.21\.0/);
+  const clean=()=>all(h.render()).find(n=>n.type==='button'&&text(n)==='清理远端文件');
+  assert.equal(clean().props.disabled,true,'a computer still on an older version blocks the cleanup');
+  all(tree).find(n=>n.props['aria-label']==='设备 d1 已不再使用').props.onChange({target:{checked:true}});
+  assert.equal(clean().props.disabled,true,'the removal itself still needs confirmation');
+  all(h.render()).find(n=>n.props['aria-label']==='确认清理远端文件').props.onChange({target:{checked:true}});
+  assert.equal(clean().props.disabled,false);
+  await clean().props.onClick();
+  assert.deepEqual(calls.at(-1),{url:'/dsh-sync/api/remote-cleanup',body:{previewId:'p1',retiredDevices:['d1']}});
+  assert.match(text(h.render()),/已从同步仓库的最新版本移除 2 个文件/);
 });
 
 test('handled records say how many are automatic backups and how many were conflicts',async()=>{

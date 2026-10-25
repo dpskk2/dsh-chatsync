@@ -7,7 +7,6 @@ import { randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { SyncEngine } from '../lib/sync.js';
 import { scanLocalStorage, previewStorageCleanup, applyStorageCleanup, saveStoragePolicy } from '../lib/local-storage.js';
-import { digest } from '../lib/recovery.js';
 import { scopeMirrorPath } from '../lib/scope.js';
 import { removeFixture } from './helpers/fixture-cleanup.mjs';
 

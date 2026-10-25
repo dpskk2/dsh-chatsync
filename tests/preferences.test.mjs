@@ -855,7 +855,7 @@ test('global sidebar provider applies default visibility and retains main and se
 test('sidebar header switch immediately removes and restores only the sidebar entry, even while syncing', async () => {
   let current={...initial,showSidebarSync:true};const calls=[];
   const h=harness((url,options)=>{if(options){const patch=JSON.parse(options.body);calls.push(patch);current={...current,...patch};}return response({ok:true,config:current});},'SidebarVisibilityToggle',{timers:false});
-  h.render({busy:true});await h.effects();let tree=h.render({busy:true});
+  h.render({busy:true});await h.effects();h.render({busy:true});
   const toggle=()=>all(h.render({busy:true})).find(n=>n.props.role==='switch');
   assert.equal(toggle().props['aria-checked'],true);assert.equal(toggle().props.disabled,false);
   await toggle().props.onClick();assert.equal(h.slots.has('dsh-sync'),false);

@@ -16,7 +16,8 @@
   ],
   "type": "module",
   "scripts": {
-    "test": "node --test --test-concurrency=2 tests/*.test.mjs && node tests/patch-version-agnostic.mjs"
+    "test": "node --test --test-concurrency=2 tests/*.test.mjs && node tests/patch-version-agnostic.mjs && eslint .",
+    "lint": "eslint ."
   },
   "main": "lib/index.js",
   "files": [
@@ -83,6 +84,12 @@
     }
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-session-format-catalog": "0.2.1-rc.3"
+    "@deepseek-ai/dsh-session-format-catalog": "0.2.1-rc.3",
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "eslint": "10.13.0",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3"
   }
 }

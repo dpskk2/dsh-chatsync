@@ -1,7 +1,5 @@
 import { removeFixture } from './helpers/fixture-cleanup.mjs';
 import { acceptFixturePreviews } from './helpers/reviewed-sync.mjs';
-import { scopeMirrorPath } from '../lib/scope.js';
-import { DEFAULT_CONFIG } from '../lib/sync.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

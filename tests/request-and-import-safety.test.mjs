@@ -123,6 +123,16 @@ test('imported files write through symbolic links instead of replacing them', t 
   assert.equal(fs.readFileSync(real, 'utf8'), 'a: 2\n');
 });
 
+test('a failed replacement reports its own error even when the temporary file cannot be removed', t => {
+  const dir = tempDir(t, 'dsh-replace-fail-');
+  const file = path.join(dir, 'settings.yaml');
+  fs.writeFileSync(file, 'old: 1\n');
+  t.mock.method(fs, 'renameSync', () => { throw Object.assign(new Error('rename refused'), { code: 'EPERM' }); });
+  t.mock.method(fs, 'unlinkSync', () => { throw Object.assign(new Error('temporary file busy'), { code: 'EBUSY' }); });
+  assert.throws(() => replaceBytes(file, Buffer.from('new: 2\n')), error => error.code === 'EPERM');
+  assert.equal(fs.readFileSync(file, 'utf8'), 'old: 1\n');
+});
+
 test('a temporary file left by an interrupted import is never transported', () => {
   assert.equal(transportable('settings.yaml' + '.' + 'abc' + REPLACE_TEMP_SUFFIX), false);
   assert.equal(transportable('profiles/web/package.json'), true);

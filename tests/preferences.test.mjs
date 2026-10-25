@@ -398,7 +398,7 @@ test('one immediate master switch respects explicit pauses regardless of legacy 
     h.render();await h.effects();const tree=h.render();
     assert.equal(all(tree).filter(n=>n.props.role==='switch').length,1);
     assert.equal(all(tree).find(n=>n.props.role==='switch').props['aria-checked'],enabled);
-    assert.equal(all(tree).filter(n=>n.props.type==='checkbox').length,6);
+    assert.equal(all(tree).filter(n=>n.props.type==='checkbox').length,7);
     assert.deepEqual(requests,[]);
     await all(tree).find(n=>n.props.role==='switch').props.onClick();
     assert.deepEqual(requests,[{automatic:!enabled}]);

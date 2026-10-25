@@ -99,13 +99,13 @@ test('compatibility: one blocked workspace does not block main data or another w
   const f = fixture(t), healthy = path.join(f.root, 'healthy'); fs.mkdirSync(healthy);
   const other = { id: 'healthy', title: 'Healthy project', path: healthy };
   f.engine.workspaces = () => [f.ws, other];
-  fs.mkdirSync(path.join(f.home, 'skills')); fs.writeFileSync(path.join(f.home, 'skills/note.txt'), 'main data\n');
+  fs.mkdirSync(path.join(f.home, 'attachments')); fs.writeFileSync(path.join(f.home, 'attachments/note.txt'), 'main data\n');
   fs.writeFileSync(path.join(healthy, 'note.txt'), 'healthy project\n');
   fs.writeFileSync(path.join(f.project, 'installer.bin'), large());
   const result = await f.engine.syncOnce('compatibility', { forceCommit: true });
   assert.match(result.error, /上传已暂停/);
   assert.equal(result.workspaces.synced, 1); assert.equal(result.workspaces.errors.length, 1);
-  assert.equal(f.git(['--git-dir=' + f.remote, 'show', 'main:skills/note.txt']), 'main data');
+  assert.equal(f.git(['--git-dir=' + f.remote, 'show', 'main:attachments/note.txt']), 'main data');
   assert.equal(f.git(['--git-dir=' + f.remote, 'show', 'ws/healthy:note.txt']), 'healthy project');
   assert.notEqual(spawnSync('git', ['--git-dir=' + f.remote, 'rev-parse', '--verify', f.branch], { stdio: 'ignore' }).status, 0);
 });

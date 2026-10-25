@@ -22,7 +22,7 @@ Your data stays in your own **private GitHub repository**.
 | --- | --- |
 | Continue the conversation | Session history, chat attachments and the links between sessions and workspaces |
 | Continue the work | Documents, code and other files in your project folders |
-| Set up less | Model and interface settings; keys, proxies and local paths stay on each computer |
+| Set up less | Model and interface settings; keys, proxies and local paths stay on each computer; optionally the global AGENTS.md and skills |
 
 ## Installation
 

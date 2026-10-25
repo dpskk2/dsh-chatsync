@@ -71,15 +71,15 @@ test('an interrupted clone is archived and retried without touching local origin
   execFileSync('git',['init','--bare',remote],{stdio:'ignore'});
   const engine=acceptFixturePreviews(new SyncEngine(home,{remote,autoRepo:false,workspaceSync:false}));
   engine.verifyPrivateRemote=async()=>({ok:true});
-  fs.writeFileSync(path.join(home,'note.txt'),'local original');
+  fs.mkdirSync(path.join(home,'attachments'));fs.writeFileSync(path.join(home,'attachments/note.txt'),'local original');
   const folder=scopeMirrorPath(home,engine.loadConfig());fs.mkdirSync(path.join(folder,'.git'),{recursive:true});
   fs.writeFileSync(path.join(folder,'.git/HEAD'),'ref: refs/heads/.invalid\n');
   fs.writeFileSync(path.join(folder,'interrupted.txt'),'retain interrupted data');
   const result=await engine.syncOnce('interrupted-clone',{forceCommit:true});assert.equal(result.error,undefined,JSON.stringify(result));
   const archives=fs.readdirSync(path.dirname(folder)).filter(x=>x.startsWith('incomplete-clone-'));assert.equal(archives.length,1);
   assert.equal(fs.readFileSync(path.join(path.dirname(folder),archives[0],'interrupted.txt'),'utf8'),'retain interrupted data');
-  assert.equal(fs.readFileSync(path.join(home,'note.txt'),'utf8'),'local original');
-  assert.equal(execFileSync('git',['--git-dir',remote,'show','main:note.txt'],{encoding:'utf8'}),'local original');
+  assert.equal(fs.readFileSync(path.join(home,'attachments/note.txt'),'utf8'),'local original');
+  assert.equal(execFileSync('git',['--git-dir',remote,'show','main:attachments/note.txt'],{encoding:'utf8'}),'local original');
 });
 
 test('workspace network operations run after the short local import transaction', async t => {

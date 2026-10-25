@@ -101,10 +101,10 @@ test('R5/R6: corrupt registry and directory overrides stop; valid BOM override s
 
 test('R7: exit uploads cannot issue an application receipt for remote content not applied locally',async t=>{
   const h=fixture(t),a=h.make('a',{workspaceSync:false}),b=h.make('b',{workspaceSync:false});
-  fs.writeFileSync(path.join(a.home,'note.txt'),'v1');await a.sync();await b.sync();fs.writeFileSync(path.join(a.home,'note.txt'),'v2');await a.sync();
+  fs.mkdirSync(path.join(a.home,'attachments'),{recursive:true});fs.writeFileSync(path.join(a.home,'attachments/note.txt'),'v1');await a.sync();await b.sync();fs.writeFileSync(path.join(a.home,'attachments/note.txt'),'v2');await a.sync();
   const before=b.engine.handoffStatus().scope.main;
   const result=await b.engine.syncOnce('exit',{forceCommit:true,uploadOnly:true});assert.equal(result.downloadPending,true);
-  assert.equal(fs.readFileSync(path.join(b.home,'note.txt'),'utf8'),'v1');assert.equal(b.engine.handoffStatus().scope.main,before);
+  assert.equal(fs.readFileSync(path.join(b.home,'attachments/note.txt'),'utf8'),'v1');assert.equal(b.engine.handoffStatus().scope.main,before);
 });
 
 test('R8: Chinese project conflicts retain readable originals and merge with raw filenames',async t=>{

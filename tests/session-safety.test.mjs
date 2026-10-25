@@ -186,12 +186,12 @@ test('new log versions in existing session directories are deferred in a live ho
 test('exit worker waits for its parent and records actual snapshot completion', { timeout: 30_000 }, async t => {
   const h = fixture(t); const home = path.join(h.root, 'exit-home'); fs.mkdirSync(home);
   fs.writeFileSync(path.join(home, 'dsh-sync.json'), JSON.stringify({ autoRepo: false, workspaceSync: false }));
-  fs.writeFileSync(path.join(home, 'note.txt'), 'saved without clicking sync');
+  fs.mkdirSync(path.join(home, 'attachments'), { recursive: true }); fs.writeFileSync(path.join(home, 'attachments/note.txt'), 'saved without clicking sync');
   fs.writeFileSync(path.join(home, '.credentials.yaml'), 'must remain excluded');
   const parent = spawn(process.execPath, ['-e', 'setTimeout(()=>{}, 1000)'], { stdio: 'ignore' });
   const completed = promisify(execFile)(process.execPath, [fileURLToPath(new URL('../lib/exit-sync.mjs', import.meta.url)), home, String(parent.pid)]);
   await completed;
   const status = readSyncStatus(home); assert.equal(status.source, 'exit'); assert.equal(status.result.error, undefined);
-  assert.match(execFileSync('git', ['show', 'HEAD:note.txt'], { cwd: scopeMirrorPath(home, { ...DEFAULT_CONFIG, remote: '' }), encoding: 'utf8' }), /without clicking/);
+  assert.match(execFileSync('git', ['show', 'HEAD:attachments/note.txt'], { cwd: scopeMirrorPath(home, { ...DEFAULT_CONFIG, remote: '' }), encoding: 'utf8' }), /without clicking/);
   assert.equal(execFileSync('git', ['ls-files', '.credentials.yaml'], { cwd: scopeMirrorPath(home, { ...DEFAULT_CONFIG, remote: '' }), encoding: 'utf8' }), '');
 });

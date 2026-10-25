@@ -63,7 +63,7 @@ test('two isolated DSH homes exchange files through a real Git remote', { timeou
   execFileSync('git', ['init', '--bare', remote], { stdio: 'ignore' });
   const makeDevice = (name) => {
     const home = path.join(root, name);
-    fs.mkdirSync(path.join(home, 'skills'), { recursive: true });
+    fs.mkdirSync(path.join(home, 'attachments'), { recursive: true });
     fs.writeFileSync(path.join(home, 'dsh-sync.json'), JSON.stringify({ remote, autoRepo: false, workspaceSync: false }));
     const engine = acceptFixturePreviews(new SyncEngine(home));
     // The test remote is a local bare Git repository; visibility is tested separately.
@@ -73,7 +73,7 @@ test('two isolated DSH homes exchange files through a real Git remote', { timeou
   const a = makeDevice('a');
   const b = makeDevice('b');
   fs.writeFileSync(path.join(a.home, '.credentials.yaml'), 'test-only: never-upload\n');
-  fs.writeFileSync(path.join(a.home, 'skills', 'from-a.txt'), 'first device\n');
+  fs.writeFileSync(path.join(a.home, 'attachments', 'from-a.txt'), 'first device\n');
   const upload = await a.syncOnce('test', { forceCommit: true });
   assert.equal(upload.error, undefined, JSON.stringify(upload));
   assert.equal(upload.pushed, true);
@@ -91,26 +91,26 @@ test('two isolated DSH homes exchange files through a real Git remote', { timeou
   const receiptHead = execFileSync('git', ['--git-dir', path.join(a.home, '.chatsync-local', 'handoff', 'receipt.git'), 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   await recordHandoff(a, { pushed: false });
   assert.equal(execFileSync('git', ['--git-dir', path.join(a.home, '.chatsync-local', 'handoff', 'receipt.git'), 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(), receiptHead);
-  assert.equal(fs.readFileSync(path.join(b.home, 'skills', 'from-a.txt'), 'utf8'), 'first device\n');
+  assert.equal(fs.readFileSync(path.join(b.home, 'attachments', 'from-a.txt'), 'utf8'), 'first device\n');
   assert.equal(fs.existsSync(path.join(b.home, '.credentials.yaml')), false);
   assert.equal(execFileSync('git', ['ls-files', '--', '.credentials.yaml'], { cwd: a._transport.home, encoding: 'utf8' }), '');
-  fs.writeFileSync(path.join(b.home, 'skills', 'from-b.txt'), 'second device\n');
+  fs.writeFileSync(path.join(b.home, 'attachments', 'from-b.txt'), 'second device\n');
   const back = await b.syncOnce('test', { forceCommit: true });
   assert.equal(back.error, undefined, JSON.stringify(back));
   const final = await a.syncOnce('test', { forceCommit: true });
   assert.equal(final.error, undefined, JSON.stringify(final));
-  assert.equal(fs.readFileSync(path.join(a.home, 'skills', 'from-b.txt'), 'utf8'), 'second device\n');
+  assert.equal(fs.readFileSync(path.join(a.home, 'attachments', 'from-b.txt'), 'utf8'), 'second device\n');
   // Both devices now have the same base and independently add distinct files.
-  fs.writeFileSync(path.join(a.home, 'skills', 'parallel-a.txt'), 'A\n');
-  fs.writeFileSync(path.join(b.home, 'skills', 'parallel-b.txt'), 'B\n');
+  fs.writeFileSync(path.join(a.home, 'attachments', 'parallel-a.txt'), 'A\n');
+  fs.writeFileSync(path.join(b.home, 'attachments', 'parallel-b.txt'), 'B\n');
   assert.equal((await a.syncOnce('test', { forceCommit: true })).error, undefined);
   const merged = await b.syncOnce('test', { forceCommit: true });
   assert.equal(merged.error, undefined, JSON.stringify(merged));
-  assert.equal(fs.readFileSync(path.join(b.home, 'skills', 'parallel-a.txt'), 'utf8'), 'A\n');
+  assert.equal(fs.readFileSync(path.join(b.home, 'attachments', 'parallel-a.txt'), 'utf8'), 'A\n');
   assert.equal((await a.syncOnce('test', { forceCommit: true })).error, undefined);
-  assert.equal(fs.readFileSync(path.join(a.home, 'skills', 'parallel-b.txt'), 'utf8'), 'B\n');
+  assert.equal(fs.readFileSync(path.join(a.home, 'attachments', 'parallel-b.txt'), 'utf8'), 'B\n');
   // A local commit must not be reported as a completed cloud sync when push fails.
-  fs.writeFileSync(path.join(a.home, 'skills', 'offline.txt'), 'pending\n');
+  fs.writeFileSync(path.join(a.home, 'attachments', 'offline.txt'), 'pending\n');
   const retry = a.runWithRetry.bind(a);
   a.runWithRetry = async (operation, ...args) => operation === 'push'
     ? { code: 1, out: '', err: 'simulated network failure' }
@@ -123,7 +123,7 @@ test('two isolated DSH homes exchange files through a real Git remote', { timeou
   const recovered = await a.syncOnce('test', { forceCommit: true });
   assert.equal(recovered.error, undefined, JSON.stringify(recovered));
   assert.equal((await b.syncOnce('test', { forceCommit: true })).error, undefined);
-  assert.equal(fs.readFileSync(path.join(b.home, 'skills', 'offline.txt'), 'utf8'), 'pending\n');
+  assert.equal(fs.readFileSync(path.join(b.home, 'attachments', 'offline.txt'), 'utf8'), 'pending\n');
 });
 
 // Includes initial restore, two conflicts, failed fetch/push, backup retry and recovery using real Git.

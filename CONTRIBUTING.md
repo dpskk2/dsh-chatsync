@@ -1,6 +1,6 @@
 # 开发与验证
 
-项目维护约定见根目录 `AGENTS.md`。本机私有的维护目录、归档位置和发布习惯写在不入库的 `AGENTS.local.md`（已在 `.gitignore` 中排除），不放进公开文档。
+项目维护约定见根目录 `AGENTS.md`。本机私有的维护目录、归档位置和发布习惯写在不入库的 `AGENTS.local.md`（已在 `.gitignore` 中排除），不放进公开文档。根目录的 `CLAUDE.md` 只引用 `AGENTS.md`，供 Claude Code 自动加载；本机可另建不入库的 `CLAUDE.local.md` 引用 `AGENTS.local.md`。
 
 历史任务中的“本轮”“本次”只描述当时的决定，不构成长期规则。实际发布目标（GitHub、npm、日常安装、远端标签操作）以维护者当次授权为准；GitHub 发布不自动包含 npm 发布。本地验证不等于正式定版、安全门禁通过或对外发布。默认值和新增操作以更新日志及配置文档为准。
 

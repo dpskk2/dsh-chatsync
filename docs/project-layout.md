@@ -15,7 +15,7 @@
 | `release-evidence/<版本>/` | 当版安全清单、脱敏证据和发布决定 | 初始为待验收，不是旧报告的汇总通过章 |
 | README、`CONTRIBUTING.md`、`CHANGELOG.md`、`LICENSE` | 使用说明、维护规则与历史记录 | 旧记录不能证明新版已验收 |
 
-本机生成、不入库的目录（如 `outputs/`、`work/`、`node_modules/`）和本机状态文件已在 `.gitignore` 中排除；维护者的本机约定写在不入库的 `AGENTS.local.md`。
+本机生成、不入库的目录（如 `outputs/`、`work/`、`node_modules/`）和本机状态文件已在 `.gitignore` 中排除；维护者的本机约定写在不入库的 `AGENTS.local.md`。`CLAUDE.md` 只引用 `AGENTS.md`，供 Claude Code 自动加载；不入库的 `CLAUDE.local.md` 引用本机约定。
 
 ## DSH 运行目录
 

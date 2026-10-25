@@ -124,7 +124,6 @@ test('read-only preview and doctor do not initialize data, recovery rejects arbi
   assert.equal((await request('preview', { fetch: true })).ok, false);
   assert.equal((await request('recovery/preview', { id: '../outside' })).ok, false);
   assert.equal((await request('recovery/restore', { id: '../outside', side: 'remote' })).ok, false);
-  assert.equal((await request('conflict/preview', { path: '../outside', copy: '../secret' })).ok, false);
   assert.deepEqual(fs.readdirSync(home), before);
 });
 

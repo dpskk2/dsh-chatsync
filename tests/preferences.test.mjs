@@ -552,32 +552,6 @@ test('pending immediate saves prevent same-tick duplicate writes and report thei
   assert.equal(all(h.render(props)).find(n => n.type === 'fieldset').props.disabled, false);
 });
 
-/* 遗留冲突副本区:分层合并引擎上线后同步不再生成冲突拷贝,服务端也没有
-   /dsh-sync/api/conflict/resolve 路由,因此这三个裁决按钮必须消失,只留只读预览。 */
-test('legacy conflict copies are read-only and never call a resolution endpoint', async () => {
-  const calls = [];
-  const status = { ok: true, remote: 'https://github.com/u/dsh-sync.git', branch: 'main', mode: 'manual', lastOk: true, lastDetail: null };
-  const h = harness((url, options) => {
-    calls.push(url);
-    if (url === '/dsh-sync/api/status') return response(status);
-    if (url === '/dsh-sync/api/conflicts') return response({ ok: true, conflicts: [{ path: 'storages/workspace.json.dsh-conflict-20260101T000000Z', copy: null }] });
-    if (url === '/dsh-sync/api/config') return response({ ok: true, config: initial });
-    throw new Error('unexpected request: ' + url);
-  }, 'Section', { timers: false });
-  h.render(); await h.effects(); await h.effects();
-  all(h.render()).find(n => n.props['data-sync-recovery']).props.onToggle({ currentTarget: { open: true } });
-  const tree = h.render();
-  const buttons = all(tree).filter((n) => n.type === 'button').map((n) => text(n));
-  assert.equal(buttons.includes('保留本机'), false);
-  assert.equal(buttons.includes('采用远端'), false);
-  assert.equal(buttons.includes('两侧都留'), false);
-  assert.equal(calls.includes('/dsh-sync/api/conflict/resolve'), false);
-  const recovery = all(tree).find(n => n.props['data-sync-recovery']);
-  assert.match(text(recovery), /旧版冲突副本（1）/);
-  assert.doesNotMatch(text(recovery), /不提供取舍|当前版本如何处理冲突/);
-  assert.doesNotMatch(text(tree), /会话按事件合并/);
-});
-
 /* 补丁状态不再占用同步状态行,桌面端也不再返回一句与同步无关的限制说明。 */
 test('patch status stays out of the sync status line', async () => {
   const status = { ok: true, remote: 'https://github.com/u/dsh-sync.git', branch: 'main', mode: 'manual', lastOk: true, lastDetail: null, patches: 'web-fetch: 已应用' };

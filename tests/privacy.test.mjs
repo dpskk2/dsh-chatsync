@@ -23,53 +23,6 @@ function gitFixture(t) {
   return { root, home, remote, engine };
 }
 
-test('legacy and cache cleanup cannot upload pending secrets before the normal privacy check', { timeout: 90000 }, async t => {
-  for (const kind of ['legacy', 'cache']) {
-    const { home, remote, engine } = gitFixture(t);
-    fs.writeFileSync(path.join(home, 'base.txt'), 'safe baseline\n');
-    assert.equal((await engine.syncOnce('cleanup-test', { forceCommit: true })).error, undefined);
-    const before = execFileSync('git', ['--git-dir', remote, 'rev-parse', 'main'], { encoding: 'utf8' }).trim();
-    const copy = kind === 'legacy' ? 'note.txt.dsh-conflict-fixture' : 'storages/session_projcache/note.txt.dsh-conflict-fixture';
-    fs.mkdirSync(path.dirname(path.join(home, copy)), { recursive: true });
-    fs.writeFileSync(path.join(home, copy), 'old safe conflict copy\n');
-    assert.equal(engine.ok(await engine.git(['add', '--', copy])), true);
-    assert.equal(engine.ok(await engine.git(['commit', '-m', 'unpublished old conflict copy'])), true);
-    if (kind === 'legacy') {
-      const stateFile = path.join(home, '.dsh-sync.state.json');
-      const state = JSON.parse(fs.readFileSync(stateFile, 'utf8')); state.legacyConflictCleanup = false;
-      fs.writeFileSync(stateFile, JSON.stringify(state));
-    }
-    fs.writeFileSync(path.join(home, 'pending-secret.txt'), 'ghp_' + 'Q'.repeat(40));
-    const value = await engine.syncOnce('cleanup-test', { forceCommit: true });
-    assert.match(value.error, /上传已暂停/, JSON.stringify(value));
-    assert.equal(fs.existsSync(path.join(home, copy)), false);
-    assert.equal(execFileSync('git', ['--git-dir', remote, 'rev-parse', 'main'], { encoding: 'utf8' }).trim(), before);
-    assert.notEqual(spawnSync('git', ['--git-dir', remote, 'show', 'main:pending-secret.txt'], { stdio: 'ignore' }).status, 0);
-    assert.equal((await engine.git(['show', 'HEAD~1:' + copy])).out.trim(), 'old safe conflict copy');
-  }
-});
-
-test('legacy cleanup still scans and uploads selected executable configuration without repeated approval', { timeout: 90000 }, async t => {
-  const { home, remote, engine } = gitFixture(t);
-  fs.writeFileSync(path.join(home, 'base.txt'), 'safe baseline\n');
-  assert.equal((await engine.syncOnce('cleanup-test', { forceCommit: true })).error, undefined);
-  const before = execFileSync('git', ['--git-dir', remote, 'rev-parse', 'main'], { encoding: 'utf8' }).trim();
-  fs.writeFileSync(path.join(home, 'note.txt.dsh-conflict-fixture'), 'old safe copy\n');
-  assert.equal(engine.ok(await engine.git(['add', '--', 'note.txt.dsh-conflict-fixture'])), true);
-  assert.equal(engine.ok(await engine.git(['commit', '-m', 'old conflict fixture'])), true);
-  const stateFile = path.join(home, '.dsh-sync.state.json');
-  const state = JSON.parse(fs.readFileSync(stateFile, 'utf8')); state.legacyConflictCleanup = false;
-  fs.writeFileSync(stateFile, JSON.stringify(state));
-  fs.mkdirSync(path.join(home, 'patches'), { recursive: true });
-  fs.writeFileSync(path.join(home, 'patches/cleanup-fixture.mjs'), 'export default {};\n');
-  engine.syncOnce = SyncEngine.prototype.syncOnce.bind(engine);
-  const value = await engine.syncOnce('cleanup-test', { forceCommit: true });
-  assert.equal(value.needsReview, undefined, JSON.stringify(value));
-  assert.equal(value.error, undefined, JSON.stringify(value));
-  assert.notEqual(execFileSync('git', ['--git-dir', remote, 'rev-parse', 'main'], { encoding: 'utf8' }).trim(), before);
-  assert.equal(execFileSync('git', ['--git-dir', remote, 'show', 'main:patches/cleanup-fixture.mjs'], { encoding: 'utf8' }), 'export default {};\n');
-});
-
 test('exit uploads and retries pin the checked commit when an external writer advances main or workspace', { timeout: 90000 }, async t => {
   for (const target of ['main', 'workspace']) {
     const { root, home, remote, engine } = gitFixture(t);

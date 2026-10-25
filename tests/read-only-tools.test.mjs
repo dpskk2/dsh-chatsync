@@ -19,8 +19,8 @@ test('host registers three read-only tools, without transmitting content or chan
   apply({ webServer: { register() { return () => {}; } }, tools: { register(tool) { tools.set(tool.name, tool); return () => tools.delete(tool.name); } },
     on() { return () => {}; }, effect(fn) { cleanup.push(fn()); }, logger: { info() {}, warn() {}, debug() {} } }, { home, patches: false });
   // Model providers validate every advertised tool, even when the chat never calls one.
-  assert.equal(tools.size, 5);
-  for (const name of ['sync_status', 'sync_preview', 'sync_doctor', 'sync_conflicts', 'sync_patches']) {
+  assert.equal(tools.size, 4);
+  for (const name of ['sync_status', 'sync_preview', 'sync_doctor', 'sync_patches']) {
     const parameters = JSON.parse(JSON.stringify(tools.get(name).parameters));
     assert.equal(parameters.type, 'object', `${name} must advertise an object-root schema`);
     assert.deepEqual(parameters.properties, {}, `${name} takes no named arguments`);

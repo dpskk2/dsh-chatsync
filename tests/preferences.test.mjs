@@ -792,6 +792,18 @@ test('historical originals stay collapsed and do not count as pending conflicts'
   assert.equal(all(h.render()).filter(n=>n.type?.name==='RecoveryItem').length,1);
 });
 
+test('handled records say how many are automatic backups and how many were conflicts',async()=>{
+  const records=[{id:'b1',kind:'scope-backup',category:'history'},{id:'b2',kind:'scope-backup',category:'history'},{id:'b3',kind:'restore-backup',category:'history'},
+    {id:'c1',kind:'main',status:'merged',reviewState:'archived',category:'history'},{id:'open',kind:'main',status:'merged',category:'attention'}];
+  const h=harness(()=>response({ok:true,records}),'RecoveryCenter');
+  h.render();await h.effects();
+  const shown=text(h.render());
+  assert.match(shown,/有 1 条记录待核对/);
+  assert.match(shown,/已处理记录与备份（4）/);
+  assert.match(shown,/同步前自动备份 3 条/);
+  assert.match(shown,/已处理的冲突 1 条/);
+});
+
 test('project restore sends the selected side and the preview hash, then refreshes records', async () => {
   const calls=[];let refreshed=0;
   const record={id:'project',kind:'ws',path:'notes.md',createdAt:1};

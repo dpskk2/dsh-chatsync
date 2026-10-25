@@ -52,7 +52,7 @@ test('rc.3 profile and global settings share preferences with the original local
     assert.equal(config(restored, 'dsh-chatsync').enabled, true);
     assert.equal(config(restored, 'dsh-chatsync').autoPushOnExit, false);
     assert.equal(config(restored, 'dsh-chatsync').proxy, 'proxy-b');
-    assert.equal(classifyFile(file), 'opaque');
+    assert.equal(classifyFile(file), 'cordis-entries');
   }
 });
 test('legal Cordis expressions and aliases roundtrip without evaluation or conversion to ordinary strings', () => {

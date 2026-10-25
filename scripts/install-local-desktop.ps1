@@ -1,10 +1,12 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$PackagePath,
     [Parameter(Mandatory = $true)][string]$OutputDirectory
 )
 
 $ErrorActionPreference = 'Stop'
+# Windows PowerShell 5.1 otherwise decodes UTF-8 files and native output with the ANSI code page.
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
 $sourceRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $packageFile = Get-Item -LiteralPath $PackagePath
 $outputRoot = [IO.Path]::GetFullPath($OutputDirectory)
@@ -14,7 +16,7 @@ if (-not $packageFile.FullName.StartsWith((Join-Path $sourceRoot 'outputs') + [I
 if (-not $outputRoot.StartsWith((Join-Path $sourceRoot 'outputs') + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
     throw '安装记录必须保存在维护目录的 outputs 中。'
 }
-$sourcePackage = Get-Content -LiteralPath (Join-Path $sourceRoot 'package.json') -Raw | ConvertFrom-Json
+$sourcePackage = Get-Content -LiteralPath (Join-Path $sourceRoot 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $expectedVersion = $sourcePackage.version
 $packedJson = & tar -xOf $packageFile.FullName package/package.json
 if ($LASTEXITCODE -ne 0) { throw '无法读取本地安装包信息。' }
@@ -27,7 +29,7 @@ $cliPath = Join-Path $env:LOCALAPPDATA 'Programs\DeepSeek Harness\resources\runt
 if (-not (Test-Path -LiteralPath $cliPath -PathType Leaf)) { throw '未找到桌面端内置 DSH 安装命令。' }
 New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
 $profileRoot = Join-Path $env:USERPROFILE '.dsh\profiles\desktop'
-$profilePackage = Get-Content -LiteralPath (Join-Path $profileRoot 'package.json') -Raw | ConvertFrom-Json
+$profilePackage = Get-Content -LiteralPath (Join-Path $profileRoot 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $otherName = if ($packed.name -eq 'chatsync') { '@dpskk2/dsh-chatsync' } else { 'chatsync' }
 if ($profilePackage.dependencies.PSObject.Properties.Name -contains $otherName) {
     throw '当前使用另一个包名，请按现有包名打包，避免同时加载两份插件。'
@@ -43,17 +45,22 @@ $installedRoot = Join-Path (Join-Path $profileRoot 'node_modules') $packed.name
 if (Test-Path -LiteralPath $installedRoot -PathType Container) {
     $previousRoot = Join-Path $outputRoot 'previous-plugin'
     foreach ($file in Get-ChildItem -LiteralPath $installedRoot -File -Recurse) {
-        $relative = [IO.Path]::GetRelativePath($installedRoot, $file.FullName)
+        # Windows PowerShell 5.1 (.NET Framework) has no Path.GetRelativePath.
+        $relative = $file.FullName.Substring($installedRoot.TrimEnd('\').Length + 1)
         $destination = Join-Path $previousRoot $relative
         New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
         Copy-Item -LiteralPath $file.FullName -Destination $destination
     }
 }
 $spec = 'file:' + $packageFile.FullName.Replace('\', '/')
-& $cliPath plugin --profile desktop add $spec --ignore-scripts 2>&1 | Tee-Object -FilePath (Join-Path $outputRoot 'install.log')
-if ($LASTEXITCODE -ne 0) { throw "桌面插件安装失败，退出码 $LASTEXITCODE；回滚材料已保留。" }
+# Windows PowerShell 5.1 turns native stderr lines into errors under 'Stop'; judge by the exit code.
+$ErrorActionPreference = 'Continue'
+& $cliPath plugin --profile desktop add $spec --ignore-scripts 2>&1 | ForEach-Object { "$_" } | Tee-Object -FilePath (Join-Path $outputRoot 'install.log')
+$installExit = $LASTEXITCODE
+$ErrorActionPreference = 'Stop'
+if ($installExit -ne 0) { throw "桌面插件安装失败，退出码 $installExit；回滚材料已保留。" }
 $manifest = Join-Path $installedRoot 'package.json'
-$installed = Get-Content -LiteralPath $manifest -Raw | ConvertFrom-Json
+$installed = Get-Content -LiteralPath $manifest -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($installed.version -ne $expectedVersion -or $installed.chatsyncBuild -ne $sourcePackage.chatsyncBuild) { throw "安装版本或构建不符：$($installed.version)。" }
 @{
     at = [DateTimeOffset]::UtcNow.ToString('o')

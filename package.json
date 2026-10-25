@@ -1,7 +1,7 @@
 {
   "name": "@dpskk2/dsh-chatsync",
-  "version": "0.20.3",
-  "chatsyncBuild": "2026-10-25-release-0.20.3",
+  "version": "0.20.4",
+  "chatsyncBuild": "2026-10-25-release-0.20.4",
   "description": "换台电脑，接着聊。同步会话、附件、设置和项目文件。",
   "keywords": [
     "dsh",

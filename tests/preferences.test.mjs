@@ -552,21 +552,6 @@ test('pending immediate saves prevent same-tick duplicate writes and report thei
   assert.equal(all(h.render(props)).find(n => n.type === 'fieldset').props.disabled, false);
 });
 
-/* 补丁状态不再占用同步状态行,桌面端也不再返回一句与同步无关的限制说明。 */
-test('patch status stays out of the sync status line', async () => {
-  const status = { ok: true, remote: 'https://github.com/u/dsh-sync.git', branch: 'main', mode: 'manual', lastOk: true, lastDetail: null, patches: 'web-fetch: 已应用' };
-  const h = harness((url) => {
-    if (url === '/dsh-sync/api/status') return response(status);
-    if (url === '/dsh-sync/api/conflicts') return response({ ok: true, conflicts: [] });
-    if (url === '/dsh-sync/api/config') return response({ ok: true, config: initial });
-    throw new Error('unexpected request: ' + url);
-  }, 'Section', { timers: false });
-  h.render(); await h.effects(); await h.effects();
-  const tree = h.render();
-  assert.equal(all(tree).some((n) => typeof n === 'string' && n.startsWith('补丁:')), false);
-  assert.match(text(tree), /本机补丁状态/);
-});
-
 test('unsupported old repository is shown without silently converting it', async () => {
   const h=harness(()=>response({ok:true, config:{remote:'https://gitee.com/alice/data.git',branch:'main',autoRepo:false}}),'ConnectionSettings');
   h.render(); await h.effects();

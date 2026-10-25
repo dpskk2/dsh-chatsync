@@ -45,7 +45,7 @@
 
 ## 源码与安装包边界
 
-Release 的源码 ZIP 由 `git archive` 打包对应标签下全部受版本控制的文件，与 `package.json` 的 `files` 无关；不包含 Git 历史、依赖或仓库外脚本。npm 包仅包含 `files` 选定内容及 npm 自动包含的包元数据等文件，不包含 `tests/`、`tests/patch-version-agnostic.mjs`、`scripts/check-dsh-host.mjs`、`scripts/check-dsh-sessions.mjs` 或发布脚本。下述开发验证及验证记录中的检查命令应在 clone 或解压源码 ZIP 后运行，不能直接在 npm 安装目录运行 `npm test`。
+Release 的源码 ZIP 由 `git archive` 打包对应标签下全部受版本控制的文件，与 `package.json` 的 `files` 无关；不包含 Git 历史、依赖或仓库外脚本。npm 包仅包含 `files` 选定内容及 npm 自动包含的包元数据等文件，不包含 `tests/`、`scripts/check-dsh-host.mjs`、`scripts/check-dsh-sessions.mjs` 或发布脚本。下述开发验证及验证记录中的检查命令应在 clone 或解压源码 ZIP 后运行，不能直接在 npm 安装目录运行 `npm test`。
 
 安装包只提供运行文件、使用说明和 README / 更新日志引用的 0.20.x 验证记录。维护指南、安全清单、界面修改过程及脱敏证据保留在源码仓库，不装入运行包。历史验证记录不作为当前版本的新增验证结论。调整 `files` 后运行 `node scripts/check-package-contents.mjs`，检查实际文件列表、必需运行文件及随包文档的相对链接。已删除的旧评审、消融记录和投稿草稿可从 Git 历史恢复。
 
@@ -60,7 +60,7 @@ npm test
 npm pack --dry-run
 ```
 
-`npm test` 验证仓库连接和同步偏好的加载 / 保存 / 失败交互、配置校验、自动调度、私有仓库校验、本地 Git 多副本双向恢复与故障重试，以及补丁应用的内容比对行为。界面测试使用隔离的宿主与 React 钩子替身；引擎集成测试在临时目录使用真实 Git。测试不连接真实 GitHub 或用户数据，不能替代真实 DSH 的挂载与双机验收。
+`npm test` 验证仓库连接和同步偏好的加载 / 保存 / 失败交互、配置校验、自动调度、私有仓库校验、本地 Git 多副本双向恢复与故障重试。界面测试使用隔离的宿主与 React 钩子替身；引擎集成测试在临时目录使用真实 Git。测试不连接真实 GitHub 或用户数据，不能替代真实 DSH 的挂载与双机验收。
 
 需要保存完整回归的终态时，可运行 `node scripts/check-runtime-regression.mjs`；Windows 上已安装标准路径的桌面版时，可加 `--desktop` 使用其实际内置运行环境。脚本保存输出、运行时版本、退出码与统计。中断或缺少最终结果的运行不能算通过；内置运行环境回归也不代替实际 Desktop Host 或窗口验收。
 

@@ -7,7 +7,7 @@
 | 目录或文件 | 用途 | 保留原则 |
 | --- | --- | --- |
 | `lib/`、`cordis.patch.yml`、`icon.png`、`package.json` | 插件运行源码、挂载配置和包定义 | 当前实现，必须保留 |
-| `tests/` | 自动回归（`npm test`），含 `tests/patch-version-agnostic.mjs` 补丁断言 | 开发维护需要，不装入运行包 |
+| `tests/` | 自动回归（`npm test`） | 开发维护需要，不装入运行包 |
 | `scripts/` | 真实宿主检查、打包、部署与发布脚本，用途见 `docs/scripts.md` | 长期未修改不代表无用 |
 | `.github/workflows/` | CI（`check.yml`）、诊断包与发布流程 | 修改推送到远端后才生效 |
 | `docs/` | 当前有效的使用说明、配置参考与维护文档 | 部分随安装包提供，见 `package.json` 的 `files` |

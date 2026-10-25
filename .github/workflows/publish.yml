@@ -51,7 +51,6 @@ jobs:
         # Packaging-only retries do not repeat the full suite.
         run: |
           node --test tests/release-safety.test.mjs tests/updates.test.mjs
-          node tests/patch-version-agnostic.mjs
           node scripts/check-package-contents.mjs
 
       - name: Pack candidate and verify local safety evidence

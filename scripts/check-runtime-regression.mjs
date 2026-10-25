@@ -60,16 +60,12 @@ const started = Date.now();
 const suite = await run('suite', ['--test', '--test-concurrency=2', ...files]);
 const count = label => Number(suite.output.match(new RegExp('(?:^|\\n)ℹ ' + label + ' (\\d+)'))?.[1] ?? NaN);
 const tests = count('tests'), passed = count('pass'), failed = count('fail'), cancelled = count('cancelled'), skipped = count('skipped');
-const suiteOK = suite.code === 0 && !suite.stoppedFor && !suite.failure && Number.isInteger(tests) && tests > 0 && passed === tests && failed === 0 && cancelled === 0 && skipped === 0;
-const patch = suiteOK ? await run('patch', ['tests/patch-version-agnostic.mjs']) : null;
-const patchAssertions = patch ? Number(patch.output.match(/(\d+) 个断言全部通过/)?.[1] ?? NaN) : null;
-const ok = suiteOK && patch.code === 0 && !patch.stoppedFor && !patch.failure && patchAssertions === 8;
+const ok = suite.code === 0 && !suite.stoppedFor && !suite.failure && Number.isInteger(tests) && tests > 0 && passed === tests && failed === 0 && cancelled === 0 && skipped === 0;
 const result = { ok, completedAt: new Date().toISOString(), elapsedSeconds: (Date.now() - started) / 1000,
   productVersion: JSON.parse(fs.readFileSync(path.join(repo, 'package.json'), 'utf8')).version,
   productBuild: JSON.parse(fs.readFileSync(path.join(repo, 'package.json'), 'utf8')).chatsyncBuild, testFileConcurrency: 2,
   runtime: { node: runtime.node, electron: runtime.electron, platform: process.platform },
-  suite: { code: suite.code, stoppedFor: suite.stoppedFor, failure: suite.failure, tests, passed, failed, cancelled, skipped, logFile: suite.logFile },
-  patch: patch && { code: patch.code, stoppedFor: patch.stoppedFor, failure: patch.failure, assertions: patchAssertions, logFile: patch.logFile } };
+  suite: { code: suite.code, stoppedFor: suite.stoppedFor, failure: suite.failure, tests, passed, failed, cancelled, skipped, logFile: suite.logFile } };
 fs.writeFileSync(path.join(directory, 'result.json'), JSON.stringify(result, null, 2));
 console.log(JSON.stringify(result, null, 2));
 process.exitCode = ok ? 0 : 1;

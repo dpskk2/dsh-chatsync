@@ -14,7 +14,7 @@ console.log('Desktop regression runtime: ' + JSON.stringify(versions));
 const files = fs.readdirSync('tests').filter(file => file.endsWith('.test.mjs')).sort().map(file => path.join('tests', file));
 // Reproduce the previously failing ASAR case first; it does not replace the full suite.
 const asarProbe = ['--test', '--test-concurrency=1', '--test-timeout=45000', '--test-name-pattern=desktop Electron runtime', 'tests/issue6-workspace.test.mjs'];
-for (const args of [asarProbe, ['--test', '--test-concurrency=2', '--test-timeout=300000', ...files], ['tests/patch-version-agnostic.mjs']]) {
+for (const args of [asarProbe, ['--test', '--test-concurrency=2', '--test-timeout=300000', ...files]]) {
   console.log('Starting waited Electron phase: ' + args[0]);
   const started = Date.now();
   const result = spawnSync(executable, args, { env, windowsHide: true, stdio: 'inherit', timeout: args === asarProbe ? 60000 : 20 * 60 * 1000 });

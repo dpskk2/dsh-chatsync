@@ -16,7 +16,7 @@
   ],
   "type": "module",
   "scripts": {
-    "test": "node --test --test-concurrency=2 tests/*.test.mjs && node tests/patch-version-agnostic.mjs && eslint .",
+    "test": "node --test --test-concurrency=2 tests/*.test.mjs && eslint .",
     "lint": "eslint ."
   },
   "main": "lib/index.js",

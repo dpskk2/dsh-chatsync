@@ -236,7 +236,7 @@ test('用户已确认的手动重启(force:true)不受活跃会话守卫拦截(�
   const forced = asWebHost(() => engine.scheduleRestart('用户手动触发', { allowForce: true, force: true }));
   assert.notEqual(forced.reason, 'active-session-guard', `force 不应被守卫拦截: ${JSON.stringify(forced)}`);
   // 临时 home 无重启脚本 → 必然是 missing-script;既证明守卫放行,也证明没有产生 schtasks 副作用
-  assert.equal(forced.reason, 'missing-script');
+  assert.equal(forced.reason, 'unsupported-host');
   assert.equal(forced.scheduled, false);
 });
 
@@ -248,6 +248,6 @@ test('无活跃会话时不触发守卫(保持既有宿主判定)', (t) => {
 
   const r = asWebHost(() => engine.scheduleRestart());
   assert.notEqual(r.reason, 'active-session-guard', `无活跃会话不应触发守卫: ${JSON.stringify(r)}`);
-  assert.equal(r.reason, 'missing-script');
+  assert.equal(r.reason, 'unsupported-host');
   assert.equal(r.scheduled, false);
 });

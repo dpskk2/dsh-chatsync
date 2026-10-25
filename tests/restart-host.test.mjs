@@ -20,7 +20,22 @@ test('the Web restart path is limited to the DSH Web host', () => {
 test('standalone sync cannot schedule the Web restart task', () => {
   const engine = new SyncEngine('C:\\unused');
   assert.deepEqual(engine.scheduleRestart(), { scheduled: false, reason: 'unsupported-host' });
-  assert.equal(engine.webRestartAvailable(), false);
+});
+
+test('a Web host never restarts automatically, even with a user restart script present', () => {
+  const originalArgv = process.argv;
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-restart-web-'));
+  try {
+    fs.writeFileSync(path.join(home, 'restart-dsh-web.ps1'), '# user script; never scheduled by ChatSync\n');
+    process.argv = ['node.exe', 'C:\\Users\\tanos\\AppData\\Roaming\\npm\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js', 'web'];
+    const web = new SyncEngine(home);
+    assert.equal(web.autoRestartHost(), null);
+    assert.equal(web.restartAvailable(), false);
+    assert.equal('webRestartAvailable' in web, false);
+  } finally {
+    process.argv = originalArgv;
+    fs.rmSync(home, { recursive: true, force: true });
+  }
 });
 
 test('desktop restart requires the explicit manual confirmation path', () => {
@@ -55,7 +70,6 @@ test('auto restart after repair covers both hosts and only forces the desktop ho
       process.argv = ['node.exe', 'C:\\Users\\tanos\\AppData\\Roaming\\npm\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js', 'web'];
       const web = new SyncEngine(home);
       assert.equal(web.autoRestartHost(), null, '临时 home 没有 restart-dsh-web.ps1,不应认为可自动重启');
-      assert.equal(web.webRestartAvailable(), false);
       assert.equal(web.scheduleRestartAfterRepair({ autoRestartAfterRepair: true }), false);
     } finally {
       assert.equal(path.dirname(path.resolve(home)), path.resolve(os.tmpdir()));
@@ -65,7 +79,6 @@ test('auto restart after repair covers both hosts and only forces the desktop ho
     /* 桌面宿主:能否自动重启取决于随包分发的桌面重启脚本是否存在 */
     process.argv = ['DeepSeek Harness.exe', 'C:\\Programs\\DeepSeek Harness\\resources\\app.asar\\dsh\\node_modules\\@deepseek-ai\\dsh-desktop-host\\lib\\index.js', 'C:\\Programs\\dsh', 'C:\\Users\\tanos\\.dsh\\profiles\\desktop'];
     const desktop = new SyncEngine('C:\\unused');
-    assert.equal(desktop.webRestartAvailable(), false);
     assert.equal(desktop.autoRestartHost(), desktop.desktopRestartAvailable() ? 'desktop' : null);
     assert.match(desktop.desktopRestartScript(), /restart-dsh-desktop\.ps1$/);
   } finally {

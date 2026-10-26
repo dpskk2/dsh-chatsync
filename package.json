@@ -19,7 +19,9 @@
     "test": "node scripts/build-client.mjs --check && node --test --test-concurrency=2 tests/*.test.mjs && eslint . && tsc -p tsconfig.json",
     "build:client": "node scripts/build-client.mjs",
     "lint": "eslint .",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "format": "prettier --write \"lib/**/*.{js,mjs}\" \"src/client/*.js\" \"scripts/*.mjs\" \"tests/**/*.mjs\" eslint.config.js",
+    "format:check": "prettier --check \"lib/**/*.{js,mjs}\" \"src/client/*.js\" \"scripts/*.mjs\" \"tests/**/*.mjs\" eslint.config.js"
   },
   "main": "lib/index.js",
   "files": [

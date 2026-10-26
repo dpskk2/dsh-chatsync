@@ -1,0 +1,8 @@
+# Only JavaScript is formatted (see the format scripts in package.json).
+# Vendored as published:
+lib/vendor/
+# Generated from src/client/ by scripts/build-client.mjs:
+lib/client.js
+# The module loader shell is not a complete script on its own:
+src/client/00-loader-head.js
+src/client/99-loader-tail.js

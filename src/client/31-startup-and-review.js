@@ -5,14 +5,32 @@ function TransferReview({ review, busy, onConfirm }) {
     { className: 'dss-review', role: 'region', 'aria-label': '同步预览' },
     e('p', { style: { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' } }, review.summary),
     e(
-      'button',
-      {
-        type: 'button',
-        className: 'dss-pill dss-primary dss-startup-primary',
-        disabled: Boolean(busy),
-        onClick: () => onConfirm(review.id),
-      },
-      busy ? '正在继续…' : '确认并继续',
+      'div',
+      { className: 'dss-actions' },
+      e(
+        'button',
+        {
+          type: 'button',
+          className: 'dss-pill dss-primary dss-startup-primary',
+          disabled: Boolean(busy),
+          onClick: () => onConfirm(review.id),
+        },
+        busy ? '正在继续…' : review.confirmLabel || '确认并继续',
+      ),
+      // Some previews offer a safe alternative answer, such as restoring instead of deleting.
+      ...(review.alternatives || []).map(choice =>
+        e(
+          'button',
+          {
+            key: choice.id,
+            type: 'button',
+            className: 'dss-pill',
+            disabled: Boolean(busy),
+            onClick: () => onConfirm(choice.id),
+          },
+          choice.label,
+        ),
+      ),
     ),
   );
 }

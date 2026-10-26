@@ -51,6 +51,33 @@ test('startup can approve its exact pending transfer without leaving the modal',
   assert.deepEqual(approvals, [undefined, id]);
 });
 
+test('startup accepts the restore answer of a missing-files preview', async t => {
+  const id = 'b'.repeat(64),
+    restore = 'c'.repeat(64),
+    approvals = [];
+  t.mock.method(SyncEngine.prototype, 'syncOnce', async (_reason, options) => {
+    approvals.push(options.approval);
+    return options.approval === restore
+      ? {}
+      : {
+          error: '等待确认预览',
+          needsReview: true,
+          review: {
+            id,
+            summary: '缺少已同步的文件',
+            alternatives: [{ id: restore, action: 'restore', label: '从远端取回' }],
+          },
+        };
+  });
+  const request = host(t, { autoPullOnStart: true });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal((await request('status')).startup.phase, 'review');
+  await request('startup', { action: 'confirm', approval: restore });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal((await request('status')).startup.phase, 'ready');
+  assert.deepEqual(approvals, [undefined, restore]);
+});
+
 test('a saved offline preview is recomputed on startup and can be left offline', async t => {
   let attempts = 0;
   t.mock.method(SyncEngine.prototype, 'syncOnce', async () => {

@@ -655,6 +655,26 @@ test('manual transfer requires explicit preview confirmation and sends only its 
   assert.equal(all(h.render()).find(n => n.type.name === 'TransferReview').props.review, null);
 });
 
+test('a missing-files preview offers deleting and restoring as separate answers', async () => {
+  const answers = [];
+  const view = harness(() => response({}), 'TransferReview', { timers: false });
+  const tree = view.render({
+    review: {
+      id: 'delete-id',
+      summary: '这台电脑上缺少 12 个之前已同步的文件',
+      confirmLabel: '确认删除',
+      alternatives: [{ id: 'restore-id', action: 'restore', label: '从远端取回' }],
+    },
+    busy: false,
+    onConfirm: id => answers.push(id),
+  });
+  const buttons = all(tree).filter(n => n.type === 'button');
+  assert.deepEqual(buttons.map(text), ['确认删除', '从远端取回']);
+  buttons[1].props.onClick();
+  buttons[0].props.onClick();
+  assert.deepEqual(answers, ['restore-id', 'delete-id']);
+});
+
 test('startup running, offline and old review snapshots never open a dialog by themselves', async () => {
   for (const phase of ['running', 'review', 'error', 'pending', 'offline']) {
     const h = harness(

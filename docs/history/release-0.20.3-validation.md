@@ -14,4 +14,4 @@
 
 物理双机经专用 GitHub 仓库实网往返、完整 Desktop 窗口操作、完整故障注入与灾难恢复矩阵尚未完成。同机双副本、本地 Git、自动化接口检查均不能代替这些验收；保留未验证状态，不宣称全部安全门禁项目均已实测通过。发布授权与允许未验证场景发布的决定是不同条件，不能从历史版本沿用。
 
-中文 README 按用户要求保持 GitHub 主线原文；英文 README 按最新指令完整翻译中文版。新配置默认值、设置同步范围和清理操作以本版更新日志、[配置参考](configuration.md)及[本地存储说明](local-storage.md)为准。清理只在预览并确认后执行，保留时间不会启动自动删除。
+中文 README 按用户要求保持 GitHub 主线原文；英文 README 按最新指令完整翻译中文版。新配置默认值、设置同步范围和清理操作以本版更新日志、[配置参考](https://github.com/dpskk2/dsh-chatsync/blob/v0.20.3/docs/configuration.md)及[本地存储说明](https://github.com/dpskk2/dsh-chatsync/blob/v0.20.3/docs/local-storage.md)为准。清理只在预览并确认后执行，保留时间不会启动自动删除。

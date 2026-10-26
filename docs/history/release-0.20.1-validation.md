@@ -22,4 +22,4 @@
 
 ## 安装和恢复
 
-从 GitHub 下载本版 tgz 和完整源码 ZIP，按[安装指引](getting-started.md)使用本地包。更新前保留原数据和备份；修复需先预览并核对结果。安装后需核对实际版本与构建，不能把安装命令成功当成宿主已加载新包。
+从 GitHub 下载本版 tgz 和完整源码 ZIP，按[安装指引](https://github.com/dpskk2/dsh-chatsync/blob/v0.20.1/docs/getting-started.md)使用本地包。更新前保留原数据和备份；修复需先预览并核对结果。安装后需核对实际版本与构建，不能把安装命令成功当成宿主已加载新包。

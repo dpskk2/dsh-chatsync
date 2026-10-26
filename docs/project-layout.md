@@ -1,6 +1,6 @@
 # 项目目录与维护入口
 
-维护约定先读根目录 `AGENTS.md`，开发与发布流程见 `CONTRIBUTING.md`，发版安全验收见 `docs/release-safety-checklist.md`。旧评审、旧任务里的限制和历史记忆不能代替维护者的当次指令。
+维护约定先读根目录 `AGENTS.md`，模块分工与同步数据流见 `docs/architecture.md`，开发与发布流程见 `CONTRIBUTING.md`，发版安全验收见 `docs/release-safety-checklist.md`。旧评审、旧任务里的限制和历史记忆不能代替维护者的当次指令。
 
 ## 仓库目录
 

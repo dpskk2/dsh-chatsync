@@ -1,11 +1,11 @@
 {
-  "sourceCommit": "7439ace27bb2fdbe79f23d19c3c42045bfb7e3b0",
-  "sourceSha256": "f2e0f9855cf61315315e7de60e69851d03f36e0ae38cec17157a5c1fd3b7a1eb",
+  "sourceCommit": "4d41cb2",
+  "sourceSha256": "6065fe47a35f85d31d4112970fb5a18852c343472b3aa923aeea02477f619335",
   "command": "node scripts/check-runtime-regression.mjs (standalone, DSH_GUI_TEST_EXE=<Desktop exe>) and node scripts/check-runtime-regression.mjs --desktop",
   "standalone": {
     "ok": true,
-    "completedAt": "2026-10-26T10:52:52.941Z",
-    "elapsedSeconds": 450.953,
+    "completedAt": "2026-10-26T12:09:30.786Z",
+    "elapsedSeconds": 462.481,
     "productVersion": "0.21.0",
     "productBuild": "2026-10-26-release-0.21.0",
     "testFileConcurrency": 2,
@@ -15,18 +15,18 @@
     },
     "suite": {
       "code": 0,
-      "tests": 463,
-      "passed": 463,
+      "tests": 465,
+      "passed": 465,
       "failed": 0,
       "cancelled": 0,
       "skipped": 0,
-      "logFile": "<repo>\\outputs\\regression-2026-10-26T10-45-21-984Z-standalone\\suite.log"
+      "logFile": "<repo>\\outputs\\regression-2026-10-26T12-01-48-303Z-standalone\\suite.log"
     }
   },
   "desktop": {
     "ok": true,
-    "completedAt": "2026-10-26T10:43:47.946Z",
-    "elapsedSeconds": 516.295,
+    "completedAt": "2026-10-26T12:18:12.040Z",
+    "elapsedSeconds": 521.153,
     "productVersion": "0.21.0",
     "productBuild": "2026-10-26-release-0.21.0",
     "testFileConcurrency": 2,
@@ -37,22 +37,13 @@
     },
     "suite": {
       "code": 0,
-      "tests": 463,
-      "passed": 463,
+      "tests": 465,
+      "passed": 465,
       "failed": 0,
       "cancelled": 0,
       "skipped": 0,
-      "logFile": "<repo>\\outputs\\regression-2026-10-26T10-35-11-648Z-desktop\\suite.log"
+      "logFile": "<repo>\\outputs\\regression-2026-10-26T12-09-30-885Z-desktop\\suite.log"
     }
   },
-  "note": "An earlier standalone run without DSH_GUI_TEST_EXE finished 462 passed / 1 skipped (the Windows GUI case); it was rerun with the GUI executable provided and finished 0 skipped.",
-  "earlierStandalone": {
-    "completedAt": "2026-10-26T10:35:11.546Z",
-    "suite": {
-      "tests": 463,
-      "passed": 462,
-      "failed": 0,
-      "skipped": 1
-    }
-  }
+  "note": "Second freeze. The first freeze (7439ace) was superseded by the install-script fix in 4d41cb2; its runs are not used as evidence here."
 }

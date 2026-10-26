@@ -3,40 +3,40 @@
   "version": "0.21.0",
   "build": "2026-10-26-release-0.21.0",
   "tier": "minor",
-  "sourceSha256": "f2e0f9855cf61315315e7de60e69851d03f36e0ae38cec17157a5c1fd3b7a1eb",
-  "packageSha256": "34fab6b421397d76ba4cbb33495e624b5e7ce8fed4cd2bc396c7cf05ca8aecb5",
+  "sourceSha256": "6065fe47a35f85d31d4112970fb5a18852c343472b3aa923aeea02477f619335",
+  "packageSha256": "cc894a9db56bde25c89dcdab9a010c421d8a335bd3e7f33ed13a0256e583a17e",
   "checks": [
     {
       "id": "full-regression",
       "status": "passed",
-      "completedAt": "2026-10-26T10:52:52.941Z",
+      "completedAt": "2026-10-26T12:18:12.040Z",
       "environment": "Windows 11 Home 10.0.26300; standalone Node.js 24.19.0; DSH Desktop built-in Electron 44.7.0 / Node.js 24.21.0",
-      "procedure": "Frozen source 7439ace. node scripts/check-runtime-regression.mjs with DSH_GUI_TEST_EXE set to the installed Desktop executable; node scripts/check-runtime-regression.mjs --desktop",
-      "observed": "Standalone Node: 463 tests, 463 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. Desktop runtime: 463 tests, 463 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. npm test also ran ESLint, Prettier and tsc without findings.",
+      "procedure": "Frozen source 4d41cb2. node scripts/check-runtime-regression.mjs with DSH_GUI_TEST_EXE set to the installed Desktop executable; node scripts/check-runtime-regression.mjs --desktop",
+      "observed": "Standalone Node: 465 tests, 465 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. Desktop runtime: 465 tests, 465 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. npm test also ran ESLint, Prettier and tsc without findings.",
       "reviewer": "Claude (agent run); maintainer review pending",
       "artifacts": [
         {
           "path": "release-evidence/0.21.0/regression.json",
-          "sha256": "a697d9c361bda36d9f96b82cda52bb75da4f6d5c37b1268d04ce9d56c268420c"
+          "sha256": "f2643742bad9afb536eee2044af77c2dfc4737394a6999f7a35651931b109dea"
         }
       ]
     },
     {
       "id": "candidate-install",
       "status": "passed",
-      "completedAt": "2026-10-26T10:53:12.124Z",
+      "completedAt": "2026-10-26T12:18:31.596Z",
       "environment": "Isolated DSH Desktop host from the installed Desktop runtime (Electron 44.7.0, Node.js 24.21.0, DSH 0.2.1-rc.3); synthetic isolated home, no personal data",
       "procedure": "node scripts/check-local-package-desktop.mjs <candidate.tgz> <new outputs directory>, once for each package name",
-      "observed": "Both packages (@dpskk2/dsh-chatsync 34fab6b421397d76ba4cbb33495e624b5e7ce8fed4cd2bc396c7cf05ca8aecb5, chatsync e5e29342d731ca241e98506c36329279312d8fff0316d82358f132802e97115b) loaded through Desktop IPC with version 0.21.0 / build 2026-10-26-release-0.21.0; 67 runtime files byte-identical to the committed source; public storage API read/write and cold restart read-back passed (4 checks each).",
+      "observed": "Both packages (@dpskk2/dsh-chatsync cc894a9db56bde25c89dcdab9a010c421d8a335bd3e7f33ed13a0256e583a17e, chatsync 252128c2c8aae29ca1b96a30df25da3666b4929692cb3695527d1f879bfaddba) loaded through Desktop IPC with version 0.21.0 / build 2026-10-26-release-0.21.0; 67 runtime files byte-identical to the committed source; public storage API read/write and cold restart read-back passed (4 checks each).",
       "reviewer": "Claude (agent run); maintainer review pending",
       "artifacts": [
         {
           "path": "release-evidence/0.21.0/candidate-install-scoped.json",
-          "sha256": "7518d0462568186b3e178b0cfa0ecad6a3492001c3f44f8a1363e6f3684096f4"
+          "sha256": "d8bf1876772155215b9a2dc10af2497eae0a845bb9611792bee7b840f2320fe4"
         },
         {
           "path": "release-evidence/0.21.0/candidate-install-short.json",
-          "sha256": "56c6cf8549f0e399a863d1e52c3c23e6fc4c1da27ec4d1008315b3107e185449"
+          "sha256": "04837a9a4d2a436211c926d3ee52a08cfebdd9af9e50f055379068c0a2b90803"
         }
       ]
     },
@@ -263,5 +263,5 @@
       "artifacts": []
     }
   ],
-  "shortPackageSha256": "e5e29342d731ca241e98506c36329279312d8fff0316d82358f132802e97115b"
+  "shortPackageSha256": "252128c2c8aae29ca1b96a30df25da3666b4929692cb3695527d1f879bfaddba"
 }

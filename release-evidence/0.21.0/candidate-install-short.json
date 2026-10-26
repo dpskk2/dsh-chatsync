@@ -3,9 +3,9 @@
   "version": "0.21.0",
   "build": "2026-10-26-release-0.21.0",
   "packageName": "chatsync",
-  "packageSha256": "e5e29342d731ca241e98506c36329279312d8fff0316d82358f132802e97115b",
-  "sourceCommit": "7439ace27bb2fdbe79f23d19c3c42045bfb7e3b0",
-  "sourceSha256": "f2e0f9855cf61315315e7de60e69851d03f36e0ae38cec17157a5c1fd3b7a1eb",
+  "packageSha256": "252128c2c8aae29ca1b96a30df25da3666b4929692cb3695527d1f879bfaddba",
+  "sourceCommit": "4d41cb2cb2d0fbaac385661b2e0a38116847c563",
+  "sourceSha256": "6065fe47a35f85d31d4112970fb5a18852c343472b3aa923aeea02477f619335",
   "loadedFileHashes": {
     "lib/branch-history.js": "a25d82f058efcc5372a888809b5fec2566f2d3f08d84e22376548596bb5cffe3",
     "lib/cli.mjs": "f4d5e885e8c8a5149ce947f8a7fdd5ea097d8d363622fdfb85227b5e37debf55",

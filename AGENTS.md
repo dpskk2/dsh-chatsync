@@ -8,7 +8,7 @@ chatsync 是 DeepSeek Harness（DSH）插件：通过用户自己的 GitHub 私�
 ## 开发与验证
 
 - Node.js ≥ 24，原生 ESM，运行时没有 npm 依赖；不得新增运行时依赖（`lib/vendor/` 内置的库须附许可证）。
-- 安装验证依赖并测试：`npm ci --ignore-scripts`，然后 `npm test`（含界面生成一致性、ESLint 与 tsc 类型检查，也可单独运行 `npm run lint`、`npm run typecheck`）。类型写在 JSDoc 里，按 `tsconfig.json` 的非严格模式检查；ESLint、TypeScript 等工具只作为开发依赖，不进入安装包。调整 `package.json` 的 `files` 后运行 `node scripts/check-package-contents.mjs`。
+- 安装验证依赖并测试：`npm ci --ignore-scripts`，然后 `npm test`（含界面生成一致性、ESLint、Prettier 格式与 tsc 类型检查，也可单独运行 `npm run lint`、`npm run format:check`、`npm run typecheck`；提交前用 `npm run format` 统一格式）。类型写在 JSDoc 里，按 `tsconfig.json` 的非严格模式检查；ESLint、Prettier、TypeScript 等工具只作为开发依赖，不进入安装包。调整 `package.json` 的 `files` 后运行 `node scripts/check-package-contents.mjs`。
 - 浏览器端界面的源码在 `src/client/`：`00-loader-head.js` 与 `99-loader-tail.js` 是模块加载器外壳，其余文件是工厂函数内的语句，顶格书写、按文件名顺序拼接；修改后运行 `node scripts/build-client.mjs` 重新生成并一并提交 `lib/client.js`，不要直接改 `lib/client.js`。`npm test` 会检查二者一致。
 - 测试只使用临时目录、合成数据和本地裸仓库，不读写真实的 `~/.dsh`，也不访问个人同步仓库；需要远端时显式设置 `autoRepo: false`。
 - 自动测试、故障模拟、隔离宿主检查和物理双机验收不能互相替代；中断、跳过或缺少最终结果的运行不算通过，不得编造验证结果。

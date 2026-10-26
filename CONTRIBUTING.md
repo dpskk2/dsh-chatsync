@@ -60,7 +60,7 @@ npm test
 npm pack --dry-run
 ```
 
-`npm test` 验证仓库连接和同步偏好的加载 / 保存 / 失败交互、配置校验、自动调度、私有仓库校验、本地 Git 多副本双向恢复与故障重试。界面测试使用隔离的宿主与 React 钩子替身；引擎集成测试在临时目录使用真实 Git。测试不连接真实 GitHub 或用户数据，不能替代真实 DSH 的挂载与双机验收。
+`npm test` 验证仓库连接和同步偏好的加载 / 保存 / 失败交互、配置校验、自动调度、私有仓库校验、本地 Git 多副本双向恢复与故障重试。界面测试使用隔离的宿主与 React 钩子替身；引擎集成测试在临时目录使用真实 Git。测试不连接真实 GitHub 或用户数据，不能替代真实 DSH 的挂载与双机验收。`npm test` 还会核对 `lib/client.js` 与 `src/client/` 一致，并运行 ESLint、Prettier 格式检查和 tsc 类型检查；修改代码后先运行 `npm run format`。全量格式化提交记录在 `.git-blame-ignore-revs`，可运行 `git config blame.ignoreRevsFile .git-blame-ignore-revs` 让 `git blame` 跳过它。
 
 需要保存完整回归的终态时，可运行 `node scripts/check-runtime-regression.mjs`；Windows 上已安装标准路径的桌面版时，可加 `--desktop` 使用其实际内置运行环境。脚本保存输出、运行时版本、退出码与统计。中断或缺少最终结果的运行不能算通过；内置运行环境回归也不代替实际 Desktop Host 或窗口验收。
 

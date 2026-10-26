@@ -16,7 +16,7 @@
   ],
   "type": "module",
   "scripts": {
-    "test": "node scripts/build-client.mjs --check && node --test --test-concurrency=2 tests/*.test.mjs && eslint . && tsc -p tsconfig.json",
+    "test": "node scripts/build-client.mjs --check && node --test --test-concurrency=2 tests/*.test.mjs && eslint . && npm run format:check && tsc -p tsconfig.json",
     "build:client": "node scripts/build-client.mjs",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json",

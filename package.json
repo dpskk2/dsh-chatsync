@@ -16,7 +16,8 @@
   ],
   "type": "module",
   "scripts": {
-    "test": "node --test --test-concurrency=2 tests/*.test.mjs && eslint .",
+    "test": "node scripts/build-client.mjs --check && node --test --test-concurrency=2 tests/*.test.mjs && eslint .",
+    "build:client": "node scripts/build-client.mjs",
     "lint": "eslint ."
   },
   "main": "lib/index.js",

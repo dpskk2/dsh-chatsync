@@ -3,7 +3,8 @@ import js from '@eslint/js';
 import globals from 'globals';
 
 export default [
-  { ignores: ['node_modules/', 'outputs/', 'work/', 'lib/vendor/'] },
+  // src/client/ holds slices of one browser script; the generated lib/client.js is linted whole.
+  { ignores: ['node_modules/', 'outputs/', 'work/', 'lib/vendor/', 'src/client/'] },
   js.configs.recommended,
   {
     files: ['**/*.js', '**/*.mjs'],
@@ -24,7 +25,7 @@ export default [
     // The browser bundle is a plain script registered through the host module loader.
     files: ['lib/client.js'],
     languageOptions: { sourceType: 'script', globals: { ...globals.browser } },
-    // Components only reached by tests are reviewed when the bundle is split into src/client/.
+    // Some components are only reached by tests; removing them awaits a maintainer decision.
     rules: { 'no-unused-vars': 'off' },
   },
 ];

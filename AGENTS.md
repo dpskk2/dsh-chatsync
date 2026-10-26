@@ -7,8 +7,9 @@ chatsync 是 DeepSeek Harness（DSH）插件：通过用户自己的 GitHub 私�
 
 ## 开发与验证
 
-- Node.js ≥ 24，原生 ESM，无构建步骤，运行时没有 npm 依赖；不得新增运行时依赖（`lib/vendor/` 内置的库须附许可证）。
+- Node.js ≥ 24，原生 ESM，运行时没有 npm 依赖；不得新增运行时依赖（`lib/vendor/` 内置的库须附许可证）。
 - 安装验证依赖并测试：`npm ci --ignore-scripts`，然后 `npm test`（含 ESLint 检查，也可单独运行 `npm run lint`）。ESLint 等工具只作为开发依赖，不进入安装包。调整 `package.json` 的 `files` 后运行 `node scripts/check-package-contents.mjs`。
+- 浏览器端界面的源码在 `src/client/`（同一脚本按顺序切成的片段）；修改后运行 `node scripts/build-client.mjs` 重新生成并一并提交 `lib/client.js`，不要直接改 `lib/client.js`。`npm test` 会检查二者一致。
 - 测试只使用临时目录、合成数据和本地裸仓库，不读写真实的 `~/.dsh`，也不访问个人同步仓库；需要远端时显式设置 `autoRepo: false`。
 - 自动测试、故障模拟、隔离宿主检查和物理双机验收不能互相替代；中断、跳过或缺少最终结果的运行不算通过，不得编造验证结果。
 - `scripts/` 中各脚本的用途和运行条件见 `docs/scripts.md`。

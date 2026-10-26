@@ -50,6 +50,7 @@ jobs:
         # Full product regression is recorded in the candidate-bound evidence.
         # Packaging-only retries do not repeat the full suite.
         run: |
+          node scripts/build-client.mjs --check
           node --test tests/release-safety.test.mjs tests/updates.test.mjs
           node scripts/check-package-contents.mjs
 

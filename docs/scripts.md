@@ -6,6 +6,7 @@
 
 | 脚本 | 用途 | 何时运行 |
 | --- | --- | --- |
+| `build-client.mjs` | 由 `src/client/` 生成浏览器端 `lib/client.js`；`--check` 只核对二者一致 | 修改界面后；`npm test` 与发布工作流自动核对 |
 | `release-notes.mjs` | 从 `CHANGELOG.md` 提取当前版本的日志，生成 `release-notes.md` | 发布工作流自动运行 |
 | `check-release-safety.mjs` | 校验发版安全清单、源码指纹和候选包哈希（`--init`、`--fingerprint`、`--package <tgz>`） | 定版前；发布工作流自动运行 |
 | `check-package-contents.mjs` | 检查 npm 实际打包的文件、运行入口和随包文档的相对链接 | 修改 `package.json` 的 `files` 或随包文档后；CI 自动运行 |

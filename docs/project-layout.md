@@ -7,6 +7,7 @@
 | 目录或文件 | 用途 | 保留原则 |
 | --- | --- | --- |
 | `lib/`、`cordis.patch.yml`、`icon.png`、`package.json` | 插件运行源码、挂载配置和包定义 | 当前实现，必须保留 |
+| `src/client/` | 浏览器端界面源码，按文件名顺序拼成 `lib/client.js` | 修改后运行 `node scripts/build-client.mjs`，不装入运行包 |
 | `tests/` | 自动回归（`npm test`） | 开发维护需要，不装入运行包 |
 | `scripts/` | 真实宿主检查、打包、部署与发布脚本，用途见 `docs/scripts.md` | 长期未修改不代表无用 |
 | `.github/workflows/` | CI（`check.yml`）、诊断包与发布流程 | 修改推送到远端后才生效 |

@@ -65,10 +65,6 @@
         e('span', { className: 'dss-step-number', 'aria-hidden': true }, number),
         e('div', { className: 'dss-h' }, title));
     }
-    function notice(label, content, className = 'dss-next') {
-      return e('div', { className, role: 'status', 'aria-label': label },
-        e('div', { className: 'dss-notice-label' }, label), content);
-    }
     // Older versions uploaded machine-only files; remove them from the shared copy only
     // after every computer in use runs a version that keeps its own copy.
     function RemoteCleanup({ busy }) {

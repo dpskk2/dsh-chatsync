@@ -36,7 +36,7 @@ function harness(fetchImpl, componentName = 'SyncPreferences', { timers = true, 
     useMemo: (fn) => fn(),
     useCallback: (fn) => fn,
   };
-  vm.runInNewContext(source.replace('module.exports = {', 'module.exports = { testComponents: { LocalStorage, RemoteCleanup, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, showGroupingRepair, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, LocalPreview, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, StartupReview, SyncIssues, TransferLine, ProgressTip, STYLE, FootSyncButton },'), {
+  vm.runInNewContext(source.replace('module.exports = {', 'module.exports = { testComponents: { LocalStorage, RemoteCleanup, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, SyncIssues, TransferLine, STYLE },'), {
     window: { confirm, __ModuleLoader__: { load(def) { bundle = def.factory((name) => { assert.equal(name, 'react'); return react; }); } } },
     fetch: fetchImpl, AbortSignal,
     setTimeout, clearTimeout,
@@ -190,14 +190,13 @@ test('ungrouped notice survives failed startup, deduplicates dismissal and rearm
   assert.deepEqual(h.navigationCalls,['dsh-sync-repair']);assert.equal(h.render(),null);
 });
 
-test('grouping automation respects busy and disabled state while explicit check can reopen it', async () => {
+test('grouping automation respects busy and disabled state', async () => {
   let poll, snapshot = { ok: true, enabled: false, count: 1, signature: 'a', busy: false };
   const h = harness(() => response(snapshot), 'GroupingRepairOverlay', { timers: false, interval: fn => { poll = fn; return 0; } });
   h.render(); await h.effects(); await poll(); assert.equal(h.render(), null);
   snapshot.enabled = true; snapshot.busy = true; await poll(); assert.equal(h.render(), null);
   snapshot.busy = false; await poll(); assert.match(text(h.render()), /发现/);
   all(h.render()).find(n => text(n) === '稍后处理').props.onClick();
-  h.functions.showGroupingRepair(); await tick(); assert.match(text(h.render()), /发现/);
 });
 
 test('the processing page shows grouped tasks directly, with no folded repair area or automatic write',async()=>{
@@ -248,8 +247,8 @@ test('startup errors stay nonmodal until an old-session send is attempted', asyn
   assert.ok(all(tree).some(n => n.type === 'button' && text(n) === '返回编辑'));
 });
 
-test('sidebar and settings expose progress without a cancellation action', async () => {
-  for (const component of ['Section', 'FootSyncButton']) {
+test('settings expose progress without a cancellation action', async () => {
+  for (const component of ['Section']) {
     let finish;
     const calls = [];
     const h = harness((url, options) => {
@@ -259,11 +258,10 @@ test('sidebar and settings expose progress without a cancellation action', async
       return response(url.endsWith('/status') ? { ok: true, remote: 'https://github.com/u/data' } : { ok: true, config: initial, conflicts: [] });
     }, component, { timers: false });
     h.render(); await h.effects();
-    const button = all(h.render()).find(n => n.type === 'button' && (text(n).includes('立即同步') || n.props['aria-label'] === '同步 DSH 会话数据'));
+    const button = all(h.render()).find(n => n.type === 'button' && text(n).includes('立即同步'));
     const running = button.props.onClick({ currentTarget: null }); await tick(); await tick();
     const tree = h.render();
     assert.doesNotMatch(text(tree), /取消同步|正在停止/);
-    if (component === 'FootSyncButton') assert.match(text(tree), /同步中 · 获取远端/);
     assert.equal(calls.some(url => url.endsWith('/cancel')), false);
     finish({ json: async () => ({ ok: true, summary: '同步完成', detail: {} }) }); await running;
   }
@@ -336,7 +334,7 @@ test('composer preflight rejects queue, steer and attachment sends before transp
   assert.equal(calls, 1); restore();
 });
 
-test('startup distinguishes actual transfer percentage, unknown progress and confirmation', () => {
+test('startup distinguishes actual transfer percentage and unknown progress', () => {
   const transfer = harness(() => response({}), 'TransferLine', { timers: false });
   const t = transfer.render({ t: { op: 'fetch', pct: 72, done: 72, total: 100, size: 1048576, speed: 524288 } });
   assert.equal(all(t).find(n => n.props.role === 'progressbar').props['aria-valuenow'], 72);
@@ -345,19 +343,6 @@ test('startup distinguishes actual transfer percentage, unknown progress and con
   const waiting = p.render({ progress: { stage: 'wait-lock', label: '等待', startedAt: Date.now() }, phase: 'running' });
   assert.match(text(waiting), /另一端正在同步/);
   assert.equal(all(waiting).find(n => n.props.role === 'progressbar').props['aria-valuenow'], undefined);
-  const review = harness(() => response({}), 'StartupReview', { timers: false }).render({ review: { direction: 'download', counts: { added: 2, modified: 7, deleted: 0 }, executable: ['profiles/desktop/package.json'], summary: 'file detail' } });
-  assert.match(text(review), /取回其他电脑/); assert.equal(all(review).find(n => n.type === 'details').props.open, undefined);
-});
-
-test('local preview handles errors without claiming remote coverage', async () => {
-  let fail = true;
-  const h = harness(() => response(fail ? { ok: false, error: 'preview failed' } : { ok: true, hint: '本地状态', scopes: [{ kind:'main', added:2, modified:1, deleted:3 }] }), 'LocalPreview');
-  await all(h.render()).find(n => n.type === 'button').props.onClick();
-  assert.match(text(h.render()), /preview failed/);
-  fail = false; await all(h.render()).find(n => n.type === 'button').props.onClick();
-  assert.match(text(h.render()), /新增 2，修改 1，删除 3/);
-  assert.match(text(h.render()), /未连接远端/);
-  assert.doesNotMatch(text(h.render()), /preview failed/);
 });
 
 test('switches save only their changed fields without a save button or setup navigation', async () => {
@@ -588,7 +573,6 @@ test('daily sync is the default for configured users after restart, success or f
     assert.ok(all(tree).some(n=>n.type?.name==='ConnectionSettings'));
     assert.ok(!all(tree).some(n=>n.props['aria-label']==='同步设置步骤'));
     assert.ok(!all(tree).some(n=>n.type?.name==='RecoveryCenter'));
-    assert.ok(!all(tree).some(n=>n.type?.name==='LocalPreview'));
     assert.equal(all(tree).find(n=>n.props['data-sync-settings']).type, 'div');
     assert.ok(all(tree).some(n=>n.type?.name==='ConnectionSettings'));
     assert.ok(all(tree).some(n=>n.type?.name==='SyncPreferences'));

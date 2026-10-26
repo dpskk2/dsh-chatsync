@@ -1,28 +1,4 @@
-    /* ---------- 侧栏底部「⟳ 同步」按钮 ---------- */
-    function FootSyncButton(props) {
-      const wide = props.wide !== false;
-      const ref = useRef(null);
-      const { busy, status, progress, run, refresh } = useSync();
-      const stage = STAGE_SHORT[progress && progress.stage] || '';
-      const label = busy ? (stage ? '同步中 · ' + stage : '同步中…') : '同步';
-      const title = (status && status.remote
-        ? `一键同步 → ${status.branch}\n${status.remote}`
-        : '尚未连接仓库：首次同步会尝试自动建仓。\n请先登录 GitHub，或在「设置 → 同步」填写已有仓库地址。')
-        + (busy ? `\n\n同步中: ${progress ? progress.label : '…'}` : '');
-      return e('div', { className: 'dss-foot', ref },
-        e('button', {
-          type: 'button',
-          className: 'dss-foot-btn',
-          'aria-label': '同步 DSH 会话数据',
-          title,
-          disabled: busy,
-          onClick: () => { refresh(); run(ref.current); },
-        },
-          e(SyncIcon, { spin: busy }),
-          wide ? e('span', { className: 'dss-foot-label' }, label) : null),
-        null);
-    }
-
+    /* ---------- 侧栏入口与页面 ---------- */
     let sidebarBinding = null, sidebarLoad = null;
     let sidebarState = { value: null, loading: false, saving: false, error: '' };
     const sidebarListeners = new Set();

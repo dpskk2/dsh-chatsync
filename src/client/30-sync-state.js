@@ -1,8 +1,4 @@
     /* ---------- 同步状态共享(含实时进度轮询) ---------- */
-    const STAGE_SHORT = {
-      prepare: '准备', 'wait-lock': '等待上次同步', verify: '连接仓库', fetch: '获取远端', commit: '提交', analyze: '比对', privacy: '检查内容', apply: '应用更新', handoff: '记录交接',
-      pull: '拉取', merge: '合并', push: '推送', gc: '清理', ws: '工作区', done: '', error: '',
-    };
     function fmtElapsed(ms) {
       const s = Math.max(0, Math.round(ms / 100) / 10);
       if (s < 60) return (s % 1 === 0 ? String(s) : s.toFixed(1)) + 's';
@@ -108,37 +104,6 @@
         : progress;
       return { busy: busy || Boolean(progress && progress.running), status, statusError, progress: current, refresh, run,
         review: review || (status?.lastDetail?.needsReview && !status.lastDetail.privacy ? status.lastDetail.review : null) };
-    }
-
-    /* 同步进行中的常驻进度气泡:贴在锚点元素上方,实时显示阶段与耗时 */
-    function ProgressTip(props) {
-      const anchorRef = props.anchorRef;
-      const p = props.progress || {};
-      const [pos, setPos] = useState(null);
-      useEffect(() => {
-        const update = () => {
-          const el = anchorRef && anchorRef.current;
-          if (!(el && el.getBoundingClientRect)) return;
-          const r = el.getBoundingClientRect();
-          const width = Math.min(260, Math.max(1, window.innerWidth - 24));
-          setPos({
-            width,
-            left: Math.max(12, Math.min(r.left, window.innerWidth - width - 12)),
-            top: Math.max(12, r.top - 10),
-          });
-        };
-        update();
-        window.addEventListener('resize', update);
-        return () => window.removeEventListener('resize', update);
-      }, [anchorRef, p.stage, p.label]);
-      if (!pos) return null;
-      return e('div', {
-        className: 'dss-bubble dss-progress',
-        style: { width: pos.width + 'px', left: pos.left + 'px', top: pos.top + 'px', transform: 'translateY(-100%)', transition: 'none' },
-      }, e('div', { className: 'dss-progress-head' },
-        e('span', { className: 'dss-progress-label' }, '⟳ ' + (p.label || '同步中…')),
-        p.startedAt ? e(ElapsedText, { startedAt: p.startedAt, className: 'dss-progress-time' }) : null),
-        p.transfer ? e(TransferLine, { t: p.transfer }) : null);
     }
 
     // Shared request for the sidebar and settings; never poll alongside sync progress.

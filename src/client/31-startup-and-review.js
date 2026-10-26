@@ -43,15 +43,6 @@
         quiet ? e('div', { className: 'dss-startup-meta', role: 'status' }, '20 秒未收到新进度。') : null,
         p.startedAt ? e('div', { className: 'dss-startup-meta' }, e(ElapsedText, { startedAt: p.startedAt, prefix: '本轮已用时 ' })) : null);
     }
-    function StartupReview({ review }) {
-      const download = review?.direction === 'download';
-      const counts = review?.counts;
-      return e('div', { className: 'dss-startup-panel', role: 'region', 'aria-label': '本次同步影响' },
-        e('strong', null, download ? '将取回其他电脑的数据' : '将上传本机的变化'),
-        counts ? e('div', { className: 'dss-startup-counts' }, ...[['added', '新增'], ['modified', '修改'], ['deleted', '删除']].map(([key, label]) => e('div', { key }, e('b', null, counts[key] || 0), e('span', null, label)))) : null,
-        e('div', null, review?.executable?.length ? '其中包含插件或运行设置，需要你确认后再同步。' : review?.reasons?.join('；') || '请确认这次同步的内容。'),
-        e('details', null, e('summary', null, '查看具体文件'), e('p', null, review?.summary || '请查看本次同步的内容。')));
-    }
     function WorkspaceHistoryRepair({ workspaceId }) {
       const [preview, setPreview] = useState(null), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
       const run = async () => {

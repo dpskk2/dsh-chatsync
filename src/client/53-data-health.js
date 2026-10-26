@@ -1,14 +1,3 @@
-    function LocalPreview({ busy }) {
-      const [preview, setPreview] = useState(null), [error, setError] = useState('');
-      const inspect = () => API.preview().then(d => { if (!d.ok) throw new Error(d.error); setPreview(d); setError(''); }).catch(err => setError(err.message || String(err)));
-      return e('details', { className: 'dss-sec' }, e('summary', { className: 'dss-h' }, '本机待同步内容'),
-        e('div', { className: 'dss-desc' }, '仅本机，未连接远端'),
-        e('button', { type: 'button', className: 'dss-pill', disabled: busy, onClick: inspect }, '预览本机改动'),
-        error ? e('div', { className: 'dss-err', role: 'alert' }, error) : null,
-        preview ? e('div', null, e('div', { className: 'dss-desc' }, preview.hint), (preview.scopes || []).map((scope, i) =>
-          e('div', { key: i, className: 'dss-desc' }, (scope.kind === 'main' ? '会话、附件与设置' : '项目文件') + '：新增 ' + scope.added + '，修改 ' + scope.modified + '，删除 ' + scope.deleted))) : null);
-    }
-
     function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, grouping = false }) {
       const [scan, setScan] = useState(null), [preview, setPreview] = useState(null);
       const previewRef = useRef(null);
@@ -116,37 +105,32 @@
         message ? e('p', { role: 'status' }, message) : null);
     }
 
-    const groupingListeners = new Set();
-    function showGroupingRepair() { for (const listener of groupingListeners) listener(); }
     function GroupingRepairOverlay() {
       const [notice, setNotice] = useState(null), [error, setError] = useState('');
       const seen = useRef({ candidate: '', dismissed: '' }), dialog = useRef(null);
       useEffect(() => {
         let alive = true, checking = false;
-        const check = async (manual = false) => {
+        const check = async () => {
           if (checking) return;
           checking = true;
           try {
             const d = await API.grouping(); if (!alive || !d.ok) return;
             if (!d.count) {
               seen.current = { candidate: '', dismissed: '' }; setNotice(null);
-              if (manual) bubble(null, d.ordinaryCount || d.archivedCount ? '没有需要修复的会话。正常未分组 ' + (d.ordinaryCount || 0) + ' 个，未分组中的归档会话 ' + (d.archivedCount || 0) + ' 个。' : '没有需要修复的未分组会话', true);
               return;
             }
             const stable = seen.current.candidate === d.signature;
             seen.current.candidate = d.signature;
-            if (!manual && (!d.enabled || d.busy || !stable || seen.current.dismissed === d.signature)) return;
+            if (!d.enabled || d.busy || !stable || seen.current.dismissed === d.signature) return;
             // Defer while another native dialog is open, preserving its input.
             if (typeof document !== 'undefined' && document.querySelector('dialog[open]') && !dialog.current?.open) return;
             setNotice(d);
-            if (manual) setError('');
           } catch { /* Retry the local diagnosis on the next poll. */ }
           finally { checking = false; }
         };
-        const manual = () => check(true);
-        groupingListeners.add(manual); check();
+        check();
         const timer = setInterval(check, 5000);
-        return () => { alive = false; clearInterval(timer); groupingListeners.delete(manual); };
+        return () => { alive = false; clearInterval(timer); };
       }, []);
       useEffect(() => {
         if (!notice || !dialog.current) return;

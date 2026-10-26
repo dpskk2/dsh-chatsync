@@ -25,7 +25,7 @@ export default [
     // The browser bundle is a plain script registered through the host module loader.
     files: ['lib/client.js'],
     languageOptions: { sourceType: 'script', globals: { ...globals.browser } },
-    // Some components are only reached by tests; removing them awaits a maintainer decision.
-    rules: { 'no-unused-vars': 'off' },
+    // `exports` is part of the module loader's factory boilerplate.
+    rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', varsIgnorePattern: '^(_|exports$)' }] },
   },
 ];

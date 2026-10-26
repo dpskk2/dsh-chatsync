@@ -38,6 +38,18 @@ test('host registers three read-only tools, without transmitting content or chan
   assert.deepEqual(fs.readdirSync(path.join(home, '.dsh-sync-hosts')), [process.pid + '.json']);
 });
 
+test('a host without the web server keeps the plugin and its read-only tools running', t => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-noweb-'));
+  const cleanup = [], tools = new Map(), warnings = [];
+  t.after(() => { cleanup.reverse().forEach(fn => fn()); fs.rmSync(home, { recursive: true, force: true }); });
+  fs.writeFileSync(path.join(home, 'dsh-sync.json'), JSON.stringify({ mode: 'manual', autoRepo: false, autoPullOnStart: false, autoPushOnExit: false }));
+  assert.doesNotThrow(() => apply({ tools: { register(tool) { tools.set(tool.name, tool); return () => tools.delete(tool.name); } },
+    on() { return () => {}; }, effect(fn) { cleanup.push(fn()); },
+    logger: { info() {}, warn(line) { warnings.push(line); }, debug() {} } }, { home, patches: false }));
+  assert.equal(tools.size, 3);
+  assert.ok(warnings.some(line => line.includes('webServer 不可用')));
+});
+
 test('standalone diagnostic flags do not sync even with automatic repository defaults', t => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-cli-doctor-'));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));

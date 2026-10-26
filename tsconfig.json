@@ -1,0 +1,19 @@
+{
+  // Type checking only (npm run typecheck); nothing is compiled or shipped.
+  // JSDoc carries the types. Strict mode is off: the goal is catching wrong
+  // property names, argument counts and call shapes, not annotating every value.
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false,
+    "target": "es2024",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"],
+    "skipLibCheck": true
+  },
+  "include": ["lib/**/*.js", "lib/**/*.mjs", "types/**/*.d.ts"],
+  // The browser bundle runs in the host page; js-yaml is vendored as published.
+  "exclude": ["lib/client.js", "lib/vendor/**"]
+}

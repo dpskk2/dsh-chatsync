@@ -26,7 +26,7 @@ function fixture(t) {
 }
 const missingCli = () => ({ code: -1, err: 'Error: spawn gh ENOENT' });
 const loggedOut = () => ({ code: 1, err: 'To get started with GitHub CLI, please run:  gh auth login' });
-const account = (view) => args => (args[0] === 'api' ? { out: 'alice\n' } : view(args));
+const account = view => args => (args[0] === 'api' ? { out: 'alice\n' } : view(args));
 
 test('manual first sync without a GitHub account explains why nothing was uploaded', async t => {
   for (const [label, respond, expected] of [
@@ -76,11 +76,14 @@ test('the transport mirror never creates or reuses a repository on its own', asy
 
 test('a successful setup clears the earlier reason', async t => {
   let available = false;
-  fakeGh(t, args => (!available ? missingCli() : args[0] === 'api' ? { out: 'alice\n' } : { out: '{"visibility":"PRIVATE"}' }));
+  fakeGh(t, args =>
+    !available ? missingCli() : args[0] === 'api' ? { out: 'alice\n' } : { out: '{"visibility":"PRIVATE"}' },
+  );
   const engine = fixture(t);
   await engine.bootstrapRemote({ repoName: 'dsh-sync' }, { automatic: true });
   assert.notEqual(engine.remoteNotice(), '');
-  available = true; engine._bootstrapAt = 0;
+  available = true;
+  engine._bootstrapAt = 0;
   assert.equal(await engine.bootstrapRemote({ repoName: 'dsh-sync' }), 'https://github.com/alice/dsh-sync.git');
   assert.equal(engine.remoteNotice(), '');
 });
@@ -88,9 +91,19 @@ test('a successful setup clears the earlier reason', async t => {
 test('checking the default backup reports the account and whether dsh-sync will be reused or created', async t => {
   for (const [label, respond, ok, expected] of [
     ['reuse', account(() => ({ out: '{"visibility":"PRIVATE"}' })), true, /将复用 alice\/dsh-sync/],
-    ['create', account(() => ({ code: 1, err: 'GraphQL: Could not resolve to a Repository with the name alice/dsh-sync' })), true, /将在首次同步时创建 alice\/dsh-sync/],
+    [
+      'create',
+      account(() => ({ code: 1, err: 'GraphQL: Could not resolve to a Repository with the name alice/dsh-sync' })),
+      true,
+      /将在首次同步时创建 alice\/dsh-sync/,
+    ],
     ['public', account(() => ({ out: '{"visibility":"PUBLIC"}' })), false, /不是私有仓库/],
-    ['offline', account(() => ({ code: 1, err: 'dial tcp: lookup api.github.com: no such host' })), false, /连接 GitHub 失败/],
+    [
+      'offline',
+      account(() => ({ code: 1, err: 'dial tcp: lookup api.github.com: no such host' })),
+      false,
+      /连接 GitHub 失败/,
+    ],
     ['CLI missing', missingCli, false, /未找到 GitHub CLI/],
     ['logged out', loggedOut, false, /尚未登录或登录已失效/],
   ]) {
@@ -100,7 +113,10 @@ test('checking the default backup reports the account and whether dsh-sync will 
       const result = await checkDefaultBackup(engine);
       assert.equal(result.ok, ok, JSON.stringify(result));
       assert.match(result.message, expected);
-      assert.ok(calls.every(args => !(args[0] === 'repo' && args[1] === 'create')), 'checking never creates a repository');
+      assert.ok(
+        calls.every(args => !(args[0] === 'repo' && args[1] === 'create')),
+        'checking never creates a repository',
+      );
       assert.equal(fs.existsSync(engine.configPath()), false, 'checking never changes the configuration');
       assert.equal(fs.existsSync(path.join(engine.home, '.git')), false);
     });
@@ -118,19 +134,45 @@ test('checking the default backup lets the next manual sync retry immediately', 
 
 function host(t) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-default-backup-api-'));
-  const routes = new Map(), cleanup = [];
-  t.after(() => { cleanup.reverse().forEach(fn => fn()); removeFixture(home); });
-  fs.writeFileSync(path.join(home, 'dsh-sync.json'), JSON.stringify({ mode: 'manual', autoPullOnStart: false, autoPushOnExit: false, enabled: true }));
-  apply({
-    webServer: { register(route) { routes.set(route.path, route.handler); return () => routes.delete(route.path); } },
-    on() { return () => {}; },
-    effect(fn) { cleanup.push(fn()); },
-    logger: { info() {}, warn() {}, debug() {} },
-  }, { home, patches: false });
-  return endpoint => new Promise(resolve => {
-    const req = new EventEmitter(); req.method = 'GET';
-    routes.get('/dsh-sync/api/' + endpoint)(req, { writeHead() {}, end(value) { resolve(JSON.parse(value)); } });
+  const routes = new Map(),
+    cleanup = [];
+  t.after(() => {
+    cleanup.reverse().forEach(fn => fn());
+    removeFixture(home);
   });
+  fs.writeFileSync(
+    path.join(home, 'dsh-sync.json'),
+    JSON.stringify({ mode: 'manual', autoPullOnStart: false, autoPushOnExit: false, enabled: true }),
+  );
+  apply(
+    {
+      webServer: {
+        register(route) {
+          routes.set(route.path, route.handler);
+          return () => routes.delete(route.path);
+        },
+      },
+      on() {
+        return () => {};
+      },
+      effect(fn) {
+        cleanup.push(fn());
+      },
+      logger: { info() {}, warn() {}, debug() {} },
+    },
+    { home, patches: false },
+  );
+  return endpoint =>
+    new Promise(resolve => {
+      const req = new EventEmitter();
+      req.method = 'GET';
+      routes.get('/dsh-sync/api/' + endpoint)(req, {
+        writeHead() {},
+        end(value) {
+          resolve(JSON.parse(value));
+        },
+      });
+    });
 }
 
 test('status and the connection check endpoint expose why the default backup is not connected', async t => {

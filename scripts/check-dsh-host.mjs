@@ -15,7 +15,9 @@ const children = new Set();
 const stop = child => {
   if (child.exitCode !== null) return;
   if (process.platform === 'win32') {
-    try { execFileSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch {}
+    try {
+      execFileSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
+    } catch {}
   } else child.kill('SIGTERM');
 };
 async function boot(home) {
@@ -23,22 +25,37 @@ async function boot(home) {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const port = server.address().port;
   await new Promise(resolve => server.close(resolve));
-  const child = spawn(process.execPath, [path.join(dshRoot, 'lib/bin.js'), 'web', '--no-open', '--host', '127.0.0.1', '--port', String(port)], {
-    cwd: home, env: { ...process.env, DSH_HOME: home }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  const child = spawn(
+    process.execPath,
+    [path.join(dshRoot, 'lib/bin.js'), 'web', '--no-open', '--host', '127.0.0.1', '--port', String(port)],
+    {
+      cwd: home,
+      env: { ...process.env, DSH_HOME: home },
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
   children.add(child);
   let log = '';
-  for (const stream of [child.stdout, child.stderr]) stream.on('data', data => { log += data; });
+  for (const stream of [child.stdout, child.stderr])
+    stream.on('data', data => {
+      log += data;
+    });
   const request = async (endpoint, body) => {
     const response = await fetch(`http://127.0.0.1:${port}/dsh-sync/api/${endpoint}`, {
-      method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' },
-      body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(3000),
+      method: body ? 'POST' : 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(3000),
     });
     return response.json();
   };
   // A fresh profile may need more than 20 seconds to initialize on Windows.
   for (let i = 0; i < 240; i++) {
-    try { const status = await request('status'); if (status.ok) return { child, request, status }; } catch {}
+    try {
+      const status = await request('status');
+      if (status.ok) return { child, request, status };
+    } catch {}
     if (child.exitCode !== null) break;
     await new Promise(resolve => setTimeout(resolve, 250));
   }
@@ -53,10 +70,29 @@ try {
     fs.mkdirSync(path.dirname(installed), { recursive: true });
     fs.symlinkSync(repo, installed, process.platform === 'win32' ? 'junction' : 'dir');
     const version = JSON.parse(fs.readFileSync(path.join(repo, 'package.json'), 'utf8')).version;
-    fs.writeFileSync(path.join(profile, 'package.json'), JSON.stringify({ name: 'chatsync-test-profile', private: true, dependencies: { '@dpskk2/dsh-chatsync': version }, dsh: { profile: { bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', '@dpskk2/dsh-chatsync'] } } }));
+    fs.writeFileSync(
+      path.join(profile, 'package.json'),
+      JSON.stringify({
+        name: 'chatsync-test-profile',
+        private: true,
+        dependencies: { '@dpskk2/dsh-chatsync': version },
+        dsh: { profile: { bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', '@dpskk2/dsh-chatsync'] } },
+      }),
+    );
     fs.writeFileSync(path.join(profile, 'cordis.yml'), '[]\n');
     fs.writeFileSync(path.join(profile, 'cordis.patch.yml'), '[]\n');
-    fs.writeFileSync(path.join(home, 'dsh-sync.json'), JSON.stringify({ mode: 'manual', autoRepo: false, remote: '', workspaceSync: false, autoPullOnStart: false, autoPushOnExit: false, patches: false }));
+    fs.writeFileSync(
+      path.join(home, 'dsh-sync.json'),
+      JSON.stringify({
+        mode: 'manual',
+        autoRepo: false,
+        remote: '',
+        workspaceSync: false,
+        autoPullOnStart: false,
+        autoPushOnExit: false,
+        patches: false,
+      }),
+    );
     let host = await boot(home);
     assert.equal(host.status.mode, 'manual');
     assert.equal(host.status.restartAvailable, false);

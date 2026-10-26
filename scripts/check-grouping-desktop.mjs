@@ -8,9 +8,15 @@ import { profile, bootHost, stopHost, repo } from './native-fixture.mjs';
 
 const installation = path.join(process.env.LOCALAPPDATA, 'Programs/DeepSeek Harness');
 if (!process.versions.electron) {
-  const child = spawn(path.join(installation, 'DeepSeek Harness.exe'), ['--expose-internals', fileURLToPath(import.meta.url)],
-    { windowsHide: true, env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: 'inherit' });
-  process.exitCode = await new Promise((resolve, reject) => { child.once('exit', resolve); child.once('error', reject); });
+  const child = spawn(
+    path.join(installation, 'DeepSeek Harness.exe'),
+    ['--expose-internals', fileURLToPath(import.meta.url)],
+    { windowsHide: true, env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: 'inherit' },
+  );
+  process.exitCode = await new Promise((resolve, reject) => {
+    child.once('exit', resolve);
+    child.once('error', reject);
+  });
 } else {
   const out = process.env.DSH_GROUPING_REPORT_DIR || path.join(repo, 'outputs/startup-repair-20261022');
   fs.mkdirSync(out, { recursive: true });
@@ -18,11 +24,25 @@ if (!process.versions.electron) {
   const root = profile(home, ['@chatsync/grouping-fixture'], 'desktop');
   const driver = path.join(root, 'node_modules/@chatsync/grouping-fixture');
   fs.mkdirSync(driver, { recursive: true });
-  fs.writeFileSync(path.join(driver, 'package.json'), JSON.stringify({ name: '@chatsync/grouping-fixture', version: '1.0.0', type: 'module', main: './index.js', dsh: { bundle: { patch: './cordis.patch.yml' } } }));
-  fs.writeFileSync(path.join(driver, 'cordis.patch.yml'), '- insert:\n    - id: grouping-fixture\n      name: "@chatsync/grouping-fixture"\n');
+  fs.writeFileSync(
+    path.join(driver, 'package.json'),
+    JSON.stringify({
+      name: '@chatsync/grouping-fixture',
+      version: '1.0.0',
+      type: 'module',
+      main: './index.js',
+      dsh: { bundle: { patch: './cordis.patch.yml' } },
+    }),
+  );
+  fs.writeFileSync(
+    path.join(driver, 'cordis.patch.yml'),
+    '- insert:\n    - id: grouping-fixture\n      name: "@chatsync/grouping-fixture"\n',
+  );
   const syncURL = pathToFileURL(path.join(repo, 'lib/sync.js')).href;
   const groupingURL = pathToFileURL(path.join(repo, 'lib/host-grouping.js')).href;
-  fs.writeFileSync(path.join(driver, 'index.js'), `
+  fs.writeFileSync(
+    path.join(driver, 'index.js'),
+    `
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -61,26 +81,49 @@ export function apply(ctx){
  }catch(e){reply(res,{ok:false,error:e.stack})}}}));
  ctx.effect(()=>ctx.webServer.register({kind:'exact',path:'/grouping/state',handler:(req,res)=>reply(res,{ok:true,state:engine.hostGroupingState(),count:engine.ungroupedSessionIds().length})}));
 }
-`);
+`,
+  );
   const runtime = path.join(installation, 'resources/app.asar/dsh');
-  const boot = () => bootHost(path.join(runtime, 'node_modules/@deepseek-ai/dsh'), home, '/grouping/state',
-    { desktopRuntime: runtime, env: { USERPROFILE: path.join(home, 'user'), HOME: path.join(home, 'user') } });
+  const boot = () =>
+    bootHost(path.join(runtime, 'node_modules/@deepseek-ai/dsh'), home, '/grouping/state', {
+      desktopRuntime: runtime,
+      env: { USERPROFILE: path.join(home, 'user'), HOME: path.join(home, 'user') },
+    });
   let host;
   try {
     host = await boot();
     const before = await host.request('/grouping/create');
-    assert.equal(before.ok,true,JSON.stringify(before)); assert.equal(before.count,1);
-    assert.deepEqual(before.state.refreshableIds,[before.id]); assert.equal(before.target,'desktop');
-    assert.equal(before.busy,false); assert.equal(before.idle,true); assert.equal(before.scheduled,1);
-    assert.equal(before.archived.count,0);
-    assert.equal(before.unarchived.count,0); assert.equal(before.unarchived.ordinaryCount,1); assert.equal(before.unarchived.issueKey,null);
-    assert.equal(before.unarchived.refreshOnly,false); assert.equal(before.noAutomaticClose,true);
-    stopHost(host.child); host = await boot();
+    assert.equal(before.ok, true, JSON.stringify(before));
+    assert.equal(before.count, 1);
+    assert.deepEqual(before.state.refreshableIds, [before.id]);
+    assert.equal(before.target, 'desktop');
+    assert.equal(before.busy, false);
+    assert.equal(before.idle, true);
+    assert.equal(before.scheduled, 1);
+    assert.equal(before.archived.count, 0);
+    assert.equal(before.unarchived.count, 0);
+    assert.equal(before.unarchived.ordinaryCount, 1);
+    assert.equal(before.unarchived.issueKey, null);
+    assert.equal(before.unarchived.refreshOnly, false);
+    assert.equal(before.noAutomaticClose, true);
+    stopHost(host.child);
+    host = await boot();
     const after = await host.request('/grouping/state');
-    assert.equal(after.ok,true); assert.equal(after.count,0); assert.deepEqual(after.state.refreshableIds,[]);
-    const result={ok:true,node:process.versions.node,electron:process.versions.electron,before,after,
-      boundary:'Actual installed Desktop Host services; synthetic home; restart scheduling stubbed; host stopped/reopened by fixture; daily app untouched'};
-    fs.writeFileSync(path.join(out,'native-grouping-result.json'),JSON.stringify(result,null,2));
+    assert.equal(after.ok, true);
+    assert.equal(after.count, 0);
+    assert.deepEqual(after.state.refreshableIds, []);
+    const result = {
+      ok: true,
+      node: process.versions.node,
+      electron: process.versions.electron,
+      before,
+      after,
+      boundary:
+        'Actual installed Desktop Host services; synthetic home; restart scheduling stubbed; host stopped/reopened by fixture; daily app untouched',
+    };
+    fs.writeFileSync(path.join(out, 'native-grouping-result.json'), JSON.stringify(result, null, 2));
     console.log(JSON.stringify(result));
-  } finally { if(host)stopHost(host.child); }
+  } finally {
+    if (host) stopHost(host.child);
+  }
 }

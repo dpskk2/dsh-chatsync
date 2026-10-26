@@ -6,19 +6,41 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { profile, bootHost, stopHost, repo } from './native-fixture.mjs';
 
-const installation=path.join(process.env.LOCALAPPDATA,'Programs/DeepSeek Harness');
-if(!process.versions.electron){
-  const child=spawn(path.join(installation,'DeepSeek Harness.exe'),['--expose-internals',fileURLToPath(import.meta.url)],
-    {windowsHide:true,env:{...process.env,ELECTRON_RUN_AS_NODE:'1'},stdio:'inherit'});
-  process.exitCode=await new Promise((resolve,reject)=>{child.on('exit',resolve);child.on('error',reject);});
-}else{
-  const out=path.join(repo,'outputs/conflict-ui-20261022');fs.mkdirSync(out,{recursive:true});
-  const home=path.join(out,'native-home-'+Date.now());
-  const root=profile(home,['@chatsync/relocation-proof'],'desktop');
-  const driver=path.join(root,'node_modules/@chatsync/relocation-proof');fs.mkdirSync(driver,{recursive:true});
-  fs.writeFileSync(path.join(driver,'package.json'),JSON.stringify({name:'@chatsync/relocation-proof',version:'1.0.0',type:'module',main:'./index.js',dsh:{bundle:{patch:'./cordis.patch.yml'}}}));
-  fs.writeFileSync(path.join(driver,'cordis.patch.yml'),'- insert:\n    - id: relocation-proof\n      name: "@chatsync/relocation-proof"\n');
-  fs.writeFileSync(path.join(driver,'index.js'),`
+const installation = path.join(process.env.LOCALAPPDATA, 'Programs/DeepSeek Harness');
+if (!process.versions.electron) {
+  const child = spawn(
+    path.join(installation, 'DeepSeek Harness.exe'),
+    ['--expose-internals', fileURLToPath(import.meta.url)],
+    { windowsHide: true, env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: 'inherit' },
+  );
+  process.exitCode = await new Promise((resolve, reject) => {
+    child.on('exit', resolve);
+    child.on('error', reject);
+  });
+} else {
+  const out = path.join(repo, 'outputs/conflict-ui-20261022');
+  fs.mkdirSync(out, { recursive: true });
+  const home = path.join(out, 'native-home-' + Date.now());
+  const root = profile(home, ['@chatsync/relocation-proof'], 'desktop');
+  const driver = path.join(root, 'node_modules/@chatsync/relocation-proof');
+  fs.mkdirSync(driver, { recursive: true });
+  fs.writeFileSync(
+    path.join(driver, 'package.json'),
+    JSON.stringify({
+      name: '@chatsync/relocation-proof',
+      version: '1.0.0',
+      type: 'module',
+      main: './index.js',
+      dsh: { bundle: { patch: './cordis.patch.yml' } },
+    }),
+  );
+  fs.writeFileSync(
+    path.join(driver, 'cordis.patch.yml'),
+    '- insert:\n    - id: relocation-proof\n      name: "@chatsync/relocation-proof"\n',
+  );
+  fs.writeFileSync(
+    path.join(driver, 'index.js'),
+    `
 import fs from 'node:fs';import path from 'node:path';import {randomUUID,createHash} from 'node:crypto';
 export const inject=['webServer','sessions','sessionPersistence','sessionQuery','workspaceRegistry'];
 const hash=b=>createHash('sha256').update(b).digest('hex');
@@ -39,24 +61,60 @@ res.end(JSON.stringify({ok:true,archived:ctx.workspaceRegistry.archivedSessionId
  targetCwd:target.session.cwd,parentSession:target.session.parentSession,targetEvents:target.events.length,sourceEvents:source.events.length,
  targetMembers:ctx.workspaceRegistry.list().find(w=>w.id===body.workspaceId)?.sessionIds}));
 }catch(e){res.end(JSON.stringify({ok:false,error:e.stack}));}}}));}
-`);
-  const runtime=path.join(installation,'resources/app.asar/dsh');let host;
-  try{
-    host=await bootHost('',home,'/dsh-sync/api/status',{desktopRuntime:runtime});
-    const initial=await host.request('/relocation-proof',{action:'create'});assert.equal(initial.ok,true,JSON.stringify(initial));
-    const scan=await host.request('/dsh-sync/api/data-health/scan');
-    const issue=scan.issues.find(i=>i.kind==='relocate'&&i.sessionId===initial.sourceId);assert.ok(issue,JSON.stringify(scan));
-    const preview=await host.request('/dsh-sync/api/data-health/preview',{key:issue.key});assert.equal(preview.ok,true,JSON.stringify(preview));
-    const body={recoveryId:preview.recoveryId,expectedHash:preview.expectedHash,workspaceId:initial.workspaceId,archiveSource:true};
-    const imported=await host.request('/dsh-sync/api/data-health/import',body);assert.equal(imported.ok,true,JSON.stringify(imported));assert.equal(imported.archivedSource,true);
-    const verify=await host.request('/relocation-proof',{...initial,targetId:imported.sessionId});assert.equal(verify.ok,true,JSON.stringify(verify));
-    assert.equal(verify.sourceHash,verify.targetPrefixHash);assert.equal(verify.archived,true);assert.equal(verify.parentSession,initial.sourceId);assert.deepEqual(verify.targetMembers,[imported.sessionId]);
-    const retry=await host.request('/dsh-sync/api/data-health/import',body);assert.equal(retry.ok,true,JSON.stringify(retry));assert.equal(retry.sessionId,imported.sessionId);
-    const after=await host.request('/dsh-sync/api/data-health/scan');assert.equal(after.issues.length,0,JSON.stringify(after));
-    stopHost(host.child);host=await bootHost('',home,'/dsh-sync/api/status',{desktopRuntime:runtime});
-    const reopened=await host.request('/dsh-sync/api/data-health/scan');assert.equal(reopened.issues.length,0,JSON.stringify(reopened));
-    const persisted=await host.request('/relocation-proof',{...initial,targetId:imported.sessionId});assert.equal(persisted.sourceHash,persisted.targetPrefixHash);assert.equal(persisted.archived,true);
-    const result={ok:true,initial,imported,verify,retry,reopened,persisted,node:process.versions.node,electron:process.versions.electron};
-    fs.writeFileSync(path.join(out,'native-relocation-result.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result));
-  }finally{if(host)stopHost(host.child);}
+`,
+  );
+  const runtime = path.join(installation, 'resources/app.asar/dsh');
+  let host;
+  try {
+    host = await bootHost('', home, '/dsh-sync/api/status', { desktopRuntime: runtime });
+    const initial = await host.request('/relocation-proof', { action: 'create' });
+    assert.equal(initial.ok, true, JSON.stringify(initial));
+    const scan = await host.request('/dsh-sync/api/data-health/scan');
+    const issue = scan.issues.find(i => i.kind === 'relocate' && i.sessionId === initial.sourceId);
+    assert.ok(issue, JSON.stringify(scan));
+    const preview = await host.request('/dsh-sync/api/data-health/preview', { key: issue.key });
+    assert.equal(preview.ok, true, JSON.stringify(preview));
+    const body = {
+      recoveryId: preview.recoveryId,
+      expectedHash: preview.expectedHash,
+      workspaceId: initial.workspaceId,
+      archiveSource: true,
+    };
+    const imported = await host.request('/dsh-sync/api/data-health/import', body);
+    assert.equal(imported.ok, true, JSON.stringify(imported));
+    assert.equal(imported.archivedSource, true);
+    const verify = await host.request('/relocation-proof', { ...initial, targetId: imported.sessionId });
+    assert.equal(verify.ok, true, JSON.stringify(verify));
+    assert.equal(verify.sourceHash, verify.targetPrefixHash);
+    assert.equal(verify.archived, true);
+    assert.equal(verify.parentSession, initial.sourceId);
+    assert.deepEqual(verify.targetMembers, [imported.sessionId]);
+    const retry = await host.request('/dsh-sync/api/data-health/import', body);
+    assert.equal(retry.ok, true, JSON.stringify(retry));
+    assert.equal(retry.sessionId, imported.sessionId);
+    const after = await host.request('/dsh-sync/api/data-health/scan');
+    assert.equal(after.issues.length, 0, JSON.stringify(after));
+    stopHost(host.child);
+    host = await bootHost('', home, '/dsh-sync/api/status', { desktopRuntime: runtime });
+    const reopened = await host.request('/dsh-sync/api/data-health/scan');
+    assert.equal(reopened.issues.length, 0, JSON.stringify(reopened));
+    const persisted = await host.request('/relocation-proof', { ...initial, targetId: imported.sessionId });
+    assert.equal(persisted.sourceHash, persisted.targetPrefixHash);
+    assert.equal(persisted.archived, true);
+    const result = {
+      ok: true,
+      initial,
+      imported,
+      verify,
+      retry,
+      reopened,
+      persisted,
+      node: process.versions.node,
+      electron: process.versions.electron,
+    };
+    fs.writeFileSync(path.join(out, 'native-relocation-result.json'), JSON.stringify(result, null, 2));
+    console.log(JSON.stringify(result));
+  } finally {
+    if (host) stopHost(host.child);
+  }
 }

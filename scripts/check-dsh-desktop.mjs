@@ -18,32 +18,65 @@ import { acceptFixturePreviews } from '../tests/helpers/reviewed-sync.mjs';
 
 if (process.platform !== 'win32') throw new Error('This acceptance requires Windows and an installed Desktop runtime');
 const args = process.argv.slice(2);
-const installation = path.resolve(args[0] && !args[0].startsWith('--') ? args.shift() : path.join(process.env.LOCALAPPDATA, 'Programs/DeepSeek Harness'));
-if (args.length && (args.length !== 2 || args[0] !== '--github-real')) throw new Error('Unknown Desktop acceptance arguments');
+const installation = path.resolve(
+  args[0] && !args[0].startsWith('--')
+    ? args.shift()
+    : path.join(process.env.LOCALAPPDATA, 'Programs/DeepSeek Harness'),
+);
+if (args.length && (args.length !== 2 || args[0] !== '--github-real'))
+  throw new Error('Unknown Desktop acceptance arguments');
 const githubRemote = args[0] === '--github-real' ? args[1] : null;
 const githubRepository = githubRemote && parseSyncRemote(githubRemote);
-if (githubRemote && (!githubRepository || githubRepository.provider !== 'github'
-    || !githubRemote.startsWith('https://github.com/') || !/^chatsync-acceptance-/.test(githubRepository.repo))) {
+if (
+  githubRemote &&
+  (!githubRepository ||
+    githubRepository.provider !== 'github' ||
+    !githubRemote.startsWith('https://github.com/') ||
+    !/^chatsync-acceptance-/.test(githubRepository.repo))
+) {
   throw new Error('--github-real requires a dedicated HTTPS GitHub chatsync-acceptance-* repository');
 }
 if (!process.versions.electron) {
-  const child = spawn(path.join(installation, 'DeepSeek Harness.exe'), ['--expose-internals', fileURLToPath(import.meta.url), installation, ...args],
-    { windowsHide: true, env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: 'inherit' });
+  const child = spawn(
+    path.join(installation, 'DeepSeek Harness.exe'),
+    ['--expose-internals', fileURLToPath(import.meta.url), installation, ...args],
+    { windowsHide: true, env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: 'inherit' },
+  );
   // Only this invocation's owned process tree is stopped on timeout or interruption.
-  const timeout = setTimeout(() => { stopHost(child); process.exitCode = 1; }, 8 * 60 * 1000);
-  process.once('SIGINT', () => { stopHost(child); process.exitCode = 1; });
-  const code = await new Promise((resolve, reject) => { child.once('exit', resolve); child.once('error', reject); });
-  clearTimeout(timeout); process.exitCode = code ?? 1;
+  const timeout = setTimeout(
+    () => {
+      stopHost(child);
+      process.exitCode = 1;
+    },
+    8 * 60 * 1000,
+  );
+  process.once('SIGINT', () => {
+    stopHost(child);
+    process.exitCode = 1;
+  });
+  const code = await new Promise((resolve, reject) => {
+    child.once('exit', resolve);
+    child.once('error', reject);
+  });
+  clearTimeout(timeout);
+  process.exitCode = code ?? 1;
 } else {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-desktop-native-'));
   const runtimeDir = path.join(installation, 'resources/app.asar/dsh');
   const dshRoot = path.join(runtimeDir, 'node_modules/@deepseek-ai/dsh');
   const resolver = createRequire(path.join(dshRoot, 'lib/bin.js'));
   const moduleURL = name => pathToFileURL(resolver.resolve(name)).href;
-  const evidence = { physicalMachines: 1, hostKind: 'desktop', electronVersion: process.versions.electron,
-    nodeVersion: process.versions.node, dshVersion: JSON.parse(fs.readFileSync(path.join(dshRoot, 'package.json'), 'utf8')).version,
+  const evidence = {
+    physicalMachines: 1,
+    hostKind: 'desktop',
+    electronVersion: process.versions.electron,
+    nodeVersion: process.versions.node,
+    dshVersion: JSON.parse(fs.readFileSync(path.join(dshRoot, 'package.json'), 'utf8')).version,
     remote: githubRemote || 'local bare Git; private-repository validator substituted only in acceptance',
-    concurrentHosts: false, electronWindowOpened: false, checks: [] };
+    concurrentHosts: false,
+    electronWindowOpened: false,
+    checks: [],
+  };
   let host;
   const homes = ['a', 'b'].map(name => path.join(root, name));
   try {
@@ -53,26 +86,58 @@ if (!process.versions.electron) {
     else {
       const probe = new SyncEngine(root, { remote, autoRepo: false });
       assert.equal((await probe.ghLogin())?.toLowerCase(), githubRepository.owner.toLowerCase());
-      const response = await probe.gh(['repo','view',githubRepository.fullName,'--json','nameWithOwner,visibility,description']);
+      const response = await probe.gh([
+        'repo',
+        'view',
+        githubRepository.fullName,
+        '--json',
+        'nameWithOwner,visibility,description',
+      ]);
       assert.equal(probe.ok(response), true);
       const metadata = JSON.parse(response.out);
       assert.equal(metadata.nameWithOwner.toLowerCase(), githubRepository.fullName.toLowerCase());
-      assert.equal(metadata.visibility, 'PRIVATE'); assert.match(metadata.description || '', /ChatSync synthetic acceptance/);
+      assert.equal(metadata.visibility, 'PRIVATE');
+      assert.match(metadata.description || '', /ChatSync synthetic acceptance/);
       assert.equal((await probe.verifyPrivateRemote(remote)).ok, true);
       probe.applyProxyEnv(probe.loadConfig());
-      const refs = await probe.git(['-c','credential.helper=','-c','credential.helper=!gh auth git-credential','ls-remote','--heads',remote,'refs/heads/'+branch]);
-      assert.equal(probe.ok(refs), true); assert.equal(refs.out.trim(), '');
+      const refs = await probe.git([
+        '-c',
+        'credential.helper=',
+        '-c',
+        'credential.helper=!gh auth git-credential',
+        'ls-remote',
+        '--heads',
+        remote,
+        'refs/heads/' + branch,
+      ]);
+      assert.equal(probe.ok(refs), true);
+      assert.equal(refs.out.trim(), '');
       evidence.branch = branch;
-      evidence.checks.push('Real GitHub API verifies dedicated private test repository ownership; new acceptance branch is empty; production validator retained');
+      evidence.checks.push(
+        'Real GitHub API verifies dedicated private test repository ownership; new acceptance branch is empty; production validator retained',
+      );
     }
     for (const home of homes) {
       const profileRoot = profile(home, ['@chatsync/desktop-fixture'], 'desktop');
       const driver = path.join(profileRoot, 'node_modules/@chatsync/desktop-fixture');
       fs.mkdirSync(driver, { recursive: true });
-      fs.writeFileSync(path.join(driver, 'package.json'), JSON.stringify({ name: '@chatsync/desktop-fixture', version: '1.0.0',
-        type: 'module', main: './index.js', dsh: { bundle: { patch: './cordis.patch.yml' } } }));
-      fs.writeFileSync(path.join(driver, 'cordis.patch.yml'), '- insert:\n    - id: chatsync-desktop-fixture\n      name: "@chatsync/desktop-fixture"\n');
-      fs.writeFileSync(path.join(driver, 'index.js'), `
+      fs.writeFileSync(
+        path.join(driver, 'package.json'),
+        JSON.stringify({
+          name: '@chatsync/desktop-fixture',
+          version: '1.0.0',
+          type: 'module',
+          main: './index.js',
+          dsh: { bundle: { patch: './cordis.patch.yml' } },
+        }),
+      );
+      fs.writeFileSync(
+        path.join(driver, 'cordis.patch.yml'),
+        '- insert:\n    - id: chatsync-desktop-fixture\n      name: "@chatsync/desktop-fixture"\n',
+      );
+      fs.writeFileSync(
+        path.join(driver, 'index.js'),
+        `
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
@@ -115,16 +180,27 @@ export function apply(ctx) {
     } catch(e){respond(res,{ok:false,error:e.message});}
   }}));
 }
-`);
+`,
+      );
     }
     const engines = homes.map(home => {
-      const engine = new SyncEngine(home, { remote, branch, autoRepo: false, patches: false, workspaceSync: false,
-        contentScope: { sessions: true, attachments: true, settings: false }, autoRestartAfterRepair: false });
+      const engine = new SyncEngine(home, {
+        remote,
+        branch,
+        autoRepo: false,
+        patches: false,
+        workspaceSync: false,
+        contentScope: { sessions: true, attachments: true, settings: false },
+        autoRestartAfterRepair: false,
+      });
       if (!githubRemote) engine.verifyPrivateRemote = async () => ({ ok: true });
       return acceptFixturePreviews(engine);
     });
-    const boot = home => bootHost(dshRoot, home, '/desktop-fixture/inspect', { desktopRuntime: runtimeDir,
-      env: { HOME: path.join(root, 'user'), USERPROFILE: path.join(root, 'user') } });
+    const boot = home =>
+      bootHost(dshRoot, home, '/desktop-fixture/inspect', {
+        desktopRuntime: runtimeDir,
+        env: { HOME: path.join(root, 'user'), USERPROFILE: path.join(root, 'user') },
+      });
     const synchronize = async engine => {
       const result = await engine.syncOnce('desktop-fixture', { forceCommit: true, offlineApply: true });
       assert.equal(result.error, undefined, JSON.stringify(result));
@@ -142,38 +218,65 @@ export function apply(ctx) {
       }
       const fixture = await host.request('/desktop-fixture/create', {});
       assert.equal(fixture.ok, true, JSON.stringify(fixture));
-      const request = { id: fixture.record.id, side: 'remote', expectedHash: fixture.record.versions.remote.sha256, workspaceId: fixture.workspaceId };
+      const request = {
+        id: fixture.record.id,
+        side: 'remote',
+        expectedHash: fixture.record.versions.remote.sha256,
+        workspaceId: fixture.workspaceId,
+      };
       const imported = await host.request('/dsh-sync/api/recovery/import-session', request);
       assert.equal(imported.ok, true, JSON.stringify(imported));
-      assert.notEqual(imported.sessionId, fixture.sourceId); assert.equal(imported.attachmentCount, 1);
+      assert.notEqual(imported.sessionId, fixture.sourceId);
+      assert.equal(imported.attachmentCount, 1);
       const repeated = await host.request('/dsh-sync/api/recovery/import-session', request);
       assert.equal(repeated.sessionId, imported.sessionId);
       assert.equal(digest(fs.readFileSync(path.join(homes[i], fixture.record.path))), fixture.originalHash);
       const inspection = await host.request('/desktop-fixture/inspect');
       assert.equal(inspection.ok, true, JSON.stringify(inspection));
       assert.deepEqual(inspection.tools.sort(), ['sync_doctor', 'sync_preview', 'sync_status']);
-      assert.ok(inspection.workspaces.find(w=>w.id===fixture.workspaceId).sessions.includes(imported.sessionId));
+      assert.ok(inspection.workspaces.find(w => w.id === fixture.workspaceId).sessions.includes(imported.sessionId));
       initial.push({ sourceId: fixture.sourceId, importedId: imported.sessionId });
-      evidence.checks.push(path.basename(homes[i]) + ': actual Desktop IPC ready, host identity, live-process repair refusal, public source/fork/readback, attachment, project, duplicate retry and three tools verified');
-      stopHost(host.child); host = undefined;
-      if (i === 0) { await synchronize(engines[0]); await synchronize(engines[1]); }
-      else { await synchronize(engines[1]); await synchronize(engines[0]); }
+      evidence.checks.push(
+        path.basename(homes[i]) +
+          ': actual Desktop IPC ready, host identity, live-process repair refusal, public source/fork/readback, attachment, project, duplicate retry and three tools verified',
+      );
+      stopHost(host.child);
+      host = undefined;
+      if (i === 0) {
+        await synchronize(engines[0]);
+        await synchronize(engines[1]);
+      } else {
+        await synchronize(engines[1]);
+        await synchronize(engines[0]);
+      }
     }
     const observed = [];
     for (const home of homes) {
       host = await boot(home);
       const value = await host.request('/desktop-fixture/inspect');
-      assert.equal(value.ok, true, JSON.stringify(value)); assert.equal(value.sessions.length, 4);
-      const registered = new Set(value.workspaces.flatMap(w=>w.sessions));
+      assert.equal(value.ok, true, JSON.stringify(value));
+      assert.equal(value.sessions.length, 4);
+      const registered = new Set(value.workspaces.flatMap(w => w.sessions));
       for (const session of value.sessions) assert.ok(registered.has(session.id));
-      observed.push(value.sessions.map(s=>[s.id,s.eventCount,s.eventHash,s.parentSession]).sort((a,b)=>a[0].localeCompare(b[0])));
-      stopHost(host.child); host = undefined;
+      observed.push(
+        value.sessions
+          .map(s => [s.id, s.eventCount, s.eventHash, s.parentSession])
+          .sort((a, b) => a[0].localeCompare(b[0])),
+      );
+      stopHost(host.child);
+      host = undefined;
     }
     assert.deepEqual(observed[0], observed[1]);
-    const attachments = home => fs.readdirSync(path.join(home, 'attachments'), {recursive:true}).filter(file=>fs.statSync(path.join(home,'attachments',file)).isFile())
-      .map(file=>[file.split(path.sep).join('/'),digest(fs.readFileSync(path.join(home,'attachments',file)))]).sort((a,b)=>a[0].localeCompare(b[0]));
+    const attachments = home =>
+      fs
+        .readdirSync(path.join(home, 'attachments'), { recursive: true })
+        .filter(file => fs.statSync(path.join(home, 'attachments', file)).isFile())
+        .map(file => [file.split(path.sep).join('/'), digest(fs.readFileSync(path.join(home, 'attachments', file)))])
+        .sort((a, b) => a[0].localeCompare(b[0]));
     assert.deepEqual(attachments(homes[0]), attachments(homes[1]));
-    evidence.checks.push('A upload → B read and add → A receive; both actual Desktop Hosts restart sequentially and publicly read identical four sessions, membership and attachment hashes');
+    evidence.checks.push(
+      'A upload → B read and add → A receive; both actual Desktop Hosts restart sequentially and publicly read identical four sessions, membership and attachment hashes',
+    );
     if (githubRemote) {
       const response = await engines[0].gh(['api', 'repos/' + githubRepository.fullName + '/git/ref/heads/' + branch]);
       assert.equal(engines[0].ok(response), true, 'GitHub API could not read the acceptance branch');
@@ -183,13 +286,21 @@ export function apply(ctx) {
       assert.match(local || '', /^[0-9a-f]{40,64}$/, 'Scoped transmission branch could not be read');
       assert.equal(local, githubCommit, 'GitHub must contain the exact checked transmission commit');
       evidence.githubCommit = githubCommit;
-      evidence.checks.push('Actual GitHub API reads the exact checked transmission commit; no local Git URL rewriting or private-validation substitute');
+      evidence.checks.push(
+        'Actual GitHub API reads the exact checked transmission commit; no local Git URL rewriting or private-validation substitute',
+      );
     }
     evidence.homes = homes;
-    fs.writeFileSync(path.join(root,'acceptance.json'),JSON.stringify(evidence,null,2));
-    console.log(JSON.stringify({ok:true,root,...evidence},null,2));
+    fs.writeFileSync(path.join(root, 'acceptance.json'), JSON.stringify(evidence, null, 2));
+    console.log(JSON.stringify({ ok: true, root, ...evidence }, null, 2));
   } catch (error) {
-    fs.writeFileSync(path.join(root,'acceptance-failed.json'),JSON.stringify({...evidence,error:error.message,stack:error.stack},null,2));
-    console.error(JSON.stringify({ok:false,root,error:error.message})); process.exitCode=1;
-  } finally { if(host) stopHost(host.child); }
+    fs.writeFileSync(
+      path.join(root, 'acceptance-failed.json'),
+      JSON.stringify({ ...evidence, error: error.message, stack: error.stack }, null, 2),
+    );
+    console.error(JSON.stringify({ ok: false, root, error: error.message }));
+    process.exitCode = 1;
+  } finally {
+    if (host) stopHost(host.child);
+  }
 }

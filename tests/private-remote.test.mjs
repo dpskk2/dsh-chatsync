@@ -23,7 +23,7 @@ test('missing Git produces an error outcome and never starts workspace sync', as
   assert.equal(engine.progress.stage, 'error');
 });
 
-test('auto setup refuses an existing public repository without saving remote', async (t) => {
+test('auto setup refuses an existing public repository without saving remote', async t => {
   const engine = fixture(t);
   engine.gh = async () => ({ code: 0, out: '{"visibility":"PUBLIC"}', err: '' });
   assert.equal(await engine.bootstrapRemote({ repoName: 'dsh-sync' }), null);
@@ -32,14 +32,14 @@ test('auto setup refuses an existing public repository without saving remote', a
   assert.match(outcome.error, /私有/);
 });
 
-test('auto setup refuses an unparseable visibility response', async (t) => {
+test('auto setup refuses an unparseable visibility response', async t => {
   const engine = fixture(t);
   engine.gh = async () => ({ code: 0, out: 'bad response', err: '' });
   assert.equal(await engine.bootstrapRemote({ repoName: 'dsh-sync' }), null);
   assert.equal(fs.existsSync(engine.configPath()), false);
 });
 
-test('manual remote verification fails closed and accepts private HTTPS or SSH', async (t) => {
+test('manual remote verification fails closed and accepts private HTTPS or SSH', async t => {
   const engine = fixture(t);
   engine.gh = async () => ({ code: 0, out: '{"visibility":"PUBLIC"}', err: '' });
   assert.ok((await engine.verifyPrivateRemote('https://github.com/alice/data.git')).error);
@@ -50,7 +50,7 @@ test('manual remote verification fails closed and accepts private HTTPS or SSH',
   assert.ok((await engine.verifyPrivateRemote('https://example.com/alice/data')).error);
 });
 
-test('sync aborts before initializing git if configured remote is not private', async (t) => {
+test('sync aborts before initializing git if configured remote is not private', async t => {
   const engine = fixture(t);
   fs.writeFileSync(engine.configPath(), JSON.stringify({ remote: 'https://github.com/alice/data.git' }));
   engine.gh = async () => ({ code: 0, out: '{"visibility":"PUBLIC"}', err: '' });
@@ -65,9 +65,17 @@ test('repository failures show their cause and stop before any local or remote w
     ['DNS', { code: 1, err: 'dial tcp: lookup api.github.com: no such host' }, /网络、代理或 DNS/],
     ['proxy', { code: 1, err: 'proxyconnect tcp: connection refused' }, /连接 GitHub 失败/],
     ['timeout', { code: null, err: '', timedOut: true }, /连接 GitHub 失败/],
-    ['logged out', { code: 1, err: 'To get started with GitHub CLI, please run: gh auth login' }, /尚未登录或登录已失效/],
+    [
+      'logged out',
+      { code: 1, err: 'To get started with GitHub CLI, please run: gh auth login' },
+      /尚未登录或登录已失效/,
+    ],
     ['expired token', { code: 1, err: 'HTTP 401: Bad credentials' }, /尚未登录或登录已失效/],
-    ['missing/private inaccessible', { code: 1, err: 'GraphQL: Could not resolve to a Repository' }, /地址及当前账号的访问权限/],
+    [
+      'missing/private inaccessible',
+      { code: 1, err: 'GraphQL: Could not resolve to a Repository' },
+      /地址及当前账号的访问权限/,
+    ],
     ['forbidden', { code: 1, err: 'HTTP 403: Resource not accessible by integration' }, /无法访问 GitHub 仓库/],
     ['rate limit', { code: 1, err: 'HTTP 403: API rate limit exceeded' }, /请求次数已达到限制/],
     ['CLI missing', { code: -1, err: 'spawn gh ENOENT' }, /未找到 GitHub CLI/],
@@ -80,7 +88,10 @@ test('repository failures show their cause and stop before any local or remote w
   for (const [label, result, expected] of cases) {
     await t.test(label, async t => {
       const engine = fixture(t);
-      fs.writeFileSync(engine.configPath(), JSON.stringify({ remote: 'https://github.com/alice/data.git', autoRepo: false }));
+      fs.writeFileSync(
+        engine.configPath(),
+        JSON.stringify({ remote: 'https://github.com/alice/data.git', autoRepo: false }),
+      );
       engine.gh = async () => ({ out: '', err: '', ...result });
       engine.git = async () => assert.fail('must not execute Git after a failed repository check');
       const outcome = await engine._mainSync('test');
@@ -124,16 +135,18 @@ test('auto setup still creates a private repository after a missing repository r
   assert.equal(JSON.parse(fs.readFileSync(engine.configPath())).remote, 'https://github.com/alice/dsh-sync.git');
 });
 
-test('failed main sync never starts workspace syncing', async (t) => {
+test('failed main sync never starts workspace syncing', async t => {
   const engine = fixture(t);
   fs.writeFileSync(engine.configPath(), JSON.stringify({ remote: 'https://github.com/alice/data.git' }));
   engine.gh = async () => ({ code: 0, out: '{"visibility":"PUBLIC"}', err: '' });
-  engine.syncAllWorkspaces = () => { throw new Error('workspace sync must not run'); };
+  engine.syncAllWorkspaces = () => {
+    throw new Error('workspace sync must not run');
+  };
   const outcome = await engine.syncOnce('test');
   assert.match(outcome.error, /私有/);
 });
 
-test('remote-head backup reports whether its branch reached the remote', async (t) => {
+test('remote-head backup reports whether its branch reached the remote', async t => {
   const engine = fixture(t);
   engine.git = async () => ({ code: 0, out: '', err: '' });
   engine.runWithRetry = async () => ({ code: 1, out: '', err: 'offline' });
@@ -144,7 +157,7 @@ test('remote-head backup reports whether its branch reached the remote', async (
   assert.equal((await engine.backupRemoteHead(null, null, 'abcdef')).pushed, true);
 });
 
-test('two backups within the same second retain separate readable Git branches', async (t) => {
+test('two backups within the same second retain separate readable Git branches', async t => {
   const engine = fixture(t);
   await engine.git(['init']);
   await engine.git(['config', 'user.name', 'test']);
@@ -157,7 +170,8 @@ test('two backups within the same second retain separate readable Git branches',
   t.mock.timers.enable({ apis: ['Date'], now: 1800000000000 });
   const first = await engine.backupRemoteHead(null, null, head);
   const second = await engine.backupRemoteHead(null, null, head);
-  assert.ok(first?.branch); assert.ok(second?.branch);
+  assert.ok(first?.branch);
+  assert.ok(second?.branch);
   assert.notEqual(first.branch, second.branch);
   for (const backup of [first, second]) {
     assert.equal(backup.pushed, false);

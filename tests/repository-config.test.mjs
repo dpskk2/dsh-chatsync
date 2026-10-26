@@ -19,7 +19,8 @@ test('repository setup notices external edits and replaces duplicate transport s
   const { engine, git } = fixture(t);
   const cfg = engine.loadConfig();
   assert.equal(await engine.ensureRepo(cfg), true);
-  const invoke = engine.git.bind(engine), writes = [];
+  const invoke = engine.git.bind(engine),
+    writes = [];
   engine.git = async (...args) => {
     if (args[0][0] === 'config' && args[0].includes('--replace-all')) writes.push(args[0]);
     return invoke(...args);
@@ -33,18 +34,22 @@ test('repository setup notices external edits and replaces duplicate transport s
   assert.equal(await engine.ensureRepo(cfg), true);
   assert.equal(git(['config', '--get', 'user.name']).trim(), cfg.gitUserName);
   assert.equal(git(['config', '--local', '--get-all', 'credential.helper']).trim(), 'manager');
-  assert.equal(git(['config', '--local', '--get-all', 'remote.origin.fetch']).trim(), '+refs/heads/main:refs/remotes/origin/main');
+  assert.equal(
+    git(['config', '--local', '--get-all', 'remote.origin.fetch']).trim(),
+    '+refs/heads/main:refs/remotes/origin/main',
+  );
   assert.equal(git(['config', '--get', 'unrelated.setting']).trim(), 'preserve this');
 });
 
 test('repository setup stops when required local configuration cannot be read or written', async t => {
   const { engine } = fixture(t);
-  const cfg = engine.loadConfig(), invoke = engine.git.bind(engine);
+  const cfg = engine.loadConfig(),
+    invoke = engine.git.bind(engine);
   assert.equal(await engine.ensureRepo(cfg), true);
-  engine.git = async (...args) => args[0].includes('--list')
-    ? { code: 1, out: '', err: 'injected unreadable config' } : invoke(...args);
+  engine.git = async (...args) =>
+    args[0].includes('--list') ? { code: 1, out: '', err: 'injected unreadable config' } : invoke(...args);
   assert.equal(await engine.ensureRepo(cfg), false);
-  engine.git = async (...args) => args[0].includes('--replace-all')
-    ? { code: 1, out: '', err: 'injected config lock' } : invoke(...args);
+  engine.git = async (...args) =>
+    args[0].includes('--replace-all') ? { code: 1, out: '', err: 'injected config lock' } : invoke(...args);
   assert.equal(await engine.ensureRepo({ ...cfg, gitUserName: 'changed identity' }), false);
 });

@@ -32,9 +32,18 @@ test('explicit plugin and environment proxies retain priority; bypass entries ar
 });
 
 test('Windows protocol-specific HTTP, HTTPS and SOCKS settings are interpreted without assuming a port', () => {
-  assert.deepEqual(parseWindowsProxy(registry('http=localhost:8080;https=localhost:8443')), { http: 'http://localhost:8080', https: 'http://localhost:8443' });
-  assert.deepEqual(parseWindowsProxy(registry('socks=localhost:1080')), { http: 'socks5://localhost:1080', https: 'socks5://localhost:1080' });
-  assert.deepEqual(parseWindowsProxy(registry('[::1]:7897')), { http: 'http://[::1]:7897', https: 'http://[::1]:7897' });
+  assert.deepEqual(parseWindowsProxy(registry('http=localhost:8080;https=localhost:8443')), {
+    http: 'http://localhost:8080',
+    https: 'http://localhost:8443',
+  });
+  assert.deepEqual(parseWindowsProxy(registry('socks=localhost:1080')), {
+    http: 'socks5://localhost:1080',
+    https: 'socks5://localhost:1080',
+  });
+  assert.deepEqual(parseWindowsProxy(registry('[::1]:7897')), {
+    http: 'http://[::1]:7897',
+    https: 'http://[::1]:7897',
+  });
   assert.deepEqual(parseWindowsProxy(registry('http://user:password@localhost:7897')), { http: '', https: '' });
   assert.deepEqual(parseWindowsProxy(' AutoConfigURL REG_SZ http://example.invalid/proxy.pac'), {});
 });
@@ -53,5 +62,13 @@ test('registry reads are bounded, hidden and Windows-only; failures do not break
   assert.equal(calls, 0);
   assert.equal(readWindowsProxy({ platform: 'win32', run }).https, 'http://localhost:8888');
   assert.deepEqual(readWindowsProxy({ platform: 'win32', run: () => ({ status: 1 }) }), {});
-  assert.deepEqual(readWindowsProxy({ platform: 'win32', run: () => { throw new Error('unavailable'); } }), {});
+  assert.deepEqual(
+    readWindowsProxy({
+      platform: 'win32',
+      run: () => {
+        throw new Error('unavailable');
+      },
+    }),
+    {},
+  );
 });

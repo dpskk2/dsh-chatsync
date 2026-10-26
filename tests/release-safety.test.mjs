@@ -14,13 +14,16 @@ function fixture(t) {
   // Only this newly created, isolated test directory is removed.
   t.after(() => removeFixture(root));
   const git = args => execFileSync('git', args, { cwd: root, stdio: 'pipe', windowsHide: true });
-  git(['init']); git(['config', 'user.name', 'Release gate fixture']);
-  git(['config', 'user.email', 'fixture@example.invalid']); git(['config', 'core.autocrlf', 'false']);
+  git(['init']);
+  git(['config', 'user.name', 'Release gate fixture']);
+  git(['config', 'user.email', 'fixture@example.invalid']);
+  git(['config', 'core.autocrlf', 'false']);
   const pkg = { version: '1.2.3', chatsyncBuild: 'fixture-only' };
   fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify(pkg));
   fs.writeFileSync(path.join(root, '.gitignore'), '/work/\n');
   fs.writeFileSync(path.join(root, 'source.mjs'), 'export const preserved = true;\n');
-  git(['add', '.']); git(['commit', '-m', 'fixture source']);
+  git(['add', '.']);
+  git(['commit', '-m', 'fixture source']);
   const evidenceDir = path.join(root, 'release-evidence', pkg.version);
   fs.mkdirSync(evidenceDir, { recursive: true });
   const report = JSON.stringify({ fixtureOnly: true, result: 'synthetic gate test; not product evidence' });
@@ -31,14 +34,19 @@ function fixture(t) {
   const manifest = template(pkg);
   manifest.sourceSha256 = sourceFingerprint(root);
   manifest.packageSha256 = digest(fs.readFileSync(packageFile));
-  for (const check of manifest.checks) Object.assign(check, {
-    status: 'passed', completedAt: '2020-01-01T00:00:00+08:00',
-    environment: 'isolated fixture', procedure: 'synthetic gate validation',
-    observed: 'fixture only', reviewer: 'test fixture',
-    artifacts: [{ path: 'release-evidence/1.2.3/report.json', sha256: digest(report) }],
-  });
+  for (const check of manifest.checks)
+    Object.assign(check, {
+      status: 'passed',
+      completedAt: '2020-01-01T00:00:00+08:00',
+      environment: 'isolated fixture',
+      procedure: 'synthetic gate validation',
+      observed: 'fixture only',
+      reviewer: 'test fixture',
+      artifacts: [{ path: 'release-evidence/1.2.3/report.json', sha256: digest(report) }],
+    });
   fs.writeFileSync(path.join(evidenceDir, 'manifest.json'), JSON.stringify(manifest));
-  git(['add', '.']); git(['commit', '-m', 'fixture evidence']);
+  git(['add', '.']);
+  git(['commit', '-m', 'fixture evidence']);
   return { root, git, manifest, packageFile, evidenceDir, errors: () => validateRelease(root, manifest, packageFile) };
 }
 
@@ -60,7 +68,10 @@ test('pending, failed, skipped, interrupted and missing checks block release', t
   const f = fixture(t);
   for (const status of ['pending', 'failed', 'skipped', 'interrupted', 'verification-pending']) {
     f.manifest.checks[0].status = status;
-    assert.ok(f.errors().some(error => error.includes('未通过')), status);
+    assert.ok(
+      f.errors().some(error => error.includes('未通过')),
+      status,
+    );
   }
   f.manifest.checks.shift();
   assert.ok(f.errors().some(error => error.includes('不完整')));
@@ -82,7 +93,8 @@ test('uncommitted changes block release even if the index fingerprint is unchang
 test('committed source changes invalidate previous evidence', t => {
   const f = fixture(t);
   fs.appendFileSync(path.join(f.root, 'source.mjs'), '// new behavior\n');
-  f.git(['add', 'source.mjs']); f.git(['commit', '-m', 'changed source']);
+  f.git(['add', 'source.mjs']);
+  f.git(['commit', '-m', 'changed source']);
   assert.ok(f.errors().some(error => error.includes('源码指纹不一致')));
 });
 
@@ -121,28 +133,38 @@ test('wrong version, missing review details, future dates and absent artifacts b
 function ownerDecision(f) {
   const id = 'physical-two-device-github';
   f.manifest.checks.find(c => c.id === id).status = 'not-verified';
-  f.manifest.ownerDecision = { mode: 'release-with-unverified-scenarios',
-    version: '1.2.3', build: 'fixture-only', sourceSha256: f.manifest.sourceSha256,
-    packageSha256: f.manifest.packageSha256, requestedAt: '2020-01-01T00:00:00Z',
-    requestedBy: 'fixture owner', instruction: 'fixture explicit decision',
-    reason: 'fixture only; no product acceptance', acceptedChecks: [id] };
+  f.manifest.ownerDecision = {
+    mode: 'release-with-unverified-scenarios',
+    version: '1.2.3',
+    build: 'fixture-only',
+    sourceSha256: f.manifest.sourceSha256,
+    packageSha256: f.manifest.packageSha256,
+    requestedAt: '2020-01-01T00:00:00Z',
+    requestedBy: 'fixture owner',
+    instruction: 'fixture explicit decision',
+    reason: 'fixture only; no product acceptance',
+    acceptedChecks: [id],
+  };
 }
 test('explicit owner decision preserves unverified status and remains bound to candidate', t => {
-  const f = fixture(t); ownerDecision(f);
+  const f = fixture(t);
+  ownerDecision(f);
   assert.deepEqual(f.errors(), []);
   assert.equal(f.manifest.checks.at(-1).status, 'not-verified');
   f.manifest.ownerDecision.packageSha256 = '0'.repeat(64);
   assert.ok(f.errors().some(e => e.includes('用户发布决定无效')));
 });
 test('owner decision cannot excuse failed, missing, pending or skipped checks', t => {
-  const f = fixture(t); ownerDecision(f);
+  const f = fixture(t);
+  ownerDecision(f);
   for (const status of ['failed', 'pending', 'skipped', 'interrupted']) {
     f.manifest.checks.at(-1).status = status;
     assert.ok(f.errors().some(e => e.includes('physical-two-device-github：未通过')));
   }
 });
 test('owner decision cannot bypass regression, automated tests, source review or failed installation', t => {
-  const f = fixture(t); ownerDecision(f);
+  const f = fixture(t);
+  ownerDecision(f);
   for (const id of ['full-regression', 'privacy/automated', 'privacy/source-review']) {
     f.manifest.ownerDecision.acceptedChecks = [id];
     assert.ok(f.errors().some(e => e.includes('用户发布决定无效')));
@@ -152,7 +174,8 @@ test('owner decision cannot bypass regression, automated tests, source review or
   assert.ok(f.errors().some(e => e.includes('candidate-install：未通过')));
 });
 test('unverified scenarios still require complete committed evidence and decision metadata', t => {
-  const f = fixture(t); ownerDecision(f);
+  const f = fixture(t);
+  ownerDecision(f);
   f.manifest.checks.at(-1).artifacts = [];
   assert.ok(f.errors().some(e => e.includes('缺少证据文件')));
   delete f.manifest.ownerDecision.instruction;

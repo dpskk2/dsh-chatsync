@@ -22,9 +22,16 @@ const WINDOW = 120000; // restartGuard.activityWindowMs 默认值
 
 test('automatic restart waits for transfer completion, result persistence and lock release', async t => {
   const engine = new SyncEngine(tempHome(t), { autoRepo: false });
-  let finish, released = false, scheduled = 0;
-  engine.acquireProcessLock = () => () => { released = true; };
-  engine._syncOnce = () => new Promise(resolve => { finish = resolve; });
+  let finish,
+    released = false,
+    scheduled = 0;
+  engine.acquireProcessLock = () => () => {
+    released = true;
+  };
+  engine._syncOnce = () =>
+    new Promise(resolve => {
+      finish = resolve;
+    });
   engine.autoRestartHost = () => 'web';
   engine.sessionActivity = () => ({ available: true, activeCount: 0 });
   engine.scheduleRestartAfterRepair = () => {
@@ -46,7 +53,9 @@ test('automatic restart waits for transfer completion, result persistence and lo
 test('automatic restart leaves a manual prompt for unknown activity, active sessions and transfer failure', t => {
   const engine = new SyncEngine(tempHome(t), { autoRepo: false });
   engine.autoRestartHost = () => 'web';
-  engine.scheduleRestartAfterRepair = () => { assert.fail('must not schedule a real or simulated restart'); };
+  engine.scheduleRestartAfterRepair = () => {
+    assert.fail('must not schedule a real or simulated restart');
+  };
   for (const [activity, errors] of [
     [{ available: false, activeCount: 0 }, []],
     [{ available: true, activeCount: 1 }, []],
@@ -107,7 +116,7 @@ function writeSessionLog(home, id, mtime) {
 
 /** 假的 agents 服务 ctx:get('agents') → { list() } */
 function agentsCtx(sessions) {
-  return { get: (name) => (name === 'agents' ? { list: () => sessions } : undefined) };
+  return { get: name => (name === 'agents' ? { list: () => sessions } : undefined) };
 }
 
 /** 没有 agents 服务的 ctx */
@@ -124,14 +133,18 @@ const IS_WIN = process.platform === 'win32';
 function asWebHost(fn) {
   const saved = process.argv;
   try {
-    process.argv = ['node.exe', 'C:\\Users\\x\\AppData\\Roaming\\npm\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js', 'web'];
+    process.argv = [
+      'node.exe',
+      'C:\\Users\\x\\AppData\\Roaming\\npm\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js',
+      'web',
+    ];
     return fn();
   } finally {
     process.argv = saved;
   }
 }
 
-test('agents 服务可用且有一个 running 会话 → source=agents 且 activeIds 命中', async (t) => {
+test('agents 服务可用且有一个 running 会话 → source=agents 且 activeIds 命中', async t => {
   const home = tempHome(t);
   const running = sessionId();
   const ctx = agentsCtx([
@@ -146,7 +159,7 @@ test('agents 服务可用且有一个 running 会话 → source=agents 且 activ
   assert.ok(Number.isFinite(r.checkedAt), 'checkedAt 应为数字时间戳');
 });
 
-test('agents 服务全为 idle → activeCount=0 但 available 仍为 true', async (t) => {
+test('agents 服务全为 idle → activeCount=0 但 available 仍为 true', async t => {
   const home = tempHome(t);
   const ctx = agentsCtx([
     { id: sessionId(), status: 'idle' },
@@ -158,11 +171,27 @@ test('agents 服务全为 idle → activeCount=0 但 available 仍为 true', asy
   assert.deepEqual(r.activeIds, []);
 });
 
-test('agents 服务缺失/抛错/返回非数组 → 不抛异常且不误判活跃', async (t) => {
+test('agents 服务缺失/抛错/返回非数组 → 不抛异常且不误判活跃', async t => {
   const home = tempHome(t);
   const cases = [
-    { name: 'ctx.get 抛错', ctx: { get() { throw new Error('get failed'); } } },
-    { name: 'list() 抛错', ctx: { get: () => ({ list() { throw new Error('list failed'); } }) } },
+    {
+      name: 'ctx.get 抛错',
+      ctx: {
+        get() {
+          throw new Error('get failed');
+        },
+      },
+    },
+    {
+      name: 'list() 抛错',
+      ctx: {
+        get: () => ({
+          list() {
+            throw new Error('list failed');
+          },
+        }),
+      },
+    },
     { name: 'list 返回非数组', ctx: { get: () => ({ list: () => 'not-an-array' }) } },
     { name: 'get 返回 undefined', ctx: { get: () => undefined } },
     { name: 'ctx 没有 get', ctx: {} },
@@ -170,7 +199,9 @@ test('agents 服务缺失/抛错/返回非数组 → 不抛异常且不误判活
   for (const c of cases) {
     let r;
     await assert.doesNotReject(
-      (async () => { r = await probeSessionActivity(c.ctx, { now: Date.now(), activityWindowMs: WINDOW, home }); })(),
+      (async () => {
+        r = await probeSessionActivity(c.ctx, { now: Date.now(), activityWindowMs: WINDOW, home });
+      })(),
       `${c.name} 不应抛异常`,
     );
     assert.ok(r && typeof r === 'object', `${c.name} 应返回对象`);
@@ -179,7 +210,7 @@ test('agents 服务缺失/抛错/返回非数组 → 不抛异常且不误判活
   }
 });
 
-test('无 agents 服务时用会话日志 mtime 判定活跃(窗口内活跃/窗口外不活跃)', async (t) => {
+test('无 agents 服务时用会话日志 mtime 判定活跃(窗口内活跃/窗口外不活跃)', async t => {
   const home = tempHome(t);
   const id = sessionId();
   const t0 = Date.now();
@@ -199,8 +230,11 @@ test('无 agents 服务时用会话日志 mtime 判定活跃(窗口内活跃/窗
   assert.ok(['log-activity', 'none'].includes(idle.source), `source 应合法,实测 ${idle.source}`);
 });
 
-test('有活跃会话时 Web 宿主的 scheduleRestart 被守卫拦下(不创建 schtasks)', (t) => {
-  if (!IS_WIN) { t.skip('isWebHostProcess 仅在 win32 生效'); return; }
+test('有活跃会话时 Web 宿主的 scheduleRestart 被守卫拦下(不创建 schtasks)', t => {
+  if (!IS_WIN) {
+    t.skip('isWebHostProcess 仅在 win32 生效');
+    return;
+  }
   const home = tempHome(t);
   const engine = new SyncEngine(home);
   const probeResult = { available: true, activeCount: 1, activeIds: ['s1'], source: 'agents', checkedAt: Date.now() };
@@ -226,11 +260,20 @@ test('有活跃会话时 Web 宿主的 scheduleRestart 被守卫拦下(不创建
   assert.equal(fs.existsSync(path.join(home, 'restart-dsh-web.ps1')), false);
 });
 
-test('用户已确认的手动重启(force:true)不受活跃会话守卫拦截(仍不会真调度)', (t) => {
-  if (!IS_WIN) { t.skip('isWebHostProcess 仅在 win32 生效'); return; }
+test('用户已确认的手动重启(force:true)不受活跃会话守卫拦截(仍不会真调度)', t => {
+  if (!IS_WIN) {
+    t.skip('isWebHostProcess 仅在 win32 生效');
+    return;
+  }
   const home = tempHome(t);
   const engine = new SyncEngine(home);
-  engine.setActiveSessionProbe(() => ({ available: true, activeCount: 2, activeIds: ['a', 'b'], source: 'agents', checkedAt: Date.now() }));
+  engine.setActiveSessionProbe(() => ({
+    available: true,
+    activeCount: 2,
+    activeIds: ['a', 'b'],
+    source: 'agents',
+    checkedAt: Date.now(),
+  }));
 
   // 与 lib/index.js 手动重启路径同参:allowForce=桌面端确认,force=跳过「生成中」守卫
   const forced = asWebHost(() => engine.scheduleRestart('用户手动触发', { allowForce: true, force: true }));
@@ -240,11 +283,20 @@ test('用户已确认的手动重启(force:true)不受活跃会话守卫拦截(�
   assert.equal(forced.scheduled, false);
 });
 
-test('无活跃会话时不触发守卫(保持既有宿主判定)', (t) => {
-  if (!IS_WIN) { t.skip('isWebHostProcess 仅在 win32 生效'); return; }
+test('无活跃会话时不触发守卫(保持既有宿主判定)', t => {
+  if (!IS_WIN) {
+    t.skip('isWebHostProcess 仅在 win32 生效');
+    return;
+  }
   const home = tempHome(t);
   const engine = new SyncEngine(home);
-  engine.setActiveSessionProbe(() => ({ available: true, activeCount: 0, activeIds: [], source: 'agents', checkedAt: Date.now() }));
+  engine.setActiveSessionProbe(() => ({
+    available: true,
+    activeCount: 0,
+    activeIds: [],
+    source: 'agents',
+    checkedAt: Date.now(),
+  }));
 
   const r = asWebHost(() => engine.scheduleRestart());
   assert.notEqual(r.reason, 'active-session-guard', `无活跃会话不应触发守卫: ${JSON.stringify(r)}`);

@@ -10,13 +10,27 @@ import { SyncEngine } from '../lib/sync.js';
 import { parseSyncRemote } from '../lib/remote.js';
 import { acceptFixturePreviews } from '../tests/helpers/reviewed-sync.mjs';
 
-const remote = process.argv[2], parsed = parseSyncRemote(remote);
-assert.ok(parsed?.provider === 'github' && /^https:\/\/github\.com\//.test(remote) && /^chatsync-acceptance-/.test(parsed.repo),
-  'A dedicated HTTPS GitHub chatsync-acceptance-* test repository is required');
+const remote = process.argv[2],
+  parsed = parseSyncRemote(remote);
+assert.ok(
+  parsed?.provider === 'github' && /^https:\/\/github\.com\//.test(remote) && /^chatsync-acceptance-/.test(parsed.repo),
+  'A dedicated HTTPS GitHub chatsync-acceptance-* test repository is required',
+);
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-github-workspace-'));
 const branch = 'acceptance-workspace-' + randomUUID().slice(0, 8);
-const result = { physicalMachines: 1, realGitHub: true, nativeHost: false, syntheticDataOnly: true, remote, branch, checks: [] };
-const checkpoint = text => { result.checks.push(text); console.log(text); };
+const result = {
+  physicalMachines: 1,
+  realGitHub: true,
+  nativeHost: false,
+  syntheticDataOnly: true,
+  remote,
+  branch,
+  checks: [],
+};
+const checkpoint = text => {
+  result.checks.push(text);
+  console.log(text);
+};
 try {
   const probe = new SyncEngine(root, { autoRepo: false, remote });
   assert.equal((await probe.ghLogin())?.toLowerCase(), parsed.owner.toLowerCase());
@@ -28,22 +42,38 @@ try {
   assert.match(metadata.description || '', /ChatSync synthetic acceptance/);
   assert.equal((await probe.verifyPrivateRemote(remote)).ok, true);
   checkpoint('Production GitHub authorization confirms an owned private acceptance repository');
-  const homeA = path.join(root, 'home-a'), homeB = path.join(root, 'home-b');
-  const baseA = path.join(root, 'projects-a'), baseB = path.join(root, 'projects-b');
-  const projectA = path.join(baseA, 'example'), projectB = path.join(baseB, 'example');
+  const homeA = path.join(root, 'home-a'),
+    homeB = path.join(root, 'home-b');
+  const baseA = path.join(root, 'projects-a'),
+    baseB = path.join(root, 'projects-b');
+  const projectA = path.join(baseA, 'example'),
+    projectB = path.join(baseB, 'example');
   const workspaceId = randomUUID();
   fs.mkdirSync(path.join(homeA, 'storages'), { recursive: true });
   fs.mkdirSync(homeB, { recursive: true });
   fs.mkdirSync(projectA, { recursive: true });
   fs.writeFileSync(path.join(projectA, 'note.txt'), 'workspace content\n');
   fs.writeFileSync(path.join(homeA, '.credentials.yaml'), 'fixture-only: excluded\n');
-  fs.writeFileSync(path.join(homeA, 'storages', 'workspace.json'), JSON.stringify({ tables: { workspaces:
-    { [workspaceId]: { path: projectA, title: 'example' } } } }));
-  const make = (home, workspaceBase) => acceptFixturePreviews(new SyncEngine(home, {
-    remote, branch, autoRepo: false, workspaceSync: true, workspaceBase, patches: false,
-    mode: 'manual', autoRestartAfterRepair: false, autoPushOnExit: false,
-  }));
-  const a = make(homeA, baseA), b = make(homeB, baseB);
+  fs.writeFileSync(
+    path.join(homeA, 'storages', 'workspace.json'),
+    JSON.stringify({ tables: { workspaces: { [workspaceId]: { path: projectA, title: 'example' } } } }),
+  );
+  const make = (home, workspaceBase) =>
+    acceptFixturePreviews(
+      new SyncEngine(home, {
+        remote,
+        branch,
+        autoRepo: false,
+        workspaceSync: true,
+        workspaceBase,
+        patches: false,
+        mode: 'manual',
+        autoRestartAfterRepair: false,
+        autoPushOnExit: false,
+      }),
+    );
+  const a = make(homeA, baseA),
+    b = make(homeB, baseB);
   const synchronize = async engine => {
     const value = await engine.syncOnce('github-workspace-acceptance', { forceCommit: true });
     assert.equal(value.error, undefined, JSON.stringify(value));
@@ -55,7 +85,8 @@ try {
   assert.equal(fs.readFileSync(path.join(projectB, 'note.txt'), 'utf8'), 'workspace content\n');
   assert.equal(fs.existsSync(path.join(homeB, '.credentials.yaml')), false);
   const credentialTree = await a.git(['ls-tree', '--name-only', 'HEAD', '--', '.credentials.yaml']);
-  assert.equal(a.ok(credentialTree), true); assert.equal(credentialTree.out.trim(), '');
+  assert.equal(a.ok(credentialTree), true);
+  assert.equal(credentialTree.out.trim(), '');
   checkpoint('A uploads project files; B restores under its own distinct base; local credentials are excluded');
 
   fs.writeFileSync(path.join(projectA, 'note.txt'), 'edit on A\n');
@@ -79,7 +110,8 @@ try {
   assert.equal(restored.ok, true);
   assert.equal(fs.readFileSync(path.join(projectB, 'unrelated.txt'), 'utf8'), 'untouched\n');
   assert.equal(b.recoveryPreview(restored.backupId).local.text, 'edit on B\n');
-  await synchronize(b); await synchronize(a);
+  await synchronize(b);
+  await synchronize(a);
   assert.equal(fs.readFileSync(path.join(projectA, 'note.txt'), 'utf8'), 'edit on A\n');
   checkpoint('Selected recovery preserves unrelated files and propagates the restored content to A');
 
@@ -92,40 +124,66 @@ try {
   // Inherited NO_PROXY or Git http.proxy may otherwise bypass the deliberately
   // unavailable test proxy. Force this route only during fault injection; the
   // real Git subprocess must fail, rather than returning a simulated result.
-  const transport = b._spawn.bind(b), priorNoProxy = b._gitEnv.NO_PROXY, priorNoProxyLower = b._gitEnv.no_proxy;
-  b._gitEnv.NO_PROXY = ''; b._gitEnv.no_proxy = '';
-  b._spawn = (command, args, ...options) => transport(command,
-    command === 'git' ? ['-c', 'http.proxy=' + unavailableProxy, '-c', 'http.' + remote + '.proxy=' + unavailableProxy, ...args] : args, ...options);
+  const transport = b._spawn.bind(b),
+    priorNoProxy = b._gitEnv.NO_PROXY,
+    priorNoProxyLower = b._gitEnv.no_proxy;
+  b._gitEnv.NO_PROXY = '';
+  b._gitEnv.no_proxy = '';
+  b._spawn = (command, args, ...options) =>
+    transport(
+      command,
+      command === 'git'
+        ? ['-c', 'http.proxy=' + unavailableProxy, '-c', 'http.' + remote + '.proxy=' + unavailableProxy, ...args]
+        : args,
+      ...options,
+    );
   let failed;
   try {
     const route = await b.git(['config', '--get-urlmatch', 'http.proxy', remote]);
-    assert.equal(b.ok(route), true); assert.equal(route.out.trim(), unavailableProxy, 'Fault injection must override more-specific inherited proxy settings');
+    assert.equal(b.ok(route), true);
+    assert.equal(
+      route.out.trim(),
+      unavailableProxy,
+      'Fault injection must override more-specific inherited proxy settings',
+    );
     failed = await b.syncOnce('github-workspace-fault', { forceCommit: true });
-  }
-  finally {
-    b._spawn = transport; delete b.overrides.proxy;
-    if (priorNoProxy === undefined) delete b._gitEnv.NO_PROXY; else b._gitEnv.NO_PROXY = priorNoProxy;
-    if (priorNoProxyLower === undefined) delete b._gitEnv.no_proxy; else b._gitEnv.no_proxy = priorNoProxyLower;
+  } finally {
+    b._spawn = transport;
+    delete b.overrides.proxy;
+    if (priorNoProxy === undefined) delete b._gitEnv.NO_PROXY;
+    else b._gitEnv.NO_PROXY = priorNoProxy;
+    if (priorNoProxyLower === undefined) delete b._gitEnv.no_proxy;
+    else b._gitEnv.no_proxy = priorNoProxyLower;
   }
   assert.ok(failed.error || failed.workspaces.errors.length, JSON.stringify(failed));
   assert.equal(fs.readFileSync(path.join(projectB, 'pending.txt'), 'utf8'), 'retry after connection failure\n');
   assert.equal(fs.existsSync(path.join(projectA, 'pending.txt')), false);
-  await synchronize(b); await synchronize(a);
+  await synchronize(b);
+  await synchronize(a);
   assert.equal(fs.readFileSync(path.join(projectA, 'pending.txt'), 'utf8'), 'retry after connection failure\n');
   checkpoint('Actual Git connection failure via an unavailable fixture proxy preserves edits; retry transfers them');
 
   const workspaceBranch = a.workspaceBranchOf(a.loadConfig(), workspaceId);
   const head = await a.rev(workspaceBranch, a.workspaceGitDir(workspaceId), projectA);
   assert.match(head || '', /^[0-9a-f]{40,64}$/);
-  const ref = await a.gh(['api', 'repos/' + parsed.fullName + '/git/ref/heads/' + workspaceBranch, '--jq', '.object.sha']);
-  assert.equal(a.ok(ref), true); assert.equal(ref.out.trim(), head);
+  const ref = await a.gh([
+    'api',
+    'repos/' + parsed.fullName + '/git/ref/heads/' + workspaceBranch,
+    '--jq',
+    '.object.sha',
+  ]);
+  assert.equal(a.ok(ref), true);
+  assert.equal(ref.out.trim(), head);
   result.workspace = { id: workspaceId, branch: workspaceBranch, commit: head, baseA, baseB };
   result.homes = [homeA, homeB];
   checkpoint('GitHub API reads the same workspace commit as the verified local transport');
   fs.writeFileSync(path.join(root, 'acceptance.json'), JSON.stringify(result, null, 2));
   console.log(JSON.stringify({ ok: true, evidence: root, branch, workspaceBranch }));
 } catch (error) {
-  fs.writeFileSync(path.join(root, 'acceptance-failed.json'), JSON.stringify({ ...result, error: error.message }, null, 2));
+  fs.writeFileSync(
+    path.join(root, 'acceptance-failed.json'),
+    JSON.stringify({ ...result, error: error.message }, null, 2),
+  );
   throw error;
 } finally {
   console.log('Evidence retained: ' + root);

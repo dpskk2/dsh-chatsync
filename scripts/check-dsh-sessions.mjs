@@ -8,9 +8,15 @@ import { decodeZstdFrames, mergeSessionLog } from '../lib/merge.js';
 
 const [dshRoot, home] = process.argv.slice(2).map(p => path.resolve(p));
 if (!dshRoot || !home) throw new Error('Provide DSH package directory and data home');
-const { sessionFormatCatalog: current, historicalSessionFormatCatalog: historical } = await import(pathToFileURL(path.join(dshRoot, 'node_modules/@deepseek-ai/dsh-session-format-catalog/lib/index.js')));
+const { sessionFormatCatalog: current, historicalSessionFormatCatalog: historical } = await import(
+  pathToFileURL(path.join(dshRoot, 'node_modules/@deepseek-ai/dsh-session-format-catalog/lib/index.js'))
+);
 const result = { total: 0, passed: 0, events: 0, formats: {}, failed: 0 };
-const directories = dir => fs.readdirSync(dir, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => path.join(dir, d.name));
+const directories = dir =>
+  fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter(d => d.isDirectory())
+    .map(d => path.join(dir, d.name));
 for (const group of directories(path.join(home, 'sessions'))) {
   for (const dir of directories(group)) {
     if (!path.basename(dir).startsWith('session-')) continue;
@@ -21,7 +27,10 @@ for (const group of directories(path.join(home, 'sessions'))) {
       const buffer = fs.readFileSync(file);
       const text = file.endsWith('.zstd') ? decodeZstdFrames(buffer) : buffer.toString('utf8');
       if (text === null) throw new Error('decode');
-      const rows = text.split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
+      const rows = text
+        .split('\n')
+        .filter(l => l.trim())
+        .map(l => JSON.parse(l));
       const version = rows[0].version;
       result.formats[version] = (result.formats[version] || 0) + 1;
       // Historical validation does not assert that V3 -> V4 migration is complete;

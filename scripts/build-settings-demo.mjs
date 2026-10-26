@@ -12,8 +12,15 @@ const { build } = require('esbuild');
 const out = process.argv[2] ? path.resolve(process.argv[2]) : path.join(root, 'outputs/settings-ui-20261022');
 fs.mkdirSync(out, { recursive: true });
 const config = { ...DEFAULT_CONFIG, automatic: DEFAULT_CONFIG.enabled };
-const record = { id: 'demo-ledger', kind: 'main', path: 'storages/sync-meta/profiles/desktop/pnpm-workspace.yaml.vmap.json',
-  createdAt: new Date().toISOString(), status: 'merged', kept: 'local', versions: { local: { sha256: 'demo-local' }, remote: { sha256: 'demo-remote' } } };
+const record = {
+  id: 'demo-ledger',
+  kind: 'main',
+  path: 'storages/sync-meta/profiles/desktop/pnpm-workspace.yaml.vmap.json',
+  createdAt: new Date().toISOString(),
+  status: 'merged',
+  kept: 'local',
+  versions: { local: { sha256: 'demo-local' }, remote: { sha256: 'demo-remote' } },
+};
 record.guide = recoveryGuide(record, null);
 const source = fs.readFileSync(path.join(root, 'lib/client.js'), 'utf8');
 const entry = `
@@ -89,8 +96,14 @@ document.getElementById('connected').onclick=()=>{scenario='connected';activePan
 document.getElementById('theme').onclick=()=>document.documentElement.classList.toggle('dark');
 document.getElementById('narrow').onclick=()=>document.body.classList.toggle('narrow');
 `;
-const built = await build({ stdin: { contents: entry, resolveDir: path.join(root, 'work/ui-runtime'), sourcefile: 'settings-demo.js' },
-  bundle: true, write: false, minify: true, define: { 'process.env.NODE_ENV': '"production"' }, legalComments: 'inline' });
+const built = await build({
+  stdin: { contents: entry, resolveDir: path.join(root, 'work/ui-runtime'), sourcefile: 'settings-demo.js' },
+  bundle: true,
+  write: false,
+  minify: true,
+  define: { 'process.env.NODE_ENV': '"production"' },
+  legalComments: 'inline',
+});
 const html = `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ChatSync · 首次安装设置演示</title>
 <style>
 :root{color-scheme:light;--dsw-alias-bg-layer-1:#fff;--dsw-alias-bg-layer-2:#fff;--dsw-alias-label-primary:#141619;--dsw-alias-label-secondary:#6b7078;--dsw-alias-border-l2:#e0e2e5;--dsw-alias-border-l4:#c8ccd1;--dsw-alias-accent-color:#25282d;--dsw-alias-interactive-bg-hover:#f3f4f6;font-family:"Segoe UI","Microsoft YaHei",sans-serif}

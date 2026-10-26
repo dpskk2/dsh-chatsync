@@ -16,20 +16,45 @@ const tempDir = (t, prefix) => {
 
 function host(t) {
   const home = tempDir(t, 'dsh-request-guard-');
-  const routes = new Map(), cleanup = [];
+  const routes = new Map(),
+    cleanup = [];
   t.after(() => cleanup.reverse().forEach(fn => fn()));
-  fs.writeFileSync(path.join(home, 'dsh-sync.json'), JSON.stringify({ mode: 'manual', autoRepo: false, autoPullOnStart: false, autoPushOnExit: false, enabled: true }));
-  apply({
-    webServer: { register(route) { routes.set(route.path, route.handler); return () => routes.delete(route.path); } },
-    on() { return () => {}; },
-    effect(fn) { cleanup.push(fn()); },
-    logger: { info() {}, warn() {}, debug() {} },
-  }, { home, patches: false });
+  fs.writeFileSync(
+    path.join(home, 'dsh-sync.json'),
+    JSON.stringify({ mode: 'manual', autoRepo: false, autoPullOnStart: false, autoPushOnExit: false, enabled: true }),
+  );
+  apply(
+    {
+      webServer: {
+        register(route) {
+          routes.set(route.path, route.handler);
+          return () => routes.delete(route.path);
+        },
+      },
+      on() {
+        return () => {};
+      },
+      effect(fn) {
+        cleanup.push(fn());
+      },
+      logger: { info() {}, warn() {}, debug() {} },
+    },
+    { home, patches: false },
+  );
   return async (endpoint, { method = 'POST', headers, chunks = [] } = {}) => {
-    const req = new EventEmitter(); req.method = method; if (headers) req.headers = headers;
+    const req = new EventEmitter();
+    req.method = method;
+    if (headers) req.headers = headers;
     let status = 200;
     const result = new Promise(resolve => {
-      routes.get('/dsh-sync/api/' + endpoint)(req, { writeHead(code) { status = code; }, end(value) { resolve(JSON.parse(value)); } });
+      routes.get('/dsh-sync/api/' + endpoint)(req, {
+        writeHead(code) {
+          status = code;
+        },
+        end(value) {
+          resolve(JSON.parse(value));
+        },
+      });
     });
     await new Promise(resolve => setImmediate(resolve));
     for (const chunk of chunks) req.emit('data', chunk);
@@ -39,24 +64,61 @@ function host(t) {
 }
 
 test('requests marked by the browser as another site are rejected before any handler runs', () => {
-  const same = { host: '127.0.0.1:7788', origin: 'http://127.0.0.1:7788', 'sec-fetch-site': 'same-origin', 'content-type': 'application/json', 'content-length': '2' };
+  const same = {
+    host: '127.0.0.1:7788',
+    origin: 'http://127.0.0.1:7788',
+    'sec-fetch-site': 'same-origin',
+    'content-type': 'application/json',
+    'content-length': '2',
+  };
   assert.equal(requestRejection({ method: 'POST', headers: same }), null);
-  assert.equal(requestRejection({ method: 'POST' }), null, 'host-internal callers without browser headers keep working');
+  assert.equal(
+    requestRejection({ method: 'POST' }),
+    null,
+    'host-internal callers without browser headers keep working',
+  );
   assert.equal(requestRejection({ method: 'GET', headers: { host: 'localhost:1', 'sec-fetch-site': 'none' } }), null);
-  assert.equal(requestRejection({ method: 'POST', headers: { ...same, 'sec-fetch-site': 'cross-site' } }), 'cross-site');
-  assert.equal(requestRejection({ method: 'POST', headers: { ...same, origin: 'https://evil.example' } }), 'cross-origin');
-  assert.equal(requestRejection({ method: 'POST', headers: { ...same, origin: 'http://localhost:9999' } }), 'cross-origin');
+  assert.equal(
+    requestRejection({ method: 'POST', headers: { ...same, 'sec-fetch-site': 'cross-site' } }),
+    'cross-site',
+  );
+  assert.equal(
+    requestRejection({ method: 'POST', headers: { ...same, origin: 'https://evil.example' } }),
+    'cross-origin',
+  );
+  assert.equal(
+    requestRejection({ method: 'POST', headers: { ...same, origin: 'http://localhost:9999' } }),
+    'cross-origin',
+  );
   assert.equal(requestRejection({ method: 'POST', headers: { ...same, origin: 'null' } }), 'opaque-origin');
-  assert.equal(requestRejection({ method: 'POST', headers: { ...same, 'content-type': 'text/plain' } }), 'content-type');
-  assert.equal(requestRejection({ method: 'POST', headers: { ...same, 'content-length': String(MAX_REQUEST_BYTES + 1) } }), 'too-large');
+  assert.equal(
+    requestRejection({ method: 'POST', headers: { ...same, 'content-type': 'text/plain' } }),
+    'content-type',
+  );
+  assert.equal(
+    requestRejection({ method: 'POST', headers: { ...same, 'content-length': String(MAX_REQUEST_BYTES + 1) } }),
+    'too-large',
+  );
   // Desktop pages served through an app scheme are not HTTP origins and are left to the host.
-  assert.equal(requestRejection({ method: 'POST', headers: { ...same, origin: 'app://dsh', 'sec-fetch-site': 'same-origin' } }), null);
+  assert.equal(
+    requestRejection({ method: 'POST', headers: { ...same, origin: 'app://dsh', 'sec-fetch-site': 'same-origin' } }),
+    null,
+  );
 });
 
 test('a cross-site settings change is refused and leaves the configuration file untouched', async t => {
   const request = host(t);
   const body = Buffer.from(JSON.stringify({ proxy: 'http://attacker.example:8080' }));
-  const refused = await request('config', { headers: { host: '127.0.0.1:7788', origin: 'https://attacker.example', 'sec-fetch-site': 'cross-site', 'content-type': 'text/plain', 'content-length': String(body.length) }, chunks: [body] });
+  const refused = await request('config', {
+    headers: {
+      host: '127.0.0.1:7788',
+      origin: 'https://attacker.example',
+      'sec-fetch-site': 'cross-site',
+      'content-type': 'text/plain',
+      'content-length': String(body.length),
+    },
+    chunks: [body],
+  });
   assert.equal(refused.status, 403);
   assert.equal(refused.body.ok, false);
   const config = await request('config', { method: 'GET' });
@@ -85,7 +147,8 @@ test('oversized request bodies are rejected without being buffered completely', 
 test('imported files are replaced atomically and keep permissions', t => {
   const dir = tempDir(t, 'dsh-replace-bytes-');
   const file = path.join(dir, 'settings.yaml');
-  fs.writeFileSync(file, 'old: 1\n'); fs.chmodSync(file, 0o640);
+  fs.writeFileSync(file, 'old: 1\n');
+  fs.chmodSync(file, 0o640);
   // Windows only keeps the read-only bit, so compare with what chmod actually produced.
   const mode = process.platform === 'win32' ? fs.statSync(file).mode & 0o777 : 0o640;
   replaceBytes(file, Buffer.from('new: 2\n'));
@@ -98,9 +161,12 @@ test('imported files are replaced atomically and keep permissions', t => {
 
 test('imported files write through symbolic links instead of replacing them', t => {
   const dir = tempDir(t, 'dsh-replace-link-');
-  const real = path.join(dir, 'dotfiles-settings.yaml'), link = path.join(dir, 'linked.yaml');
+  const real = path.join(dir, 'dotfiles-settings.yaml'),
+    link = path.join(dir, 'linked.yaml');
   fs.writeFileSync(real, 'a: 1\n');
-  try { fs.symlinkSync(real, link); } catch (error) {
+  try {
+    fs.symlinkSync(real, link);
+  } catch (error) {
     // Windows without Developer Mode cannot create file symlinks; drive the same
     // branch by reporting the existing file as a link and check where bytes land.
     if (error.code !== 'EPERM') throw error;
@@ -127,9 +193,16 @@ test('a failed replacement reports its own error even when the temporary file ca
   const dir = tempDir(t, 'dsh-replace-fail-');
   const file = path.join(dir, 'settings.yaml');
   fs.writeFileSync(file, 'old: 1\n');
-  t.mock.method(fs, 'renameSync', () => { throw Object.assign(new Error('rename refused'), { code: 'EPERM' }); });
-  t.mock.method(fs, 'unlinkSync', () => { throw Object.assign(new Error('temporary file busy'), { code: 'EBUSY' }); });
-  assert.throws(() => replaceBytes(file, Buffer.from('new: 2\n')), error => error.code === 'EPERM');
+  t.mock.method(fs, 'renameSync', () => {
+    throw Object.assign(new Error('rename refused'), { code: 'EPERM' });
+  });
+  t.mock.method(fs, 'unlinkSync', () => {
+    throw Object.assign(new Error('temporary file busy'), { code: 'EBUSY' });
+  });
+  assert.throws(
+    () => replaceBytes(file, Buffer.from('new: 2\n')),
+    error => error.code === 'EPERM',
+  );
   assert.equal(fs.readFileSync(file, 'utf8'), 'old: 1\n');
 });
 
@@ -152,8 +225,9 @@ test('a session caught mid-append is re-read, reported as busy while growing, an
   assert.equal(finished.changing, undefined);
   assert.equal(finished.bytes.toString(), complete);
   // 2. The file keeps changing for the whole wait.
-  let n = 0; fs.writeFileSync(file, header + '{"partial":' + n);
-  const timer = setInterval(() => fs.writeFileSync(file, header + '{"partial":' + (++n)), 10);
+  let n = 0;
+  fs.writeFileSync(file, header + '{"partial":' + n);
+  const timer = setInterval(() => fs.writeFileSync(file, header + '{"partial":' + ++n), 10);
   t.after(() => clearInterval(timer));
   const busy = await readSettledSession(file, fs.readFileSync(file), { attempts: 3, delayMs: 40 });
   clearInterval(timer);

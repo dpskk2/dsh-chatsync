@@ -1,42 +1,121 @@
 /* ---------- API ---------- */
 const API = {
-  run: (approval) => fetch('/dsh-sync/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approval }) }).then((r) => r.json()),
-  startup: (action, approval) => fetch('/dsh-sync/api/startup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, approval }) }).then(r => r.json()),
-  maySend: sessionId => fetch('/dsh-sync/api/send-check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId }), signal: AbortSignal.timeout(10000) }).then(r => { if (!r.ok) throw new Error('发送前检查暂时不可用'); return r.json(); }),
-  startupState: signal => fetch('/dsh-sync/api/startup', { signal: signal || AbortSignal.timeout(10000) }).then(r => { if (!r.ok) throw new Error('状态连接暂时中断'); return r.json(); }),
-  status: () => fetch('/dsh-sync/api/status').then((r) => r.json()),
+  run: approval =>
+    fetch('/dsh-sync/api/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ approval }),
+    }).then(r => r.json()),
+  startup: (action, approval) =>
+    fetch('/dsh-sync/api/startup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, approval }),
+    }).then(r => r.json()),
+  maySend: sessionId =>
+    fetch('/dsh-sync/api/send-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId }),
+      signal: AbortSignal.timeout(10000),
+    }).then(r => {
+      if (!r.ok) throw new Error('发送前检查暂时不可用');
+      return r.json();
+    }),
+  startupState: signal =>
+    fetch('/dsh-sync/api/startup', { signal: signal || AbortSignal.timeout(10000) }).then(r => {
+      if (!r.ok) throw new Error('状态连接暂时中断');
+      return r.json();
+    }),
+  status: () => fetch('/dsh-sync/api/status').then(r => r.json()),
   grouping: () => fetch('/dsh-sync/api/grouping', { signal: AbortSignal.timeout(10000) }).then(r => r.json()),
-  preview: () => fetch('/dsh-sync/api/preview').then((r) => r.json()),
-  workspaceHistory: (action, body) => fetch('/dsh-sync/api/workspace-history/' + action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
-  recovery: () => fetch('/dsh-sync/api/recovery').then((r) => r.json()),
-  recoveryPreview: (id) => fetch('/dsh-sync/api/recovery/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }).then((r) => r.json()),
-  recoveryRestore: (id, side, expectedHash) => fetch('/dsh-sync/api/recovery/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, side, expectedHash }) }).then((r) => r.json()),
-  recoveryArchive: (record, archived) => fetch('/dsh-sync/api/recovery/archive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: record.id, archived, expectedVersions: Object.fromEntries(['local', 'remote'].map(side => [side, record.versions[side].missing ? null : record.versions[side].sha256])) }) }).then(r => r.json()),
-  recoveryImport: (id, side, expectedHash, workspaceId) => fetch('/dsh-sync/api/recovery/import-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, side, expectedHash, workspaceId }) }).then((r) => r.json()),
-  preserveBranches: body => fetch('/dsh-sync/api/recovery/preserve-branches', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
+  preview: () => fetch('/dsh-sync/api/preview').then(r => r.json()),
+  workspaceHistory: (action, body) =>
+    fetch('/dsh-sync/api/workspace-history/' + action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then(r => r.json()),
+  recovery: () => fetch('/dsh-sync/api/recovery').then(r => r.json()),
+  recoveryPreview: id =>
+    fetch('/dsh-sync/api/recovery/preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    }).then(r => r.json()),
+  recoveryRestore: (id, side, expectedHash) =>
+    fetch('/dsh-sync/api/recovery/restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, side, expectedHash }),
+    }).then(r => r.json()),
+  recoveryArchive: (record, archived) =>
+    fetch('/dsh-sync/api/recovery/archive', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: record.id,
+        archived,
+        expectedVersions: Object.fromEntries(
+          ['local', 'remote'].map(side => [side, record.versions[side].missing ? null : record.versions[side].sha256]),
+        ),
+      }),
+    }).then(r => r.json()),
+  recoveryImport: (id, side, expectedHash, workspaceId) =>
+    fetch('/dsh-sync/api/recovery/import-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, side, expectedHash, workspaceId }),
+    }).then(r => r.json()),
+  preserveBranches: body =>
+    fetch('/dsh-sync/api/recovery/preserve-branches', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then(r => r.json()),
   dataHealth: () => fetch('/dsh-sync/api/data-health/scan').then(r => r.json()),
-  localStorage: (action = 'scan', body) => fetch('/dsh-sync/api/local-storage/' + action, {
-    method: action === 'scan' ? 'GET' : 'POST', headers: { 'Content-Type': 'application/json' },
-    body: action === 'scan' ? undefined : JSON.stringify(body || {}), signal: AbortSignal.timeout(120000),
-  }).then(r => r.json()),
-  dataRepair: (action, body = {}) => fetch('/dsh-sync/api/data-health/' + action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
-  update: () => fetch('/dsh-sync/api/update').then((r) => r.json()),
-  progress: () => fetch('/dsh-sync/api/progress').then((r) => r.json()),
-  config: () => fetch('/dsh-sync/api/config').then((r) => r.json()),
-  saveConnection: (patch) => fetch('/dsh-sync/api/connection', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) }).then(r => r.json()),
+  localStorage: (action = 'scan', body) =>
+    fetch('/dsh-sync/api/local-storage/' + action, {
+      method: action === 'scan' ? 'GET' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: action === 'scan' ? undefined : JSON.stringify(body || {}),
+      signal: AbortSignal.timeout(120000),
+    }).then(r => r.json()),
+  dataRepair: (action, body = {}) =>
+    fetch('/dsh-sync/api/data-health/' + action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then(r => r.json()),
+  update: () => fetch('/dsh-sync/api/update').then(r => r.json()),
+  progress: () => fetch('/dsh-sync/api/progress').then(r => r.json()),
+  config: () => fetch('/dsh-sync/api/config').then(r => r.json()),
+  saveConnection: patch =>
+    fetch('/dsh-sync/api/connection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    }).then(r => r.json()),
   checkConnection: () => fetch('/dsh-sync/api/connection/check').then(r => r.json()),
   remoteCleanup: () => fetch('/dsh-sync/api/remote-cleanup').then(r => r.json()),
-  applyRemoteCleanup: body => fetch('/dsh-sync/api/remote-cleanup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
-  saveConfig: (patch) => fetch('/dsh-sync/api/config', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(patch),
-  }).then((r) => r.json()),
-  workspacePath: (workspaceId, path) => fetch('/dsh-sync/api/workspace/path', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ workspaceId, path }),
-  }).then((r) => r.json()),
+  applyRemoteCleanup: body =>
+    fetch('/dsh-sync/api/remote-cleanup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then(r => r.json()),
+  saveConfig: patch =>
+    fetch('/dsh-sync/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    }).then(r => r.json()),
+  workspacePath: (workspaceId, path) =>
+    fetch('/dsh-sync/api/workspace/path', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ workspaceId, path }),
+    }).then(r => r.json()),
 };
 
 /* 气泡提示:挂在触发元素附近,结果反馈保留较长时间便于排障(8s 后淡出) */
@@ -51,11 +130,19 @@ function bubble(anchor, text, ok) {
     // It cannot cover the account menu, navigation or another settings page.
     const scope = (anchor || document.activeElement)?.closest?.('.dss-wrap,dialog');
     const target = scope?.querySelector('.dss-feedback') || scope;
-    if (target) { target.querySelectorAll('.dss-bubble').forEach(node => node.remove()); target.appendChild(b); }
-    else return; // Persisted sync results remain available in the sync page.
-    setTimeout(() => { b.style.opacity = '0'; }, 8000);
-    setTimeout(() => { b.remove(); }, 8600);
-  } catch { /* ignore */ }
+    if (target) {
+      target.querySelectorAll('.dss-bubble').forEach(node => node.remove());
+      target.appendChild(b);
+    } else return; // Persisted sync results remain available in the sync page.
+    setTimeout(() => {
+      b.style.opacity = '0';
+    }, 8000);
+    setTimeout(() => {
+      b.remove();
+    }, 8600);
+  } catch {
+    /* ignore */
+  }
 }
 
 const STYLE = [
@@ -202,4 +289,3 @@ const STYLE = [
   '.dss-wrap .dss-onboarding-title{font-size:24px;line-height:1.4;font-weight:700}.dss-wrap .dss-section-title{font-size:20px;font-weight:650;line-height:1.5;margin:0}.dss-wrap .dss-card-title{font-size:18px;font-weight:650;line-height:1.5;margin:0}.dss-wrap .dss-subtitle{font-size:16px;font-weight:600;line-height:1.5;margin:0}.dss-wrap>.dss-sec{padding-block:28px;gap:18px}.dss-daily{padding-bottom:24px}.dss-settings-body{display:flex;flex-direction:column;gap:20px}.dss-wrap .dss-setting-card{box-sizing:border-box;min-width:0;padding:22px 24px;border:1px solid var(--dsw-alias-border-l2,#d9dde3);border-radius:12px;margin:0;gap:18px}.dss-setting-card .dss-rowtext{gap:16px}.dss-setting-card>.dss-switch{align-self:flex-start;margin-top:4px}.dss-connection-status{font-size:14px;line-height:1.7;font-weight:500;color:var(--dsw-alias-label-secondary,inherit)}.dss-connection-status:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#4d6bfe;margin-right:8px;vertical-align:1px}.dss-wrap .dss-subsection-heading{margin-top:24px;padding-top:24px;border-top:1px solid var(--dsw-alias-border-l2,#d9dde3)}.dss-wrap details.dss-sec>summary>.dss-section-title{display:inline}.dss-utility-card{padding:18px 20px;border:1px solid var(--dsw-alias-border-l2,#d9dde3);border-radius:12px}.dss-wrap .dss-utility-card>summary{font-size:16px;font-weight:600;margin:0}.dss-utility-card[open]>summary{margin-bottom:14px}.dss-utility-card>.dss-desc{margin-top:12px}@media(max-width:600px){.dss-wrap .dss-setting-card{padding:18px 16px}.dss-settings-body{gap:16px}.dss-wrap .dss-utility-card{padding:16px}.dss-wrap .dss-section-title{font-size:20px}}',
   '.dss-wrap>.dss-settings-group{padding-top:0}.dss-wrap .dss-setting-card{border:0;border-radius:0;padding:28px 0;gap:20px}.dss-settings-body{gap:0}.dss-settings-body>.dss-setting-card+.dss-setting-card{border-top:1px solid var(--dsw-alias-border-l2,#d9dde3)}.dss-settings-body>.dss-setting-card:last-child{padding-bottom:0}.dss-scope-fields{display:flex;flex-direction:column;gap:12px;text-align:left}.dss-scope-fields>.dss-check{margin:0;gap:12px;padding:14px 16px}.dss-scope-help{margin-top:4px}.dss-scope-fields>.dss-workspace-locations{margin-top:12px;padding:18px 16px}.dss-scope-fields>.dss-subsection-heading{margin-top:12px;padding-top:24px}.dss-wrap .dss-setting-card>.dss-section-title{text-align:left}.dss-scope-fields .dss-choice{gap:4px}.dss-scope-fields .dss-choice small{font-size:13px;line-height:1.6}',
 ].join('\n');
-

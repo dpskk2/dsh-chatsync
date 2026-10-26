@@ -13,7 +13,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { resolveSessionTitles, readCachedSessionTitle, truncateDisplayText, probeSessionActivity, TITLE_DISPLAY_MAX } from '../lib/session-activity.js';
+import {
+  resolveSessionTitles,
+  readCachedSessionTitle,
+  truncateDisplayText,
+  probeSessionActivity,
+  TITLE_DISPLAY_MAX,
+} from '../lib/session-activity.js';
 
 function tempHome(t, prefix = 'dsh-session-titles-') {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -35,12 +41,16 @@ function sessionId() {
 function writeProjection(home, id, title) {
   const dir = path.join(home, 'storages', 'session_projcache', 'sessions');
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, id + '.json'), JSON.stringify({
-    record: { identity: { createdAt: 1, cwd: 'C:\\work' }, rows: { title: { ver: 1, seq: 3, val: title } } },
-  }), 'utf8');
+  fs.writeFileSync(
+    path.join(dir, id + '.json'),
+    JSON.stringify({
+      record: { identity: { createdAt: 1, cwd: 'C:\\work' }, rows: { title: { ver: 1, seq: 3, val: title } } },
+    }),
+    'utf8',
+  );
 }
 
-test('session titles come from the live agents service first, then from the projection cache', (t) => {
+test('session titles come from the live agents service first, then from the projection cache', t => {
   const home = tempHome(t);
   const liveId = sessionId();
   const cachedId = sessionId();
@@ -49,12 +59,15 @@ test('session titles come from the live agents service first, then from the proj
   writeProjection(home, liveId, '缓存里的旧名');
 
   const ctx = {
-    get: (name) => (name === 'agents' ? {
-      list: () => [
-        { id: liveId, status: 'running', session: { title: '正在生成的会话名' } },
-        { id: unknownId, status: 'idle' },
-      ],
-    } : undefined),
+    get: name =>
+      name === 'agents'
+        ? {
+            list: () => [
+              { id: liveId, status: 'running', session: { title: '正在生成的会话名' } },
+              { id: unknownId, status: 'idle' },
+            ],
+          }
+        : undefined,
   };
 
   const titles = resolveSessionTitles(ctx, [liveId, cachedId, unknownId], home);
@@ -68,23 +81,34 @@ test('session titles come from the live agents service first, then from the proj
   assert.equal(noAgents[cachedId], '缓存里的会话名');
 
   /* 任何异常都只影响单个 id,不抛异常 */
-  const broken = resolveSessionTitles({ get() { throw new Error('boom'); } }, [cachedId], home);
+  const broken = resolveSessionTitles(
+    {
+      get() {
+        throw new Error('boom');
+      },
+    },
+    [cachedId],
+    home,
+  );
   assert.equal(broken[cachedId], '缓存里的会话名', 'agents 抛错时仍应退回投影缓存');
   assert.deepEqual(resolveSessionTitles(null, [], home), {});
 });
 
-test('title shapes are tolerated and long titles are trimmed for the overlay', (t) => {
+test('title shapes are tolerated and long titles are trimmed for the overlay', t => {
   const home = tempHome(t);
   const structId = sessionId();
   const headerId = sessionId();
   /* 结构化标题快照 + 会话 header 上的标题 */
   const ctx = {
-    get: (name) => (name === 'agents' ? {
-      list: () => [
-        { id: structId, status: 'running', session: { title: { title: '结构化标题' } } },
-        { id: headerId, status: 'running', session: { header: { title: '头部标题' } } },
-      ],
-    } : undefined),
+    get: name =>
+      name === 'agents'
+        ? {
+            list: () => [
+              { id: structId, status: 'running', session: { title: { title: '结构化标题' } } },
+              { id: headerId, status: 'running', session: { header: { title: '头部标题' } } },
+            ],
+          }
+        : undefined,
   };
   const titles = resolveSessionTitles(ctx, [structId, headerId], home);
   assert.equal(titles[structId], '结构化标题');
@@ -99,7 +123,7 @@ test('title shapes are tolerated and long titles are trimmed for the overlay', (
   assert.equal(truncateDisplayText(null), '');
 });
 
-test('projection cache reads are safe and the probe carries titles only when asked', async (t) => {
+test('projection cache reads are safe and the probe carries titles only when asked', async t => {
   const home = tempHome(t);
   const id = sessionId();
   writeProjection(home, id, '会话甲');
@@ -107,14 +131,20 @@ test('projection cache reads are safe and the probe carries titles only when ask
   assert.equal(readCachedSessionTitle(home, sessionId()), null, '缺失的缓存记录返回 null');
   assert.equal(readCachedSessionTitle(home, ''), null);
 
-  const ctx = { get: (name) => (name === 'agents' ? { list: () => [{ id, status: 'running', session: { title: '会话甲' } }] } : undefined) };
+  const ctx = {
+    get: name =>
+      name === 'agents' ? { list: () => [{ id, status: 'running', session: { title: '会话甲' } }] } : undefined,
+  };
   const plain = await probeSessionActivity(ctx, { home, now: Date.now() });
   assert.equal(plain.activeCount, 1);
   assert.equal('titles' in plain, false, '默认不解析会话名(同步/守卫路径不需要)');
   const withTitles = await probeSessionActivity(ctx, { home, now: Date.now(), titles: true });
   assert.equal(withTitles.titles[id], '会话甲');
   /* 没有活跃会话时不必返回空映射 */
-  const idle = await probeSessionActivity({ get: (name) => (name === 'agents' ? { list: () => [{ id, status: 'idle' }] } : undefined) }, { home, now: Date.now(), titles: true });
+  const idle = await probeSessionActivity(
+    { get: name => (name === 'agents' ? { list: () => [{ id, status: 'idle' }] } : undefined) },
+    { home, now: Date.now(), titles: true },
+  );
   assert.equal(idle.activeCount, 0);
   assert.equal('titles' in idle, false);
 });

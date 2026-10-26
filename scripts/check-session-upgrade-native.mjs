@@ -12,64 +12,120 @@ import { profile, bootHost, stopHost, repo } from './native-fixture.mjs';
 import { removeFixture } from '../tests/helpers/fixture-cleanup.mjs';
 import { releasedPackedSession } from '../tests/helpers/released-session-fixture.mjs';
 
-const dshRoot=path.resolve(process.argv[2] || path.join(process.env.APPDATA,'npm/node_modules/@deepseek-ai/dsh'));
-const root=fs.mkdtempSync(path.join(os.tmpdir(),'chatsync-upgrade-native-'));
-const output=path.join(repo,'outputs','session-upgrade-'+new Date().toISOString().replace(/[:.]/g,'-'));
-fs.mkdirSync(output,{recursive:true});
-const result={ok:false,legacyPlugin:'0.20.0',currentPlugin:JSON.parse(fs.readFileSync(path.join(repo,'package.json'))).version,
-  hostVersion:JSON.parse(fs.readFileSync(path.join(dshRoot,'package.json'))).version,hostKind:'web',physicalMachines:1,hostProcesses:2,
-  remote:'local bare Git; private visibility substituted for synthetic fixture',checks:[]};
-const hosts=[];
-const id='session-11111111-1111-1111-1111-111111111111',cwd=path.join(root,'project');
-const encode=rows=>Buffer.from(rows.map(JSON.stringify).join('\n')+'\n');
-const require=createRequire(path.join(dshRoot,'lib/bin.js'));
-try{
-  const legacy=path.join(root,'legacy-source');fs.mkdirSync(legacy);
-  execFileSync('git',['archive','--format=zip','--output='+path.join(root,'legacy.zip'),'988a38fe2ec4d8872c0d9df99fec76f7464a04db'],{cwd:repo,stdio:'pipe'});
-  execFileSync('tar',['-xf',path.join(root,'legacy.zip'),'-C',legacy],{stdio:'pipe'});
-  assert.equal(JSON.parse(fs.readFileSync(path.join(legacy,'package.json'))).version,'0.20.0');
-  const catalogModule=await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-session-format-catalog')));
-  const catalog=catalogModule.createSessionFormatCatalogWithChildren(Object.freeze([]));
-  const {createSessionFormatCatalog}=await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-session-format')));
-  const v0=await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-session-format-v0-to-v1')));
-  const v2=await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-session-format-v1-to-v2')));
-  const knownV2=new Set(v2.RELEASED_V2_EVENT_TYPES);
-  const restoreV2=artifact=>v2.restoreReleasedV2Artifact(artifact,knownV2);
-  const catalogV2=createSessionFormatCatalog({currentVersion:2,
-    codecs:[v0.releasedV0SessionFormatCodec,v0.releasedV1SessionFormatCodec,v2.releasedV2SessionFormatCodec],
-    migrations:[v0.sessionFormatV0ToV1,v2.sessionFormatV1ToV2],currentEncoder:v2.releasedV2SessionFormatCodec,
-    restoreCurrent:restoreV2,restoreTransformedCurrent:restoreV2,
-    restoreCurrentHeader:header=>{v2.assertReleasedV2Header(header);return header;}});
-  const restoreRows=(reader,rows)=>{const restore=reader.createRestore(rows[0],{recovery:'strict',validation:'current'});
-    for(const row of rows.slice(1))restore.decodeRow(row);return restore.finish();};
-  const archives=new Map();let seed;
-  for(const version of [0,1]){
-    const rows=releasedPackedSession(version,id,cwd);
-    const restore=catalog.createRestore(rows[0],{recovery:'strict',validation:'current'});
-    for(const row of rows.slice(1))restore.decodeRow(row);
-    const artifact=restore.finish();assert.equal(artifact.header.version,4);
-    if(seed)assert.deepEqual(artifact,seed);else seed=artifact;
-    archives.set(version===0?'session.jsonl.zstd':'session.v1.jsonl.zstd',zstdCompressSync(encode(rows)));
+const dshRoot = path.resolve(process.argv[2] || path.join(process.env.APPDATA, 'npm/node_modules/@deepseek-ai/dsh'));
+const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-upgrade-native-'));
+const output = path.join(repo, 'outputs', 'session-upgrade-' + new Date().toISOString().replace(/[:.]/g, '-'));
+fs.mkdirSync(output, { recursive: true });
+const result = {
+  ok: false,
+  legacyPlugin: '0.20.0',
+  currentPlugin: JSON.parse(fs.readFileSync(path.join(repo, 'package.json'))).version,
+  hostVersion: JSON.parse(fs.readFileSync(path.join(dshRoot, 'package.json'))).version,
+  hostKind: 'web',
+  physicalMachines: 1,
+  hostProcesses: 2,
+  remote: 'local bare Git; private visibility substituted for synthetic fixture',
+  checks: [],
+};
+const hosts = [];
+const id = 'session-11111111-1111-1111-1111-111111111111',
+  cwd = path.join(root, 'project');
+const encode = rows => Buffer.from(rows.map(JSON.stringify).join('\n') + '\n');
+const require = createRequire(path.join(dshRoot, 'lib/bin.js'));
+try {
+  const legacy = path.join(root, 'legacy-source');
+  fs.mkdirSync(legacy);
+  execFileSync(
+    'git',
+    [
+      'archive',
+      '--format=zip',
+      '--output=' + path.join(root, 'legacy.zip'),
+      '988a38fe2ec4d8872c0d9df99fec76f7464a04db',
+    ],
+    { cwd: repo, stdio: 'pipe' },
+  );
+  execFileSync('tar', ['-xf', path.join(root, 'legacy.zip'), '-C', legacy], { stdio: 'pipe' });
+  assert.equal(JSON.parse(fs.readFileSync(path.join(legacy, 'package.json'))).version, '0.20.0');
+  const catalogModule = await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-session-format-catalog')));
+  const catalog = catalogModule.createSessionFormatCatalogWithChildren(Object.freeze([]));
+  const { createSessionFormatCatalog } = await import(
+    pathToFileURL(require.resolve('@deepseek-ai/dsh-session-format'))
+  );
+  const v0 = await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-session-format-v0-to-v1')));
+  const v2 = await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-session-format-v1-to-v2')));
+  const knownV2 = new Set(v2.RELEASED_V2_EVENT_TYPES);
+  const restoreV2 = artifact => v2.restoreReleasedV2Artifact(artifact, knownV2);
+  const catalogV2 = createSessionFormatCatalog({
+    currentVersion: 2,
+    codecs: [v0.releasedV0SessionFormatCodec, v0.releasedV1SessionFormatCodec, v2.releasedV2SessionFormatCodec],
+    migrations: [v0.sessionFormatV0ToV1, v2.sessionFormatV1ToV2],
+    currentEncoder: v2.releasedV2SessionFormatCodec,
+    restoreCurrent: restoreV2,
+    restoreTransformedCurrent: restoreV2,
+    restoreCurrentHeader: header => {
+      v2.assertReleasedV2Header(header);
+      return header;
+    },
+  });
+  const restoreRows = (reader, rows) => {
+    const restore = reader.createRestore(rows[0], { recovery: 'strict', validation: 'current' });
+    for (const row of rows.slice(1)) restore.decodeRow(row);
+    return restore.finish();
+  };
+  const archives = new Map();
+  let seed;
+  for (const version of [0, 1]) {
+    const rows = releasedPackedSession(version, id, cwd);
+    const restore = catalog.createRestore(rows[0], { recovery: 'strict', validation: 'current' });
+    for (const row of rows.slice(1)) restore.decodeRow(row);
+    const artifact = restore.finish();
+    assert.equal(artifact.header.version, 4);
+    if (seed) assert.deepEqual(artifact, seed);
+    else seed = artifact;
+    archives.set(version === 0 ? 'session.jsonl.zstd' : 'session.v1.jsonl.zstd', zstdCompressSync(encode(rows)));
   }
   // Retain every released successor, using official encoders rather than
   // hand-editing version numbers or logical event coordinates.
-  for(const reader of [catalogV2,catalogModule.historicalSessionFormatCatalog]){
-    const artifact=restoreRows(reader,releasedPackedSession(0,id,cwd));
-    const rows=[reader.encodeCurrentHeader(artifact.header,artifact.inheritedEventCount),...artifact.events.map(e=>reader.encodeCurrentEvent(e))];
-    assert.deepEqual(restoreRows(catalog,rows),seed);
-    archives.set('session.v'+reader.currentVersion+'.jsonl.zstd',zstdCompressSync(encode(rows)));
+  for (const reader of [catalogV2, catalogModule.historicalSessionFormatCatalog]) {
+    const artifact = restoreRows(reader, releasedPackedSession(0, id, cwd));
+    const rows = [
+      reader.encodeCurrentHeader(artifact.header, artifact.inheritedEventCount),
+      ...artifact.events.map(e => reader.encodeCurrentEvent(e)),
+    ];
+    assert.deepEqual(restoreRows(catalog, rows), seed);
+    archives.set('session.v' + reader.currentVersion + '.jsonl.zstd', zstdCompressSync(encode(rows)));
   }
-  result.sourceFormats=[0,1,2,3,4];
-  result.checks.push('Synthetic v0–v3 logs pass official migration and current replay validation, with v2/v3 generated by official encoders');
-  const remote=path.join(root,'remote.git');execFileSync('git',['init','--bare',remote],{stdio:'ignore'});
-  for(const name of ['a','b']){
-    const home=path.join(root,name),profileRoot=profile(home,['@chatsync/upgrade-fixture']);
-    const driver=path.join(profileRoot,'node_modules/@chatsync/upgrade-fixture');fs.mkdirSync(driver,{recursive:true});
-    fs.writeFileSync(path.join(driver,'package.json'),JSON.stringify({name:'@chatsync/upgrade-fixture',version:'1.0.0',type:'module',main:'./index.js',dsh:{bundle:{patch:'./cordis.patch.yml'}}}));
-    fs.writeFileSync(path.join(driver,'cordis.patch.yml'),'- insert:\n    - id: chatsync-upgrade-fixture\n      name: "@chatsync/upgrade-fixture"\n');
-    fs.writeFileSync(path.join(driver,'index.js'),`
-import { SyncEngine } from ${JSON.stringify(pathToFileURL(path.join(repo,'lib/sync.js')).href)};
-import { SyncEngine as LegacyEngine } from ${JSON.stringify(pathToFileURL(path.join(legacy,'lib/sync.js')).href)};
+  result.sourceFormats = [0, 1, 2, 3, 4];
+  result.checks.push(
+    'Synthetic v0–v3 logs pass official migration and current replay validation, with v2/v3 generated by official encoders',
+  );
+  const remote = path.join(root, 'remote.git');
+  execFileSync('git', ['init', '--bare', remote], { stdio: 'ignore' });
+  for (const name of ['a', 'b']) {
+    const home = path.join(root, name),
+      profileRoot = profile(home, ['@chatsync/upgrade-fixture']);
+    const driver = path.join(profileRoot, 'node_modules/@chatsync/upgrade-fixture');
+    fs.mkdirSync(driver, { recursive: true });
+    fs.writeFileSync(
+      path.join(driver, 'package.json'),
+      JSON.stringify({
+        name: '@chatsync/upgrade-fixture',
+        version: '1.0.0',
+        type: 'module',
+        main: './index.js',
+        dsh: { bundle: { patch: './cordis.patch.yml' } },
+      }),
+    );
+    fs.writeFileSync(
+      path.join(driver, 'cordis.patch.yml'),
+      '- insert:\n    - id: chatsync-upgrade-fixture\n      name: "@chatsync/upgrade-fixture"\n',
+    );
+    fs.writeFileSync(
+      path.join(driver, 'index.js'),
+      `
+import { SyncEngine } from ${JSON.stringify(pathToFileURL(path.join(repo, 'lib/sync.js')).href)};
+import { SyncEngine as LegacyEngine } from ${JSON.stringify(pathToFileURL(path.join(legacy, 'lib/sync.js')).href)};
 export const inject=['webServer','sessionPersistence'];
 export function apply(ctx){
  const options={remote:${JSON.stringify(remote)},autoRepo:false,workspaceSync:false,patches:false,autoRestartAfterRepair:false,
@@ -92,39 +148,69 @@ export function apply(ctx){
   res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify(reply));
  }}));
 }
-`);
-    hosts.push(await bootHost(dshRoot,home,'/upgrade-fixture'));
+`,
+    );
+    hosts.push(await bootHost(dshRoot, home, '/upgrade-fixture'));
   }
-  const call=async(index,action)=>{const r=await hosts[index].request('/upgrade-fixture',{action});assert.equal(r.ok,true,JSON.stringify(r));
-    if(action.endsWith('sync'))assert.equal(r.value.error,undefined,JSON.stringify(r.value));return r.value;};
-  const created=await call(0,'create');assert.deepEqual(created.events,seed.events);
+  const call = async (index, action) => {
+    const r = await hosts[index].request('/upgrade-fixture', { action });
+    assert.equal(r.ok, true, JSON.stringify(r));
+    if (action.endsWith('sync')) assert.equal(r.value.error, undefined, JSON.stringify(r.value));
+    return r.value;
+  };
+  const created = await call(0, 'create');
+  assert.deepEqual(created.events, seed.events);
   // Host handles are closed before adding immutable synthetic archive files.
-  const sessionDirs=fs.readdirSync(path.join(hosts[0].home,'sessions'));
-  assert.equal(sessionDirs.length,1);
-  const archiveDir=path.join(hosts[0].home,'sessions',sessionDirs[0],id);
-  for(const [name,bytes] of archives)fs.writeFileSync(path.join(archiveDir,name),bytes);
-  await call(0,'legacy-sync');
-  assert.equal(fs.existsSync(path.join(hosts[0].home,'.git')),true);
-  result.checks.push('Actual v0.20.0 engine uploads a home repository containing packed archives and a host-created current log');
-  await call(1,'sync');assert.deepEqual((await call(1,'inspect')).events,seed.events);
-  const after=await call(1,'append');await call(1,'sync');await call(0,'legacy-sync');
-  assert.deepEqual((await call(0,'inspect')).events,after.events);
-  result.checks.push('Current engine downloads through official persistence; a legacy engine receives the next two events from the current peer');
-  const git=(...args)=>execFileSync('git',args,{cwd:hosts[0].home,encoding:'utf8'}).trim();
-  const oldHead=git('rev-parse','HEAD');
-  await call(0,'sync');const last=await call(0,'append');await call(0,'sync');await call(1,'sync');
-  assert.equal(git('rev-parse','HEAD'),oldHead);
-  for(const [name,bytes] of archives)assert.deepEqual(fs.readFileSync(path.join(archiveDir,name)),bytes);
-  assert.deepEqual((await call(1,'inspect')).events,last.events);
-  assert.equal(fs.existsSync(path.join(hosts[1].home,'.git')),false);
-  result.checks.push('Upgrading the legacy home preserves its Git HEAD and archive bytes, then completes another two-event round trip');
-  for(let i=0;i<2;i++){const previous=hosts[i];stopHost(previous.child);hosts[i]=await bootHost(dshRoot,previous.home,'/upgrade-fixture');
-    assert.deepEqual((await call(i,'inspect')).events,last.events);}
+  const sessionDirs = fs.readdirSync(path.join(hosts[0].home, 'sessions'));
+  assert.equal(sessionDirs.length, 1);
+  const archiveDir = path.join(hosts[0].home, 'sessions', sessionDirs[0], id);
+  for (const [name, bytes] of archives) fs.writeFileSync(path.join(archiveDir, name), bytes);
+  await call(0, 'legacy-sync');
+  assert.equal(fs.existsSync(path.join(hosts[0].home, '.git')), true);
+  result.checks.push(
+    'Actual v0.20.0 engine uploads a home repository containing packed archives and a host-created current log',
+  );
+  await call(1, 'sync');
+  assert.deepEqual((await call(1, 'inspect')).events, seed.events);
+  const after = await call(1, 'append');
+  await call(1, 'sync');
+  await call(0, 'legacy-sync');
+  assert.deepEqual((await call(0, 'inspect')).events, after.events);
+  result.checks.push(
+    'Current engine downloads through official persistence; a legacy engine receives the next two events from the current peer',
+  );
+  const git = (...args) => execFileSync('git', args, { cwd: hosts[0].home, encoding: 'utf8' }).trim();
+  const oldHead = git('rev-parse', 'HEAD');
+  await call(0, 'sync');
+  const last = await call(0, 'append');
+  await call(0, 'sync');
+  await call(1, 'sync');
+  assert.equal(git('rev-parse', 'HEAD'), oldHead);
+  for (const [name, bytes] of archives) assert.deepEqual(fs.readFileSync(path.join(archiveDir, name)), bytes);
+  assert.deepEqual((await call(1, 'inspect')).events, last.events);
+  assert.equal(fs.existsSync(path.join(hosts[1].home, '.git')), false);
+  result.checks.push(
+    'Upgrading the legacy home preserves its Git HEAD and archive bytes, then completes another two-event round trip',
+  );
+  for (let i = 0; i < 2; i++) {
+    const previous = hosts[i];
+    stopHost(previous.child);
+    hosts[i] = await bootHost(dshRoot, previous.home, '/upgrade-fixture');
+    assert.deepEqual((await call(i, 'inspect')).events, last.events);
+  }
   result.checks.push('Both real Web hosts restart and cold-read identical complete event histories');
-  result.events=last.events.length;result.ok=true;
-}catch(error){result.error=error.stack;process.exitCode=1;}
-finally{
-  for(const [i,host] of hosts.entries()){fs.writeFileSync(path.join(output,'host-'+i+'.log'),host.readLog());stopHost(host.child);}
-  result.completedAt=new Date().toISOString();fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result,null,2));
-  console.log(JSON.stringify({output,...result},null,2));removeFixture(root);
+  result.events = last.events.length;
+  result.ok = true;
+} catch (error) {
+  result.error = error.stack;
+  process.exitCode = 1;
+} finally {
+  for (const [i, host] of hosts.entries()) {
+    fs.writeFileSync(path.join(output, 'host-' + i + '.log'), host.readLog());
+    stopHost(host.child);
+  }
+  result.completedAt = new Date().toISOString();
+  fs.writeFileSync(path.join(output, 'result.json'), JSON.stringify(result, null, 2));
+  console.log(JSON.stringify({ output, ...result }, null, 2));
+  removeFixture(root);
 }

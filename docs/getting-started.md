@@ -12,15 +12,13 @@
 node scripts\install-local-desktop.mjs outputs\dpskk2-dsh-chatsync-0.21.0.tgz outputs\install-0.21.0
 ```
 
-没有单独安装 Node.js 时，可借用桌面端自带的运行环境（三行依次运行）：
+没有单独安装 Node.js 时，可借用桌面端自带的运行环境。整行复制运行，不要拆开（`2>&1` 让报错显示在窗口中，最后显示退出码）：
 
 ```powershell
-$env:ELECTRON_RUN_AS_NODE = '1'
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\DeepSeek Harness.exe" scripts\install-local-desktop.mjs outputs\dpskk2-dsh-chatsync-0.21.0.tgz outputs\install-0.21.0 | Out-Host
-Remove-Item Env:ELECTRON_RUN_AS_NODE
+$env:ELECTRON_RUN_AS_NODE='1'; & "$env:LOCALAPPDATA\Programs\DeepSeek Harness\DeepSeek Harness.exe" scripts\install-local-desktop.mjs outputs\dpskk2-dsh-chatsync-0.21.0.tgz outputs\install-0.21.0 2>&1 | Out-Host; "退出码 $LASTEXITCODE"; Remove-Item Env:ELECTRON_RUN_AS_NODE
 ```
 
-安装记录目录必须是新的，避免覆盖回滚材料。脚本使用 Desktop 自带的 DSH 命令，只安装包并核对版本；安装后从菜单完全退出桌面应用，再重新打开，以加载新源码。
+退出码为 0 且显示「桌面端已安装」才表示成功；失败时会显示「安装失败：」及原因。原包名 `@dpskk2/dsh-chatsync` 与短包名 `chatsync` 请按当前已安装的包名选择安装包。安装需要能访问 npm 官方源；出现 `ECONNREFUSED` 时多半是设置了代理但代理软件没有运行。安装记录目录必须是新的，避免覆盖回滚材料。脚本使用 Desktop 自带的 DSH 命令，只安装包并核对版本；安装后从菜单完全退出桌面应用，再重新打开，以加载新源码。
 
 Web 端在同一位置安装本地包：
 

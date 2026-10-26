@@ -6,13 +6,31 @@ import { fileURLToPath } from 'node:url';
 
 export const risks = ['data-loss', 'corruption-spread', 'privacy', 'upgrade-environments', 'recovery'];
 export const methods = ['source-review', 'automated', 'fault-injection', 'native-runtime'];
-export const requiredChecks = [
-  ...risks.flatMap(risk => methods.map(method => `${risk}/${method}`)),
-  'full-regression',
-  'candidate-install',
-  'restore-drill',
-  'physical-two-device-github',
-];
+// Tiered gate (docs/release-safety-checklist.md): every release needs the full
+// regression (standalone Node and the Windows Electron runtime) and the candidate
+// package checked in an isolated host; a minor or major release also needs the
+// physical two-device acceptance, which the maintainer may confirm.
+export const patchChecks = ['full-regression', 'candidate-install'];
+export const minorChecks = [...patchChecks, 'physical-two-device-github'];
+// Advisory guidance: recorded when performed, never required, but a failure still blocks.
+export const advisoryChecks = [...risks.flatMap(risk => methods.map(method => `${risk}/${method}`)), 'restore-drill'];
+/** 'patch' for x.y.z with z > 0; any other version is treated as a minor (or major) release. */
+export function releaseTier(version) {
+  const match = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(String(version));
+  if (!match) throw new Error('版本号格式无效：' + version);
+  return Number(match[3]) > 0 ? 'patch' : 'minor';
+}
+export const requiredChecksFor = tier => (tier === 'patch' ? patchChecks : minorChecks);
+const blank = id => ({
+  id,
+  status: 'pending',
+  completedAt: '',
+  environment: '',
+  procedure: '',
+  observed: '',
+  reviewer: '',
+  artifacts: [],
+});
 const sha256 = value => crypto.createHash('sha256').update(value).digest('hex');
 const git = (root, args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', windowsHide: true });
 const validHash = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
@@ -33,22 +51,16 @@ export function sourceFingerprint(root) {
 }
 
 export function template(pkg) {
+  const tier = releaseTier(pkg.version);
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     version: pkg.version,
     build: pkg.chatsyncBuild,
+    tier,
     sourceSha256: '',
     packageSha256: '',
-    checks: requiredChecks.map(id => ({
-      id,
-      status: 'pending',
-      completedAt: '',
-      environment: '',
-      procedure: '',
-      observed: '',
-      reviewer: '',
-      artifacts: [],
-    })),
+    checks: requiredChecksFor(tier).map(blank),
+    advisory: advisoryChecks.map(blank),
   };
 }
 
@@ -58,8 +70,16 @@ export function validateRelease(root, manifest, packageFile) {
   if (git(root, ['status', '--porcelain=v1', '--untracked-files=all']).trim()) {
     errors.push('工作区尚未冻结：请先提交全部候选源码及脱敏证据');
   }
-  if (manifest.schemaVersion !== 1) errors.push('证据清单格式不支持');
+  if (manifest.schemaVersion !== 2) errors.push('证据清单格式不支持');
   if (manifest.version !== pkg.version || manifest.build !== pkg.chatsyncBuild) errors.push('版本或构建标识不一致');
+  let tier = null;
+  try {
+    tier = releaseTier(pkg.version);
+  } catch (error) {
+    errors.push(error.message);
+  }
+  if (manifest.tier !== tier) errors.push(`版本级别与清单不一致：${pkg.version} 属于 ${tier}`);
+  const requiredChecks = requiredChecksFor(tier);
   if (!validHash(manifest.sourceSha256) || manifest.sourceSha256 !== sourceFingerprint(root))
     errors.push('源码指纹不一致，必须重新验收');
   if (
@@ -73,9 +93,7 @@ export function validateRelease(root, manifest, packageFile) {
   // An explicit, candidate-bound owner decision records unverified scenarios;
   // it never converts them to passed, and cannot override an actual failure.
   const decision = manifest.ownerDecision;
-  const allowed = id =>
-    /\/(?:fault-injection|native-runtime)$/.test(id) ||
-    ['candidate-install', 'restore-drill', 'physical-two-device-github'].includes(id);
+  const allowed = id => ['candidate-install', 'physical-two-device-github'].includes(id);
   const accepted = new Set();
   if (decision) {
     if (
@@ -101,6 +119,14 @@ export function validateRelease(root, manifest, packageFile) {
     checks.some(check => !requiredChecks.includes(check?.id))
   )
     errors.push('检查项目不完整、重复或包含未知项目');
+  const advisory = Array.isArray(manifest.advisory) ? manifest.advisory : [];
+  if (
+    advisory.some(check => !advisoryChecks.includes(check?.id)) ||
+    new Set(advisory.map(check => check?.id)).size !== advisory.length
+  )
+    errors.push('参考检查项目重复或包含未知项目');
+  for (const check of advisory)
+    if (check?.status === 'failed') errors.push(`${check.id}：参考检查发现失败，必须先处理`);
   for (const id of requiredChecks) {
     const check = checks.find(item => item?.id === id);
     if (!check || (check.status !== 'passed' && !(check.status === 'not-verified' && accepted.has(id)))) {
@@ -169,7 +195,9 @@ function main() {
   if (args.length === 1 && args[0] === '--init') {
     fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
     fs.writeFileSync(manifestPath, JSON.stringify(template(pkg), null, 2) + '\n', { flag: 'wx' });
-    console.log(`已生成待验收清单：${manifestPath}；所有项目均未通过。`);
+    console.log(
+      `已生成待验收清单：${manifestPath}（${releaseTier(pkg.version) === 'patch' ? '补丁版' : '次版本'}）；所有项目均未通过。`,
+    );
     return;
   }
   if (args.length !== 2 || args[0] !== '--package')
@@ -182,7 +210,7 @@ function main() {
   console.log(
     unverified.length
       ? `依据用户决定允许有限验证发布：${pkg.version}；未验证 ${unverified.length} 项（不是全部验收通过）：${unverified.join(', ')}`
-      : `安全证据门禁通过：${pkg.version} / ${pkg.chatsyncBuild}，${requiredChecks.length} 项；请保留实测范围声明。`,
+      : `安全证据门禁通过：${pkg.version} / ${pkg.chatsyncBuild}（${manifest.tier === 'patch' ? '补丁版' : '次版本'}，${manifest.checks.length} 项必过）；请保留实测范围声明。`,
   );
 }
 

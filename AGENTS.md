@@ -35,7 +35,7 @@ chatsync 是 DeepSeek Harness（DSH）插件：通过用户自己的 GitHub 私�
 - `package.json` 版本、Git 标签 `v版本号`、`CHANGELOG.md` 标题和 GitHub Release 版本必须一致。
 - 每次发布都要更新 `CHANGELOG.md`，标题为 `## 版本号 · YYYY-MM-DD`，按 `CONTRIBUTING.md`「更新日志写法」面向用户书写；升级注意和验证边界必须保留，内部过程（如 README 处理方式、脚本名）不写进日志。
 - 每次发布都要把对应标签的完整受版本控制源码打包为 ZIP 上传到 GitHub Release，Release 正文使用该版本的更新日志；不能只发布 npm。
-- 定版、打标签或对外发布前，逐项完成 `docs/release-safety-checklist.md` 并通过 `scripts/check-release-safety.mjs`。缺失、失败、跳过、中断、待确认，或源码、安装包发生变化，都会阻断发布；历史报告不能自动沿用为本版通过。未完成的验收项只能通过绑定哈希的 `ownerDecision` 保持 not-verified 并公开说明。
+- 定版、打标签或对外发布前，按版本级别完成 `docs/release-safety-checklist.md` 的必过项（补丁版：完整回归含 Windows/Electron、候选包隔离宿主检查；次版本再加物理双机验收，维护者确认即可），并通过 `scripts/check-release-safety.mjs`。参考检查按改动风险选做，记录为失败的仍会阻断。缺失、失败、跳过、中断、待确认，或源码、安装包发生变化，都会阻断发布；历史报告不能自动沿用为本版通过。未完成的验收项只能通过绑定哈希的 `ownerDecision` 保持 not-verified 并公开说明。
 - 安全验收只使用隔离数据和专用测试仓库，不对个人原件注入故障；没有两台物理设备和 GitHub 实网证据时，不得把本地双副本模拟记为双机验收通过。
 - 发布目标以维护者当次授权为准：“发到 GitHub”不自动包含 npm 发布、市场发布、修改远端旧标签或更新日常安装。发布流程的修改要推送到远端后才生效。
 

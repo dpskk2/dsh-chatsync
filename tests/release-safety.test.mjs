@@ -6,10 +6,28 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { requiredChecks, sourceFingerprint, template, validateRelease } from '../scripts/check-release-safety.mjs';
+import {
+  advisoryChecks,
+  minorChecks,
+  patchChecks,
+  releaseTier,
+  sourceFingerprint,
+  template,
+  validateRelease,
+} from '../scripts/check-release-safety.mjs';
 
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
-function fixture(t) {
+const passed = (check, version, report) =>
+  Object.assign(check, {
+    status: 'passed',
+    completedAt: '2020-01-01T00:00:00+08:00',
+    environment: 'isolated fixture',
+    procedure: 'synthetic gate validation',
+    observed: 'fixture only',
+    reviewer: 'test fixture',
+    artifacts: [{ path: `release-evidence/${version}/report.json`, sha256: digest(report) }],
+  });
+function fixture(t, version = '1.2.3') {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-release-gate-'));
   // Only this newly created, isolated test directory is removed.
   t.after(() => removeFixture(root));
@@ -18,7 +36,7 @@ function fixture(t) {
   git(['config', 'user.name', 'Release gate fixture']);
   git(['config', 'user.email', 'fixture@example.invalid']);
   git(['config', 'core.autocrlf', 'false']);
-  const pkg = { version: '1.2.3', chatsyncBuild: 'fixture-only' };
+  const pkg = { version, chatsyncBuild: 'fixture-only' };
   fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify(pkg));
   fs.writeFileSync(path.join(root, '.gitignore'), '/work/\n');
   fs.writeFileSync(path.join(root, 'source.mjs'), 'export const preserved = true;\n');
@@ -34,34 +52,94 @@ function fixture(t) {
   const manifest = template(pkg);
   manifest.sourceSha256 = sourceFingerprint(root);
   manifest.packageSha256 = digest(fs.readFileSync(packageFile));
-  for (const check of manifest.checks)
-    Object.assign(check, {
-      status: 'passed',
-      completedAt: '2020-01-01T00:00:00+08:00',
-      environment: 'isolated fixture',
-      procedure: 'synthetic gate validation',
-      observed: 'fixture only',
-      reviewer: 'test fixture',
-      artifacts: [{ path: 'release-evidence/1.2.3/report.json', sha256: digest(report) }],
-    });
+  for (const check of manifest.checks) passed(check, version, report);
   fs.writeFileSync(path.join(evidenceDir, 'manifest.json'), JSON.stringify(manifest));
   git(['add', '.']);
   git(['commit', '-m', 'fixture evidence']);
-  return { root, git, manifest, packageFile, evidenceDir, errors: () => validateRelease(root, manifest, packageFile) };
+  return {
+    root,
+    git,
+    manifest,
+    report,
+    packageFile,
+    evidenceDir,
+    errors: () => validateRelease(root, manifest, packageFile),
+  };
 }
 
-test('release checklist starts with all 24 mandatory items pending', () => {
-  const manifest = template({ version: '1.2.3', chatsyncBuild: 'test' });
-  assert.equal(requiredChecks.length, 24);
-  assert.equal(new Set(requiredChecks).size, 24);
-  assert.ok(manifest.checks.every(check => check.status === 'pending' && !check.artifacts.length));
-  assert.equal(manifest.sourceSha256, '');
+test('patch and minor releases list their required checks pending; risk scenarios stay advisory', () => {
+  assert.equal(releaseTier('0.20.4'), 'patch');
+  assert.equal(releaseTier('0.21.0'), 'minor');
+  assert.equal(releaseTier('1.0.0'), 'minor');
+  assert.throws(() => releaseTier('next'), /版本号格式无效/);
+  const patch = template({ version: '1.2.3', chatsyncBuild: 'test' });
+  const minor = template({ version: '1.3.0', chatsyncBuild: 'test' });
+  assert.deepEqual(
+    patch.checks.map(check => check.id),
+    ['full-regression', 'candidate-install'],
+  );
+  assert.deepEqual(
+    minor.checks.map(check => check.id),
+    ['full-regression', 'candidate-install', 'physical-two-device-github'],
+  );
+  assert.deepEqual(
+    patchChecks,
+    patch.checks.map(check => check.id),
+  );
+  assert.deepEqual(
+    minorChecks,
+    minor.checks.map(check => check.id),
+  );
+  assert.equal(advisoryChecks.length, 21);
+  assert.equal(new Set(advisoryChecks).size, 21);
+  for (const manifest of [patch, minor]) {
+    assert.equal(manifest.schemaVersion, 2);
+    assert.ok(
+      [...manifest.checks, ...manifest.advisory].every(check => check.status === 'pending' && !check.artifacts.length),
+    );
+    assert.equal(manifest.sourceSha256, '');
+  }
+  assert.equal(patch.tier, 'patch');
+  assert.equal(minor.tier, 'minor');
 });
 
 test('complete committed evidence for the exact candidate passes; adding evidence does not change source fingerprint', t => {
   const f = fixture(t);
   assert.equal(sourceFingerprint(f.root), f.manifest.sourceSha256);
   assert.deepEqual(f.errors(), []);
+});
+
+test('a patch release needs no two-device check; a minor release does, and the maintainer may confirm it', t => {
+  const patch = fixture(t, '1.2.3');
+  assert.ok(!patch.manifest.checks.some(check => check.id === 'physical-two-device-github'));
+  assert.deepEqual(patch.errors(), []);
+  const minor = fixture(t, '1.3.0');
+  assert.deepEqual(minor.errors(), []);
+  const twoDevice = minor.manifest.checks.find(check => check.id === 'physical-two-device-github');
+  twoDevice.status = 'pending';
+  assert.ok(minor.errors().some(error => error.includes('physical-two-device-github：未通过')));
+  minor.manifest.checks = minor.manifest.checks.filter(check => check !== twoDevice);
+  assert.ok(minor.errors().some(error => error.includes('不完整')));
+});
+
+test('advisory checks are optional, but a recorded failure or unknown advisory item blocks release', t => {
+  const f = fixture(t);
+  assert.ok(f.manifest.advisory.every(check => check.status === 'pending'));
+  assert.deepEqual(f.errors(), []);
+  f.manifest.advisory[0].status = 'failed';
+  assert.ok(f.errors().some(error => error.includes(`${advisoryChecks[0]}：参考检查发现失败`)));
+  f.manifest.advisory[0].status = 'pending';
+  f.manifest.advisory.push({ id: 'made-up-check', status: 'pending' });
+  assert.ok(f.errors().some(error => error.includes('参考检查项目重复或包含未知项目')));
+});
+
+test('a manifest whose tier does not match the version, or an old-format manifest, is rejected', t => {
+  const f = fixture(t, '1.3.0');
+  f.manifest.tier = 'patch';
+  assert.ok(f.errors().some(error => error.includes('版本级别与清单不一致')));
+  f.manifest.tier = 'minor';
+  f.manifest.schemaVersion = 1;
+  assert.ok(f.errors().some(error => error.includes('证据清单格式不支持')));
 });
 
 test('pending, failed, skipped, interrupted and missing checks block release', t => {
@@ -77,11 +155,11 @@ test('pending, failed, skipped, interrupted and missing checks block release', t
   assert.ok(f.errors().some(error => error.includes('不完整')));
 });
 
-test('repeated evidence IDs cannot replace a missing runtime check', t => {
+test('repeated evidence IDs cannot replace a missing required check', t => {
   const f = fixture(t);
   f.manifest.checks[1] = structuredClone(f.manifest.checks[0]);
   assert.ok(f.errors().some(error => error.includes('重复')));
-  assert.ok(f.errors().some(error => error.includes('data-loss/automated')));
+  assert.ok(f.errors().some(error => error.includes('candidate-install')));
 });
 
 test('uncommitted changes block release even if the index fingerprint is unchanged', t => {
@@ -119,7 +197,7 @@ test('missing, changed, empty or out-of-scope evidence blocks release', t => {
 });
 
 test('wrong version, missing review details, future dates and absent artifacts block release', t => {
-  const f = fixture(t);
+  const f = fixture(t, '1.3.0');
   f.manifest.version = '1.2.2';
   f.manifest.checks[0].reviewer = '';
   f.manifest.checks[1].completedAt = '2999-01-01T00:00:00Z';
@@ -135,7 +213,7 @@ function ownerDecision(f) {
   f.manifest.checks.find(c => c.id === id).status = 'not-verified';
   f.manifest.ownerDecision = {
     mode: 'release-with-unverified-scenarios',
-    version: '1.2.3',
+    version: f.manifest.version,
     build: 'fixture-only',
     sourceSha256: f.manifest.sourceSha256,
     packageSha256: f.manifest.packageSha256,
@@ -147,7 +225,7 @@ function ownerDecision(f) {
   };
 }
 test('explicit owner decision preserves unverified status and remains bound to candidate', t => {
-  const f = fixture(t);
+  const f = fixture(t, '1.3.0');
   ownerDecision(f);
   assert.deepEqual(f.errors(), []);
   assert.equal(f.manifest.checks.at(-1).status, 'not-verified');
@@ -155,17 +233,17 @@ test('explicit owner decision preserves unverified status and remains bound to c
   assert.ok(f.errors().some(e => e.includes('用户发布决定无效')));
 });
 test('owner decision cannot excuse failed, missing, pending or skipped checks', t => {
-  const f = fixture(t);
+  const f = fixture(t, '1.3.0');
   ownerDecision(f);
   for (const status of ['failed', 'pending', 'skipped', 'interrupted']) {
     f.manifest.checks.at(-1).status = status;
     assert.ok(f.errors().some(e => e.includes('physical-two-device-github：未通过')));
   }
 });
-test('owner decision cannot bypass regression, automated tests, source review or failed installation', t => {
-  const f = fixture(t);
+test('owner decision cannot bypass regression, advisory checks or failed installation', t => {
+  const f = fixture(t, '1.3.0');
   ownerDecision(f);
-  for (const id of ['full-regression', 'privacy/automated', 'privacy/source-review']) {
+  for (const id of ['full-regression', 'privacy/automated', 'privacy/source-review', 'restore-drill']) {
     f.manifest.ownerDecision.acceptedChecks = [id];
     assert.ok(f.errors().some(e => e.includes('用户发布决定无效')));
   }
@@ -174,7 +252,7 @@ test('owner decision cannot bypass regression, automated tests, source review or
   assert.ok(f.errors().some(e => e.includes('candidate-install：未通过')));
 });
 test('unverified scenarios still require complete committed evidence and decision metadata', t => {
-  const f = fixture(t);
+  const f = fixture(t, '1.3.0');
   ownerDecision(f);
   f.manifest.checks.at(-1).artifacts = [];
   assert.ok(f.errors().some(e => e.includes('缺少证据文件')));

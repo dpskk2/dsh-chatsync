@@ -11,9 +11,9 @@
 | `check-release-safety.mjs` | 校验发版安全清单、源码指纹和候选包哈希（`--init`、`--fingerprint`、`--package <tgz>`） | 定版前；发布工作流自动运行 |
 | `check-package-contents.mjs` | 检查 npm 实际打包的文件、运行入口和随包文档的相对链接 | 修改 `package.json` 的 `files` 或随包文档后；CI 自动运行 |
 | `pack-short-name.mjs` | 用同一份实现生成短包名 `chatsync` 的安装包 | 发布工作流自动运行 |
-| `pack-local.ps1` | 在本机打包两个包名的候选安装包 | 本机部署前 |
-| `install-local-desktop.ps1` | 把本机候选包装进桌面端 profile | 本机部署时 |
-| `restart-dsh-desktop.ps1` | 桌面端「立即重启」使用的重启脚本（随包发布） | 由插件调用 |
+| `pack-local.mjs <outputs 下的新目录> [--short-name]` | 用已登记的源码在本机打包候选安装包；`--short-name` 生成短包名 `chatsync` | 本机部署前 |
+| `install-local-desktop.mjs <tgz> <outputs 下的新目录>` | 把本机候选包装进桌面端 profile，先备份 profile 与旧插件 | 本机部署时；会修改桌面端插件安装 |
+| `restart-dsh-desktop.ps1` | 桌面端「立即重启」使用的重启脚本（随包发布；仓库中唯一的 PowerShell 脚本，须兼容 Windows PowerShell 5.1，由 `tests/powershell-scripts.test.mjs` 检查） | 由插件调用 |
 
 ## 回归运行器
 

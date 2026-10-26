@@ -77,7 +77,7 @@
 
 通过条件：支持矩阵每个组合有实测结果和明确边界；未通过组合必须阻止不安全操作并调整支持声明，不能用「可能兼容」定版。
 
-入口：`tests/session-upgrade.test.mjs`、`tests/config-migration.test.mjs`、`tests/scheduler.test.mjs`、`tests/process-control.test.mjs`、`scripts/check-session-upgrade-native.mjs`、`scripts/check-lifecycle-desktop.mjs`、`scripts/check-runtime-regression.mjs`、`scripts/pack-local.ps1`。先审查脚本的输入、输出及退出逻辑再执行，尤其历史脚本是否复用固定输出目录；不得覆盖旧证据。
+入口：`tests/session-upgrade.test.mjs`、`tests/config-migration.test.mjs`、`tests/scheduler.test.mjs`、`tests/process-control.test.mjs`、`scripts/check-session-upgrade-native.mjs`、`scripts/check-lifecycle-desktop.mjs`、`scripts/check-runtime-regression.mjs`、`scripts/pack-local.mjs`。先审查脚本的输入、输出及退出逻辑再执行，尤其历史脚本是否复用固定输出目录；不得覆盖旧证据。
 
 ### 5. 出事以后无法找回（`recovery`）
 

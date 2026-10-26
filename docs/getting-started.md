@@ -6,10 +6,18 @@
 
 ## 1. 安装本地包
 
-先解压完整源码 ZIP，把同批提供的 `dpskk2-dsh-chatsync-0.20.1.tgz` 放到源码目录的 `outputs/` 下。桌面端可在源码目录打开 PowerShell，运行随源码提供的备份安装脚本：
+先解压完整源码 ZIP，把同批提供的安装包（如 `dpskk2-dsh-chatsync-0.21.0.tgz`）放到源码目录的 `outputs/` 下。桌面端可在源码目录打开 PowerShell，运行随源码提供的备份安装脚本。已安装 Node.js 24 时：
 
 ```powershell
-.\scripts\install-local-desktop.ps1 -PackagePath .\outputs\dpskk2-dsh-chatsync-0.20.1.tgz -OutputDirectory .\outputs\install-0.20.1
+node scripts\install-local-desktop.mjs outputs\dpskk2-dsh-chatsync-0.21.0.tgz outputs\install-0.21.0
+```
+
+没有单独安装 Node.js 时，可借用桌面端自带的运行环境（三行依次运行）：
+
+```powershell
+$env:ELECTRON_RUN_AS_NODE = '1'
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\DeepSeek Harness.exe" scripts\install-local-desktop.mjs outputs\dpskk2-dsh-chatsync-0.21.0.tgz outputs\install-0.21.0 | Out-Host
+Remove-Item Env:ELECTRON_RUN_AS_NODE
 ```
 
 安装记录目录必须是新的，避免覆盖回滚材料。脚本使用 Desktop 自带的 DSH 命令，只安装包并核对版本；安装后从菜单完全退出桌面应用，再重新打开，以加载新源码。

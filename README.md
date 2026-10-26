@@ -122,7 +122,7 @@ gh auth login --hostname github.com --git-protocol https --web
 
 支持 DSH 的 Web 和 Windows 桌面端，最低 **0.2.0-rc.1**；桌面端推荐 **0.2.1-rc.3 或更新版**。独立运行要求 **Node.js 24 或更新版**，桌面端使用应用自带运行时。
 
-具体已验证与未覆盖范围见[本版验证记录](docs/release-0.20.4-validation.md)。
+具体已验证与未覆盖范围见[本版验证记录](docs/release-0.21.0-validation.md)。
 
 ## 帮助与开发
 

@@ -333,6 +333,7 @@ function Section(props) {
         )
       : null,
     currentPage === 'sync' && status?.remote ? e(SyncedSessions, { busy: busy || settingsPending }) : null,
+    currentPage === 'sync' && status?.remote ? e(RepoUsage, { busy: busy || settingsPending }) : null,
     currentPage === 'sync' ? e(LocalStorage, { busy: busy || settingsPending }) : null,
     currentPage === 'sync' && status?.remote ? e(RemoteCleanup, { busy: busy || settingsPending }) : null,
     currentPage === 'sync'

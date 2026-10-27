@@ -252,6 +252,133 @@ function RemoteCleanup({ busy }) {
       : null,
   );
 }
+// What the sync repository holds and what a new computer downloads. Read only.
+function RepoUsage({ busy }) {
+  const [data, setData] = useState(null),
+    [pending, setPending] = useState(false),
+    [error, setError] = useState('');
+  const check = async () => {
+    setPending(true);
+    setError('');
+    try {
+      const d = await API.repoUsage();
+      if (!d?.ok) throw new Error(d?.error || '检查失败，请重试');
+      setData(d);
+    } catch (err) {
+      setData(null);
+      setError(err.message || String(err));
+    } finally {
+      setPending(false);
+    }
+  };
+  const rows = data ? data.groups.filter(g => g.files || g.historyBytes) : [];
+  return e(
+    'section',
+    { className: 'dss-sec', 'data-repo-usage': true },
+    e('h2', { className: 'dss-section-title' }, '同步仓库占用'),
+    e(
+      'p',
+      { className: 'dss-desc' },
+      '按上次同步时的同步仓库统计：新电脑首次同步要下载多少，其中多少是当前内容、多少是历史版本。',
+    ),
+    e(
+      'button',
+      { type: 'button', className: 'dss-pill', disabled: busy || pending, onClick: check },
+      pending ? '正在统计…' : data ? '重新统计' : '查看占用',
+    ),
+    error ? e('div', { className: 'dss-err', role: 'alert' }, error) : null,
+    data
+      ? e(
+          'div',
+          { className: 'dss-stack' },
+          e(
+            'p',
+            { className: 'dss-desc', role: 'status' },
+            '新电脑首次同步约下载 ' +
+              fmtBytes(data.totalBytes) +
+              '（' +
+              data.commits +
+              ' 次同步记录）：当前内容 ' +
+              fmtBytes(data.currentBytes) +
+              '，历史版本 ' +
+              fmtBytes(data.historyBytes) +
+              '，目录与提交记录 ' +
+              fmtBytes(data.structureBytes) +
+              '。',
+          ),
+          e(
+            'div',
+            { className: 'dss-usage-table' },
+            e(
+              'div',
+              { className: 'dss-usage-row dss-usage-head' },
+              e('span', null, '内容'),
+              e('span', null, '当前文件'),
+              e('span', null, '当前占用'),
+              e('span', null, '历史占用'),
+            ),
+            rows.map(g =>
+              e(
+                'div',
+                { key: g.id, className: 'dss-usage-row' },
+                e('span', null, g.title),
+                e('span', null, g.files + ' 个'),
+                e('span', null, fmtBytes(g.storedBytes)),
+                e('span', null, fmtBytes(g.historyBytes)),
+              ),
+            ),
+          ),
+          e(
+            'p',
+            { className: 'dss-desc' },
+            '占用按压缩后的存储大小计算。历史版本是已删除或已改写的旧内容，新电脑首次同步时也会一并下载。',
+          ),
+          data.largestHistory.length
+            ? e(
+                'details',
+                { className: 'dss-utility-card' },
+                e('summary', null, '历史中最大的 ' + data.largestHistory.length + ' 项'),
+                e(
+                  'div',
+                  { className: 'dss-usage-list' },
+                  data.largestHistory.map(item =>
+                    e(
+                      'div',
+                      { key: item.path, className: 'dss-confirm-row' },
+                      e('code', { style: { overflowWrap: 'anywhere' } }, item.path),
+                      e(
+                        'span',
+                        { className: 'dss-desc' },
+                        fmtBytes(item.bytes) +
+                          ' · ' +
+                          item.versions +
+                          ' 个旧版本 · ' +
+                          (data.groups.find(g => g.id === item.group)?.title || ''),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : null,
+          data.branches
+            ? e(
+                'p',
+                { className: 'dss-desc' },
+                'GitHub 上另有项目分支 ' +
+                  data.branches.project +
+                  ' 个、同步前备份分支 ' +
+                  data.branches.backup +
+                  ' 个、电脑同步回执 ' +
+                  data.branches.device +
+                  ' 个' +
+                  (data.branches.other ? '、其他分支 ' + data.branches.other + ' 个' : '') +
+                  '。新电脑只下载同步分支和仍在用的项目分支。',
+              )
+            : e('p', { className: 'dss-desc' }, '无法连接 GitHub，没有统计其他分支。'),
+        )
+      : null,
+  );
+}
 function LocalStorage({ busy }) {
   const [opened, setOpened] = useState(false),
     [scan, setScan] = useState(null);

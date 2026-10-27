@@ -54,7 +54,7 @@ function harness(
   vm.runInNewContext(
     source.replace(
       'module.exports = {',
-      'module.exports = { testComponents: { LocalStorage, RemoteCleanup, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, SyncIssues, TransferLine, STYLE },',
+      'module.exports = { testComponents: { LocalStorage, RemoteCleanup, SyncedSessions, ConfirmDialog, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, SyncIssues, TransferLine, STYLE },',
     ),
     {
       window: {
@@ -1635,4 +1635,71 @@ test('local storage UI waits for inspection, previews selected items and require
       .filter(n => n.type === 'button')
       .every(n => n.props.disabled),
   );
+});
+
+test('synced sessions select a whole group and remove it only after the dialog is confirmed', async () => {
+  const calls = [];
+  const sessions = [
+    {
+      id: 'session-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      title: 'say hi',
+      folder: 'default-workspace',
+      project: 'default-workspace',
+      onThisComputer: true,
+      updatedAt: 2,
+    },
+    {
+      id: 'session-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      title: '',
+      folder: '聊天',
+      project: null,
+      onThisComputer: true,
+      updatedAt: 1,
+    },
+    {
+      id: 'session-cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      title: '',
+      folder: '项目',
+      project: null,
+      onThisComputer: false,
+      updatedAt: 1,
+    },
+  ];
+  const h = harness(
+    (url, options) => {
+      calls.push({ url, body: options?.body && JSON.parse(options.body) });
+      return response(
+        url.endsWith('/sessions/remove')
+          ? { ok: true, removed: JSON.parse(options.body).ids }
+          : { ok: true, sharedKnown: true, removedCount: 0, sessions },
+      );
+    },
+    'SyncedSessions',
+    { timers: false },
+  );
+  await all(h.render())
+    .find(n => n.type === 'button' && text(n).includes('查看同步的会话'))
+    .props.onClick();
+  await tick();
+  let tree = h.render();
+  assert.match(text(tree), /在 DSH 中可见 · 1 个/);
+  assert.match(text(tree), /在 DSH 中看不到 · 2 个/);
+  assert.equal(all(tree).filter(n => n.type === 'label').length, 0, 'items stay folded until a group is expanded');
+  all(tree)
+    .find(n => n.type === 'input' && n.props['aria-label']?.includes('在 DSH 中看不到'))
+    .props.onChange({ target: { checked: true } });
+  tree = h.render();
+  assert.match(text(tree), /已选 2 个会话/);
+  all(tree)
+    .find(n => n.type === 'button' && text(n) === '从同步中移除')
+    .props.onClick();
+  tree = h.render();
+  const dialog = all(tree).find(n => n.type?.name === 'ConfirmDialog');
+  assert.equal(dialog.props.rows.length, 2);
+  assert.equal(calls.filter(c => c.url.endsWith('/sessions/remove')).length, 0, 'nothing is removed before confirming');
+  await dialog.props.onConfirm();
+  await tick();
+  const removal = calls.find(c => c.url.endsWith('/sessions/remove'));
+  assert.deepEqual(removal.body.ids.sort(), [sessions[1].id, sessions[2].id].sort());
+  assert.match(text(h.render()), /已移出同步 2 个会话/);
 });

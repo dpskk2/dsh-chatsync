@@ -332,6 +332,7 @@ function Section(props) {
           recoveryOpen ? e(RecoveryCenter, { busy: busy || settingsPending, lastSyncAt: status?.lastSyncAt }) : null,
         )
       : null,
+    currentPage === 'sync' && status?.remote ? e(SyncedSessions, { busy: busy || settingsPending }) : null,
     currentPage === 'sync' ? e(LocalStorage, { busy: busy || settingsPending }) : null,
     currentPage === 'sync' && status?.remote ? e(RemoteCleanup, { busy: busy || settingsPending }) : null,
     currentPage === 'sync'

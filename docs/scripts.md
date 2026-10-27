@@ -21,6 +21,7 @@
 | --- | --- | --- |
 | `check-runtime-regression.mjs` | 运行完整 `npm test` 并保存终态；`--desktop` 改用已安装桌面端的内置 Node | 需要留存完整回归证据时 |
 | `run-desktop-regression.mjs <electron.exe>` | 用 Electron 的 Node 运行完整回归，并真正等待进程退出 | CI 的 Windows Electron 任务；本机复核桌面运行时 |
+| `test-changed.mjs` | 只运行与改动相关的测试，以及对改动文件的 ESLint、Prettier、类型检查和界面生成一致性检查（`npm run test:changed`）。默认比较未提交的改动，`--base <ref>` 改为与指定提交比较；`--deep` 连同经由其他 `lib/` 模块间接受影响的测试一起运行（核心模块的改动接近完整测试）；`--list` 只列出将运行的项目。没有直接对应测试的模块会单独列出 | 修改过程中的快速检查；不代替提交前的完整 `npm test` |
 | `profile-test-spawns.mjs` | 测试预加载模块，记录子进程耗时和退出码（不记录参数和输出） | 排查测试变慢时：`node --import ./scripts/profile-test-spawns.mjs --test …` |
 
 ## 真实宿主检查（需要本机已安装 DSH）

@@ -8,7 +8,7 @@ chatsync 是 DeepSeek Harness（DSH）插件：通过用户自己的 GitHub 私�
 ## 开发与验证
 
 - Node.js ≥ 24，原生 ESM，运行时没有 npm 依赖；不得新增运行时依赖（`lib/vendor/` 内置的库须附许可证）。
-- 安装验证依赖并测试：`npm ci --ignore-scripts`，然后 `npm test`（含界面生成一致性、ESLint、Prettier 格式与 tsc 类型检查，也可单独运行 `npm run lint`、`npm run format:check`、`npm run typecheck`；提交前用 `npm run format` 统一格式）。类型写在 JSDoc 里，按 `tsconfig.json` 的非严格模式检查；ESLint、Prettier、TypeScript 等工具只作为开发依赖，不进入安装包。调整 `package.json` 的 `files` 后运行 `node scripts/check-package-contents.mjs`。
+- 安装验证依赖并测试：`npm ci --ignore-scripts`，然后 `npm test`（含界面生成一致性、ESLint、Prettier 格式与 tsc 类型检查，也可单独运行 `npm run lint`、`npm run format:check`、`npm run typecheck`；提交前用 `npm run format` 统一格式）。完整的 `npm test` 要 7–9 分钟：反复修改的过程中用 `npm run test:changed` 只跑与改动相关的测试和检查，一批改动提交前再跑一次完整的 `npm test`；只改文档时不必跑完整测试。类型写在 JSDoc 里，按 `tsconfig.json` 的非严格模式检查；ESLint、Prettier、TypeScript 等工具只作为开发依赖，不进入安装包。调整 `package.json` 的 `files` 后运行 `node scripts/check-package-contents.mjs`。
 - 浏览器端界面的源码在 `src/client/`：`00-loader-head.js` 与 `99-loader-tail.js` 是模块加载器外壳，其余文件是工厂函数内的语句，顶格书写、按文件名顺序拼接；修改后运行 `node scripts/build-client.mjs` 重新生成并一并提交 `lib/client.js`，不要直接改 `lib/client.js`。`npm test` 会检查二者一致。
 - 测试只使用临时目录、合成数据和本地裸仓库，不读写真实的 `~/.dsh`，也不访问个人同步仓库；需要远端时显式设置 `autoRepo: false`。
 - 自动测试、故障模拟、隔离宿主检查和物理双机验收不能互相替代；中断、跳过或缺少最终结果的运行不算通过，不得编造验证结果。
@@ -22,6 +22,7 @@ chatsync 是 DeepSeek Harness（DSH）插件：通过用户自己的 GitHub 私�
 - 宿主运行时，会话只能通过宿主公开的 `sessionPersistence` 写入租约追加，写后读回比对；Git 的 checkout、merge、reset 只能作用于独立传输副本，不能触碰正在使用的 `~/.dsh`。
 - 导出、取回、应用三个阶段都要通过 `validateSessionLog` 和官方会话格式校验；校验失败时停止该轮并保留原件。
 - 覆盖本机文件前，先把原件写入恢复记录；同步期间本机文件发生变化时，不覆盖。
+- 本机缺少某个文件，不等于用户删除了它，不得据此从同步仓库删除。会话只在有显式移除记录时离开同步；附件、设置等一次缺少较多时，必须暂停并让用户在「确认删除」和「从远端取回」中选择，这一步不受确认预览开关影响。
 - 只向已确认私有的远端上传；凭据、代理、本机路径和 `.chatsync-local/` 永不上传。
 - 本地 HTTP 接口只接受同源的 JSON 请求，并限制请求体大小。
 

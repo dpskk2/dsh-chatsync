@@ -101,7 +101,7 @@ const togglePick = (setSelected, ids, on) =>
 
 /* —— 同步的会话 —— */
 function sessionLabel(session) {
-  return session.title || session.folder + ' · ' + session.id.slice(-8);
+  return session.title || '未命名会话 · ' + session.id.slice(-8);
 }
 function sessionGroups(sessions) {
   return [
@@ -125,9 +125,43 @@ function sessionsSummary(data) {
   const parts = [archived ? '已归档 ' + archived : '', hidden ? 'DSH 中看不到 ' + hidden : ''].filter(Boolean);
   return data.sessions.length + ' 个' + (parts.length ? '（' + parts.join('，') + '）' : '');
 }
-function SessionsDialog({ data, busy, onClose, onDone }) {
-  const [selected, setSelected] = useState([]),
-    [expanded, setExpanded] = useState({}),
+// The first messages of a session, loaded when the user asks for them.
+function SessionPreview({ id }) {
+  const [state, setState] = useState(null);
+  const load = async () => {
+    setState({ loading: true });
+    try {
+      const d = await API.sessionPreview(id);
+      if (!d?.ok) throw new Error(d?.error || '读取失败');
+      setState({ data: d });
+    } catch (err) {
+      setState({ error: err.message || String(err) });
+    }
+  };
+  if (!state) return e('button', { type: 'button', className: 'dss-link', onClick: load }, '预览');
+  if (state.loading) return e('span', { className: 'dss-desc' }, '正在读取…');
+  if (state.error) return e('span', { className: 'dss-err' }, state.error);
+  const d = state.data;
+  return e(
+    'div',
+    { className: 'dss-session-preview' },
+    e(
+      'small',
+      { className: 'dss-desc' },
+      d.messages +
+        ' 条提问' +
+        (d.firstAt ? ' · ' + new Date(d.firstAt).toLocaleString() : '') +
+        (d.source === 'history' ? ' · 只在同步历史中' : ''),
+    ),
+    d.preview.length
+      ? d.preview.map((text, i) => e('p', { key: i }, text))
+      : e('p', { className: 'dss-desc' }, '没有文字提问'),
+  );
+}
+function SessionsDialog({ data, busy, focus, onClose, onDone }) {
+  const focused = focus ? sessionGroups(data.sessions).find(group => group.key === focus) : null;
+  const [selected, setSelected] = useState(() => (focused ? focused.rows.map(s => s.id) : [])),
+    [expanded, setExpanded] = useState(() => (focus ? { [focus]: true } : {})),
     [confirming, setConfirming] = useState(false),
     [pending, setPending] = useState(false),
     [error, setError] = useState('');
@@ -182,6 +216,7 @@ function SessionsDialog({ data, busy, onClose, onDone }) {
         ' 个会话' +
         (data.removedCount ? '，另有 ' + data.removedCount + ' 个已移出同步' : '') +
         '。选中的会话会从同步仓库删除。',
+      wide: true,
       onClose,
     },
     dialogBody(
@@ -200,17 +235,22 @@ function SessionsDialog({ data, busy, onClose, onDone }) {
             onPick: (ids, on) => togglePick(setSelected, ids, on),
           },
           group.rows.map(session =>
-            pickRow({
-              key: session.id,
-              label: sessionLabel(session),
-              detail:
-                (session.project ? session.project + ' · ' : '') +
-                (session.updatedAt ? new Date(session.updatedAt).toLocaleString() : '') +
-                (session.onThisComputer ? '' : ' · 这台电脑上没有'),
-              checked: selected.includes(session.id),
-              disabled: blocked,
-              onChange: on => togglePick(setSelected, [session.id], on),
-            }),
+            e(
+              'div',
+              { key: session.id, className: 'dss-session-row' },
+              pickRow({
+                key: 'pick',
+                label: sessionLabel(session),
+                detail:
+                  (session.project ? session.project + ' · ' : '') +
+                  (session.updatedAt ? new Date(session.updatedAt).toLocaleString() : '') +
+                  (session.onThisComputer ? '' : ' · 这台电脑上没有'),
+                checked: selected.includes(session.id),
+                disabled: blocked,
+                onChange: on => togglePick(setSelected, [session.id], on),
+              }),
+              e(SessionPreview, { id: session.id }),
+            ),
           ),
         ),
       ),
@@ -227,22 +267,28 @@ function SessionsDialog({ data, busy, onClose, onDone }) {
 function usageSummary(data) {
   return '新电脑首次同步约下载 ' + fmtBytes(data.totalBytes) + '，其中历史版本 ' + fmtBytes(data.historyBytes);
 }
-function UsageDialog({ data, busy, onClose, onRefresh }) {
+// What each row can do: sessions leave the sync, old files leave the repository.
+const USAGE_ACTIONS = {
+  archived: ['移出同步', 'sessions'],
+  hidden: ['移出同步', 'sessions'],
+  leftover: ['移除', 'remoteFiles'],
+};
+function UsageDialog({ data, busy, onClose, onRefresh, onOpen }) {
   const rows = data.groups.filter(g => g.files || g.historyBytes);
   return e(
     Modal,
     {
       title: '同步仓库占用',
       note:
-        '上次同步时的同步仓库共 ' +
-        data.commits +
-        ' 次同步记录。当前内容 ' +
+        '新电脑首次同步约下载 ' +
+        fmtBytes(data.totalBytes) +
+        '：当前内容 ' +
         fmtBytes(data.currentBytes) +
         '，历史版本 ' +
         fmtBytes(data.historyBytes) +
         '，目录与提交记录 ' +
         fmtBytes(data.structureBytes) +
-        '。新电脑首次同步会全部下载。',
+        '。',
       wide: true,
       onClose,
     },
@@ -254,29 +300,47 @@ function UsageDialog({ data, busy, onClose, onRefresh }) {
           'div',
           { className: 'dss-usage-row dss-usage-head' },
           e('span', null, '内容'),
-          e('span', null, '当前文件'),
-          e('span', null, '当前占用'),
-          e('span', null, '历史占用'),
+          e('span', null, '当前'),
+          e('span', null, '历史版本'),
+          e('span', null, ''),
         ),
-        rows.map(g =>
-          e(
+        rows.map(g => {
+          const action = g.files ? USAGE_ACTIONS[g.id] : null;
+          return e(
             'div',
-            { key: g.id, className: 'dss-usage-row' },
+            { key: g.id, className: 'dss-usage-row', 'data-usage-row': g.id },
             e('span', null, g.title),
-            e('span', null, g.files + ' 个'),
-            e('span', null, fmtBytes(g.storedBytes)),
+            e('span', null, g.files + ' 个 · ' + fmtBytes(g.storedBytes)),
             e('span', null, fmtBytes(g.historyBytes)),
-          ),
-        ),
+            action
+              ? e(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dss-link',
+                    disabled: busy,
+                    onClick: () => onOpen(action[1], g.id),
+                  },
+                  action[0],
+                )
+              : e('span'),
+          );
+        }),
       ),
-      data.largestHistory.length ? e('h3', { className: 'dss-subtitle' }, '历史中最大的文件') : null,
-      data.largestHistory.map(item =>
+      e(
+        'div',
+        { className: 'dss-history-bar' },
         e(
           'div',
-          { key: item.path, className: 'dss-confirm-row' },
-          e('code', null, item.path),
-          e('span', { className: 'dss-desc' }, fmtBytes(item.bytes) + ' · ' + item.versions + ' 个旧版本'),
+          { className: 'dss-group-text' },
+          e('span', null, '历史版本 ' + fmtBytes(data.historyBytes) + ' · ' + data.commits + ' 次同步记录'),
+          e(
+            'small',
+            { className: 'dss-desc' },
+            '删除或改过的内容仍留在历史里，新电脑首次同步时一并下载。清除后只保留当前内容。',
+          ),
         ),
+        pill('清除历史版本…', () => onOpen('history'), { disabled: busy || data.commits <= 1 }),
       ),
       e(
         'p',
@@ -295,6 +359,145 @@ function UsageDialog({ data, busy, onClose, onRefresh }) {
       ),
     ),
     dialogActions('大小按压缩后的存储计算', pill('重新统计', onRefresh, { disabled: busy }), pill('关闭', onClose)),
+  );
+}
+
+/* —— 清除历史版本 —— */
+function HistoryDialog({ busy, onClose, onDone }) {
+  const [preview, setPreview] = useState(null),
+    [retired, setRetired] = useState([]),
+    [deleteBranches, setDeleteBranches] = useState(false),
+    [confirming, setConfirming] = useState(false),
+    [pending, setPending] = useState(true),
+    [error, setError] = useState('');
+  const load = async () => {
+    setPending(true);
+    setError('');
+    try {
+      const d = await API.historyRebuild();
+      if (!d?.ok) throw new Error(d?.error || '检查失败，请重试');
+      setPreview(d);
+    } catch (err) {
+      setError(err.message || String(err));
+    } finally {
+      setPending(false);
+    }
+  };
+  useEffect(() => {
+    load();
+  }, []);
+  const blocked = busy || pending;
+  const waiting = preview ? preview.blockers.filter(b => !retired.includes(b.deviceId)) : [];
+  const apply = async () => {
+    setPending(true);
+    setError('');
+    try {
+      const d = await API.applyHistoryRebuild({
+        previewId: preview.previewId,
+        retiredDevices: retired,
+        deleteBackupBranches: deleteBranches,
+      });
+      if (!d?.ok) throw new Error(d?.error || '没有完成，请重新检查');
+      onDone(
+        (d.removedCommits ? '已清除 ' + d.removedCommits + ' 次同步记录的历史，同步仓库只保留当前内容。' : '') +
+          (d.deletedBranches?.length ? '已删除 ' + d.deletedBranches.length + ' 个同步前备份分支。' : '') +
+          (d.branchError || '') +
+          (d.backup ? '旧历史已保存在「本机备份 → 同步仓库旧历史」。' : ''),
+      );
+    } catch (err) {
+      setError(err.message || String(err));
+      setConfirming(false);
+    } finally {
+      setPending(false);
+    }
+  };
+  const errorLine = error ? e('div', { className: 'dss-err', role: 'alert' }, error) : null;
+  if (confirming)
+    return e(
+      Modal,
+      { title: '清除历史版本', note: '同步仓库将只保留当前内容。', onClose },
+      dialogBody(
+        errorLine,
+        e(
+          'ul',
+          { className: 'dss-steps' },
+          e('li', null, '把完整的旧历史保存到这台电脑（「本机备份 → 同步仓库旧历史」）。'),
+          e('li', null, '把 GitHub 上的同步分支换成只含当前内容的一次记录。'),
+          deleteBranches ? e('li', null, '删除 ' + preview.backupBranches.length + ' 个同步前备份分支。') : null,
+          e('li', null, '其他电脑下次同步时自动改用新的历史，各电脑上的数据不变。'),
+        ),
+      ),
+      dialogActions(
+        '',
+        pill('返回', () => setConfirming(false), { disabled: pending }),
+        pill(pending ? '正在清除…' : '清除', apply, { disabled: blocked, kind: 'danger' }),
+      ),
+    );
+  return e(
+    Modal,
+    {
+      title: '清除历史版本',
+      note: '清除后，同步仓库只保留当前内容，新电脑首次同步只下载当前内容。',
+      onClose,
+    },
+    dialogBody(
+      errorLine,
+      pending && !preview ? e('p', { className: 'dss-desc', role: 'status' }, '正在检查各电脑的状态…') : null,
+      preview
+        ? e(
+            'div',
+            { className: 'dss-stack' },
+            e(
+              'p',
+              { className: 'dss-desc' },
+              '同步仓库现有 ' +
+                preview.commits +
+                ' 次同步记录。完整的旧历史会先保存在这台电脑上，确认用不上后可以在「本机备份」中删除。',
+            ),
+            preview.blockers.length
+              ? e(
+                  'div',
+                  { className: 'dss-stack' },
+                  e(
+                    'p',
+                    { className: 'dss-err', role: 'alert' },
+                    '这些电脑还不是 ' +
+                      preview.minVersion +
+                      ' 或更新版本。旧版本会把旧历史重新传回去，请先在它们上面升级并同步一次；不再使用的电脑可以勾选：',
+                  ),
+                  ...preview.blockers.map(b =>
+                    pickRow({
+                      key: b.deviceId,
+                      label: b.deviceName + ' 已不再使用',
+                      detail: b.reason + (b.appliedAt ? ' · 最后同步 ' + new Date(b.appliedAt).toLocaleString() : ''),
+                      checked: retired.includes(b.deviceId),
+                      disabled: blocked,
+                      onChange: on =>
+                        setRetired(old => (on ? [...old, b.deviceId] : old.filter(id => id !== b.deviceId))),
+                    }),
+                  ),
+                )
+              : null,
+            preview.backupBranches.length
+              ? pickRow({
+                  key: 'branches',
+                  label: '同时删除 GitHub 上 ' + preview.backupBranches.length + ' 个同步前备份分支',
+                  detail: '同步遇到冲突时保存的远端版本。不删除的话，它们仍占用 GitHub 的空间。',
+                  checked: deleteBranches,
+                  disabled: blocked,
+                  onChange: setDeleteBranches,
+                })
+              : null,
+          )
+        : null,
+    ),
+    dialogActions(
+      waiting.length ? waiting.length + ' 台电脑需要先升级' : '',
+      pill('关闭', onClose),
+      pill('清除…', () => setConfirming(true), {
+        disabled: blocked || !preview || waiting.length > 0 || (preview.commits <= 1 && !deleteBranches),
+      }),
+    ),
   );
 }
 
@@ -627,23 +830,33 @@ function StorageOverview({ busy, remote }) {
   const checking = rows.some(row => loading[row.key]);
   const checked = rows.some(row => results[row.key]);
   const close = () => setOpen(null);
-  const done = key => text => {
+  // After a change, the affected lines and the repository usage are checked again.
+  const done = keys => text => {
     setOpen(null);
     setMessage(text);
-    load([key]);
+    load(keys.filter(key => rows.some(row => row.key === key)));
   };
   const dialogProps = { busy, onClose: close };
-  const dialog = !results[open]?.data
-    ? null
-    : open === 'sessions'
-      ? e(SessionsDialog, { ...dialogProps, data: results.sessions.data, onDone: done('sessions') })
-      : open === 'usage'
-        ? e(UsageDialog, { ...dialogProps, data: results.usage.data, onRefresh: () => load(['usage']) })
-        : open === 'backups'
-          ? e(BackupDialog, { ...dialogProps, scan: results.backups.data, onRescan: () => load(['backups']) })
-          : open === 'remoteFiles'
-            ? e(RemoteFilesDialog, { ...dialogProps, preview: results.remoteFiles.data, onDone: done('remoteFiles') })
-            : null;
+  const data = open && results[open.key]?.data;
+  const dialog =
+    open?.key === 'history'
+      ? e(HistoryDialog, { ...dialogProps, onDone: done(['usage', 'backups']) })
+      : !data
+        ? null
+        : open.key === 'sessions'
+          ? e(SessionsDialog, { ...dialogProps, data, focus: open.focus, onDone: done(['sessions', 'usage']) })
+          : open.key === 'usage'
+            ? e(UsageDialog, {
+                ...dialogProps,
+                data,
+                onRefresh: () => load(['usage']),
+                onOpen: (key, focus) => setOpen({ key, focus }),
+              })
+            : open.key === 'backups'
+              ? e(BackupDialog, { ...dialogProps, scan: data, onRescan: () => load(['backups']) })
+              : open.key === 'remoteFiles'
+                ? e(RemoteFilesDialog, { ...dialogProps, preview: data, onDone: done(['remoteFiles', 'usage']) })
+                : null;
   return e(
     'section',
     { className: 'dss-sec', 'data-storage-overview': true },
@@ -676,7 +889,7 @@ function StorageOverview({ busy, remote }) {
               ready && !row.empty?.(result.data)
                 ? e(
                     'button',
-                    { type: 'button', className: 'dss-link', disabled: busy, onClick: () => setOpen(row.key) },
+                    { type: 'button', className: 'dss-link', disabled: busy, onClick: () => setOpen({ key: row.key }) },
                     row.action,
                   )
                 : e('span'),

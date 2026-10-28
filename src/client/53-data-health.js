@@ -511,7 +511,7 @@ function GroupingRepairOverlay() {
 function RecoveryCenter({ busy, lastSyncAt }) {
   const [records, setRecords] = useState(null);
   const [error, setError] = useState('');
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const load = () =>
     API.recovery()
@@ -524,15 +524,45 @@ function RecoveryCenter({ busy, lastSyncAt }) {
   useEffect(() => {
     load();
   }, [lastSyncAt]);
-  const history = records?.filter(record => record.category === 'history') || [];
-  const attention = records?.filter(record => record.category !== 'history') || [];
-  // Most handled records are routine copies kept before overwriting, not conflicts.
+  const newest = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
+  const history = (records?.filter(record => record.category === 'history') || []).sort(newest);
+  const attention = (records?.filter(record => record.category !== 'history') || []).sort(newest);
+  // Most saved versions are routine copies kept before overwriting, not conflicts.
   const automatic = history.filter(record =>
     ['scope-backup', 'restore-backup', 'data-repair'].includes(record.kind),
   ).length;
+  const status =
+    records === null
+      ? '正在读取…'
+      : (attention.length ? attention.length + ' 条需要你核对' : '没有需要核对的内容') +
+        (history.length
+          ? '；已保存 ' +
+            history.length +
+            ' 份：同步前自动备份 ' +
+            automatic +
+            ' 份，已处理的冲突 ' +
+            (history.length - automatic) +
+            ' 份'
+          : '');
+  const list = (title, rows) =>
+    rows.length
+      ? [
+          e('h3', { key: title, className: 'dss-subtitle' }, title + '（' + rows.length + '）'),
+          e(
+            'div',
+            { key: title + '-list', className: 'dss-recovery-list' },
+            rows.map(record => e(RecoveryItem, { key: record.id, record, busy, onRestored: load })),
+          ),
+        ]
+      : [];
   return e(
     'div',
     { className: 'dss-stack' },
+    e(
+      'p',
+      { className: 'dss-desc' },
+      '同步会覆盖这台电脑上的文件，覆盖前先保存原来的版本。同步后消息或文件不见了，可以在这里比较两边并找回。',
+    ),
     error
       ? e(
           'div',
@@ -540,45 +570,27 @@ function RecoveryCenter({ busy, lastSyncAt }) {
           error,
           e('button', { type: 'button', className: 'dss-pill', onClick: load }, '重新读取'),
         )
-      : null,
-    records !== null
+      : e(
+          'div',
+          { className: 'dss-storage-head' },
+          e('span', { className: 'dss-desc', role: 'status' }, status),
+          records?.length ? pill('查看', () => setOpen(true)) : null,
+        ),
+    open
       ? e(
-          'p',
-          { className: 'dss-desc', role: 'status' },
-          attention.length
-            ? '有 ' + attention.length + ' 条记录待核对。发现消息或文件缺失时，可查看并找回。'
-            : '没有待处理的冲突。',
-        )
-      : null,
-    e(
-      'div',
-      { className: 'dss-recovery-list' },
-      attention.map(record => e(RecoveryItem, { key: record.id, record, busy, onRestored: load })),
-    ),
-    history.length
-      ? e(
-          'details',
-          { open: historyOpen, onToggle: event => setHistoryOpen(event.currentTarget.open) },
-          e(
-            'summary',
-            null,
-            '已处理记录与备份（' + history.length + '）',
-            e(
-              'small',
-              { className: 'dss-desc' },
-              ' 同步前自动备份 ' + automatic + ' 条，已处理的冲突 ' + (history.length - automatic) + ' 条',
-            ),
+          Modal,
+          {
+            title: '找回同步前的内容',
+            note: '点「查看内容」比较当时本机和远端的版本，再选择找回哪一边。',
+            wide: true,
+            onClose: () => setOpen(false),
+          },
+          dialogBody(...list('需要核对', attention), ...list('已保存的版本', history)),
+          dialogActions(
+            '',
+            pill('关闭', () => setOpen(false)),
           ),
-          historyOpen
-            ? e(
-                'div',
-                { className: 'dss-recovery-list' },
-                history.map(record => e(RecoveryItem, { key: record.id, record, busy, onRestored: load })),
-              )
-            : null,
         )
       : null,
-    !error && records === null ? e('div', { className: 'dss-desc', role: 'status' }, '正在读取…') : null,
-    records?.length === 0 ? e('div', { className: 'dss-desc' }, '暂无冲突记录') : null,
   );
 }

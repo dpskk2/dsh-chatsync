@@ -152,6 +152,8 @@ function RepairPage() {
 
 function recoveryFileInfo(record) {
   const file = record.path.replace(/\\/g, '/');
+  if (typeof record.sessionTitle === 'string')
+    return { name: '会话「' + (record.sessionTitle || '未命名') + '」', location: '' };
   const project = record.kind === 'ws' || record.kind === 'restore-backup';
   const title =
     record.guide?.title ||

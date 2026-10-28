@@ -298,7 +298,9 @@ function RecoveryItem({ record, busy, onRestored }) {
       'div',
       { className: 'dss-recovery-file' },
       e('div', { className: 'dss-h' }, recoveryFileInfo(record).name),
-      e('div', { className: 'dss-desc dss-recovery-path' }, recoveryFileInfo(record).location),
+      recoveryFileInfo(record).location
+        ? e('div', { className: 'dss-desc dss-recovery-path' }, recoveryFileInfo(record).location)
+        : null,
       e(
         'div',
         { className: 'dss-desc' },

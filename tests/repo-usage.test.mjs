@@ -87,7 +87,15 @@ test('repository usage splits current content, history and session groups', { ti
   assert.equal(group('leftover').files, 1);
   assert.equal(group('attachments').files, 1);
   assert.ok(group('attachments').historyBytes > 60 * 1024, 'the replaced attachment stays in history');
-  assert.equal(usage.largestHistory[0].path, 'attachments/big.bin');
+  assert.deepEqual(
+    usage.sessions.archived.map(s => s.id),
+    [archived],
+  );
+  assert.deepEqual(
+    usage.sessions.hidden.map(s => s.id),
+    [hidden],
+  );
+  assert.ok(usage.sessions.hidden[0].bytes > 0);
   assert.ok(usage.commits >= 3);
   assert.equal(usage.totalBytes, usage.currentBytes + usage.historyBytes + usage.structureBytes);
   assert.deepEqual(usage.branches, { project: 0, backup: 0, device: 1, other: 0 });

@@ -118,7 +118,7 @@ You are responsible for handling keys and other sensitive information written in
 
 Divergent conversations are retained as separate versions. Remote deletion does not directly delete local sessions. Keep separate backups of important material. [Sync and recovery boundaries](docs/configuration.md)
 
-**Sync repository and local storage (new):** Click **Check** on the Sync page to get one line each, with counts and sizes, for synced sessions, the sync repository, local backups and old remote files. The button at the end of each line opens a dialog to see the details, remove sessions from sync or delete backups. The sync repository line shows how much a new computer downloads on its first sync and how much of that is history. [Sync scope](docs/sync-content.md#同步仓库与本机存储) · [Local backups](docs/local-storage.md)
+**Sync repository and local storage (new):** Click **Check** on the Sync page to get one line each, with counts and sizes, for synced sessions, the sync repository, local backups and old remote files. The button at the end of each line opens a dialog to see the details, remove sessions from sync or delete backups. The sync repository line shows how much a new computer downloads on its first sync and how much of that is history; its details can clear the history and keep only the current content. Sessions are shown by title and can be previewed. [Sync scope](docs/sync-content.md#同步仓库与本机存储) · [Local backups](docs/local-storage.md)
 
 ## Compatibility
 

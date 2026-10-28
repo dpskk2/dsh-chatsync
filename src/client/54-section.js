@@ -1,7 +1,38 @@
+// Where the sync page was when a sub-page opened, so returning lands in the same place.
+// The section is found again by its heading; the page re-renders from scratch.
+const RETURN_ANCHORS = '.dss-sec, .dss-setting-card';
+let returnPosition = null;
+function anchorKey(node) {
+  return node.querySelector('h2, .dss-card-title, .dss-h')?.textContent || '';
+}
+function rememberPosition() {
+  if (typeof document === 'undefined') return;
+  const from = document.activeElement?.closest?.(RETURN_ANCHORS);
+  if (from) returnPosition = { key: anchorKey(from), top: from.getBoundingClientRect().top };
+}
+function scrollParent(node) {
+  for (let el = node.parentElement; el; el = el.parentElement) {
+    if (/(auto|scroll)/.test(getComputedStyle(el).overflowY) && el.scrollHeight > el.clientHeight) return el;
+  }
+  return document.scrollingElement;
+}
+function restorePosition(tries = 30) {
+  if (!returnPosition || typeof document === 'undefined') return;
+  const target = [...document.querySelectorAll(RETURN_ANCHORS)].find(node => anchorKey(node) === returnPosition.key);
+  if (!target) {
+    if (tries > 0) requestAnimationFrame(() => restorePosition(tries - 1));
+    else returnPosition = null;
+    return;
+  }
+  const container = scrollParent(target);
+  if (container) container.scrollTop += target.getBoundingClientRect().top - returnPosition.top;
+  returnPosition = null;
+}
 function Section(props) {
   const { busy, status, statusError, progress, run, refresh, review } = useSync();
   // The settings.section owner passes its close action for flows leaving the modal.
   const openRepair = request => {
+    rememberPosition();
     openRepairPage(request);
     props?.close?.();
   };
@@ -9,7 +40,6 @@ function Section(props) {
   const [setupStep, setSetupStep] = useState(null);
   const [page, setPage] = useState(null);
   const [settingsPending, setSettingsPending] = useState(false);
-  const [recoveryOpen, setRecoveryOpen] = useState(false);
   const stepIds = ['dss-connect', 'dss-scope', 'dss-run', 'dss-result'];
   const goToStep = number => {
     setSetupStep(number);
@@ -24,6 +54,10 @@ function Section(props) {
   const currentPage = page || (!status ? 'loading' : configured ? 'sync' : 'setup');
   const nextStep = setupStep || 1;
   const showRun = currentPage === 'sync' || (currentPage === 'setup' && nextStep === 3);
+  useEffect(() => {
+    if (currentPage === 'sync' && typeof requestAnimationFrame === 'function')
+      requestAnimationFrame(() => restorePosition());
+  }, [currentPage]);
   const [autoRestart, setAutoRestart] = useState(null); // null=加载中
   /* 读取/切换「同步后自动重启修复」开关 */
   useEffect(() => {
@@ -318,18 +352,10 @@ function Section(props) {
       : null,
     currentPage === 'sync'
       ? e(
-          'details',
-          {
-            className: 'dss-sec',
-            open: recoveryOpen,
-            onToggle: event => setRecoveryOpen(event.currentTarget.open),
-            'data-sync-recovery': true,
-          },
-          e('summary', null, e('h2', { className: 'dss-section-title' }, '找回同步前的内容')),
-          recoveryOpen
-            ? e('p', { className: 'dss-desc' }, '同步后发现消息或文件缺失时，可从这里查看之前的版本。')
-            : null,
-          recoveryOpen ? e(RecoveryCenter, { busy: busy || settingsPending, lastSyncAt: status?.lastSyncAt }) : null,
+          'section',
+          { className: 'dss-sec', 'data-sync-recovery': true },
+          e('h2', { className: 'dss-section-title' }, '找回同步前的内容'),
+          e(RecoveryCenter, { busy: busy || settingsPending, lastSyncAt: status?.lastSyncAt }),
         )
       : null,
     currentPage === 'sync'

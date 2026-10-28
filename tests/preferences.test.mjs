@@ -54,7 +54,7 @@ function harness(
   vm.runInNewContext(
     source.replace(
       'module.exports = {',
-      'module.exports = { testComponents: { StorageOverview, SessionsDialog, UsageDialog, BackupDialog, RemoteFilesDialog, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, SyncIssues, TransferLine, STYLE },',
+      'module.exports = { testComponents: { StorageOverview, SessionsDialog, SessionPreview, UsageDialog, HistoryDialog, BackupDialog, RemoteFilesDialog, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, SyncIssues, TransferLine, STYLE },',
     ),
     {
       window: {
@@ -1097,7 +1097,10 @@ test('daily sync is the default for configured users after restart, success or f
     assert.ok(all(tree).some(n => n.props.id === 'dss-run'));
     assert.ok(all(tree).some(n => n.type?.name === 'ConnectionSettings'));
     assert.ok(!all(tree).some(n => n.props['aria-label'] === '同步设置步骤'));
-    assert.ok(!all(tree).some(n => n.type?.name === 'RecoveryCenter'));
+    assert.ok(
+      all(tree).some(n => n.type?.name === 'RecoveryCenter'),
+      'the recovery section is not folded away',
+    );
     assert.equal(all(tree).find(n => n.props['data-sync-settings']).type, 'div');
     assert.ok(all(tree).some(n => n.type?.name === 'ConnectionSettings'));
     assert.ok(all(tree).some(n => n.type?.name === 'SyncPreferences'));
@@ -1345,18 +1348,44 @@ test('recovery list omits file essays and keeps data repair outside conflict bro
   assert.match(text(h.render()), /正在读取/);
   await h.effects();
   assert.ok(!all(h.render()).some(n => n.type?.name === 'DataHealth'));
+  all(h.render())
+    .find(n => n.type === 'button' && text(n) === '查看')
+    .props.onClick();
   assert.equal(all(h.render()).filter(n => n.type?.name === 'RecoveryItem').length, 1);
+});
+
+test('a session record is named by its title, not its log file', () => {
+  const record = {
+    id: 's',
+    kind: 'main',
+    path: 'sessions/project/session-a/session.v4.jsonl.zstd',
+    sessionTitle: '同步方案整理',
+    status: 'merged',
+    kept: 'local',
+    createdAt: 1,
+  };
+  const item = text(harness(() => response({}), 'RecoveryItem').render({ record }));
+  assert.match(item, /会话「同步方案整理」/);
+  assert.doesNotMatch(item, /jsonl|session-a/);
+  const untitled = text(
+    harness(() => response({}), 'RecoveryItem').render({ record: { ...record, sessionTitle: '' } }),
+  );
+  assert.match(untitled, /会话「未命名」/);
 });
 
 test('historical originals stay collapsed and do not count as pending conflicts', async () => {
   const h = harness(() => response({ ok: true, records: [{ id: 'archived', category: 'history' }] }), 'RecoveryCenter');
   h.render();
   await h.effects();
-  assert.match(text(h.render()), /没有待处理的冲突.*已处理记录与备份（1）/);
-  assert.equal(all(h.render()).filter(n => n.type?.name === 'RecoveryItem').length, 0);
-  const history = all(h.render()).find(n => n.type === 'details');
-  history.props.onToggle({ currentTarget: { open: true } });
-  assert.equal(all(h.render()).filter(n => n.type?.name === 'RecoveryItem').length, 1);
+  assert.match(text(h.render()), /没有需要核对的内容；已保存 1 份/);
+  assert.equal(all(h.render()).filter(n => n.type?.name === 'RecoveryItem').length, 0, 'records open in a window');
+  all(h.render())
+    .find(n => n.type === 'button' && text(n) === '查看')
+    .props.onClick();
+  const tree = h.render();
+  assert.equal(all(tree).filter(n => n.type?.name === 'Modal').length, 1);
+  assert.equal(all(tree).filter(n => n.type?.name === 'RecoveryItem').length, 1);
+  assert.equal(all(tree).filter(n => n.type === 'details').length, 0, 'nothing is folded');
 });
 
 test('handled records say how many are automatic backups and how many were conflicts', async () => {
@@ -1371,10 +1400,10 @@ test('handled records say how many are automatic backups and how many were confl
   h.render();
   await h.effects();
   const shown = text(h.render());
-  assert.match(shown, /有 1 条记录待核对/);
-  assert.match(shown, /已处理记录与备份（4）/);
-  assert.match(shown, /同步前自动备份 3 条/);
-  assert.match(shown, /已处理的冲突 1 条/);
+  assert.match(shown, /1 条需要你核对/);
+  assert.match(shown, /已保存 4 份/);
+  assert.match(shown, /同步前自动备份 3 份/);
+  assert.match(shown, /已处理的冲突 1 份/);
 });
 
 test('project restore sends the selected side and the preview hash, then refreshes records', async () => {
@@ -1740,4 +1769,114 @@ test('remote old files wait for every computer, and only retired ones can be con
     body: { previewId: 'p1', retiredDevices: ['d1'] },
   });
   assert.match(messages[0], /已从同步仓库移除 2 个旧文件/);
+});
+
+test('repository usage offers removal next to sessions and old files, and history clearing below', () => {
+  const opened = [];
+  const data = {
+    ok: true,
+    commits: 423,
+    totalBytes: 190e6,
+    currentBytes: 15e6,
+    historyBytes: 166e6,
+    structureBytes: 9e6,
+    groups: [
+      { id: 'sessions', title: '正在用的会话', files: 6, storedBytes: 1, historyBytes: 1 },
+      { id: 'hidden', title: '在 DSH 中看不到的会话', files: 4, storedBytes: 1, historyBytes: 157e6 },
+      { id: 'attachments', title: '附件', files: 295, storedBytes: 1, historyBytes: 0 },
+      { id: 'leftover', title: '不再同步的旧文件', files: 0, storedBytes: 0, historyBytes: 7e6 },
+    ],
+    branches: { project: 0, backup: 2, device: 2, other: 0 },
+  };
+  const tree = harness(() => response({}), 'UsageDialog').render({
+    data,
+    onClose: () => {},
+    onRefresh: () => {},
+    onOpen: (key, focus) => opened.push([key, focus]),
+  });
+  const row = id => all(tree).find(n => n.props?.['data-usage-row'] === id);
+  assert.equal(all(row('sessions')).filter(n => n.type === 'button').length, 0, 'sessions in use stay');
+  assert.equal(all(row('attachments')).filter(n => n.type === 'button').length, 0, 'attachments stay');
+  assert.equal(all(row('leftover')).filter(n => n.type === 'button').length, 0, 'nothing current to remove');
+  button(row('hidden'), '移出同步').props.onClick();
+  button(tree, '清除历史版本…').props.onClick();
+  assert.deepEqual(opened, [
+    ['sessions', 'hidden'],
+    ['history', undefined],
+  ]);
+  assert.doesNotMatch(text(tree), /历史中最大的文件|jsonl/);
+});
+
+test('opening the sessions list from usage preselects that group', () => {
+  const sessions = [
+    { id: 'session-a', title: '在用', folder: 'w', project: 'w', archived: false },
+    { id: 'session-b', title: '', folder: 'w', project: null, archived: false },
+  ];
+  const h = harness(() => response({}), 'SessionsDialog');
+  const tree = h.render({
+    data: { ok: true, sharedKnown: true, removedCount: 0, sessions },
+    focus: 'hidden',
+    onClose: () => {},
+    onDone: () => {},
+  });
+  assert.match(text(tree), /已选 1 个/);
+  const hidden = all(tree).find(n => n.type?.name === 'PickGroup' && n.props.title.startsWith('在 DSH 中看不到'));
+  assert.equal(hidden.props.open, true);
+  assert.ok(all(tree).some(n => n.type?.name === 'SessionPreview' && n.props.id === 'session-b'));
+  assert.ok(all(tree).some(n => n.type === 'input' && n.props['aria-label'] === '未命名会话 · ession-b'));
+});
+
+test('a session preview loads only when asked and shows the first messages', async () => {
+  const calls = [];
+  const h = harness((url, options) => {
+    calls.push(JSON.parse(options.body));
+    return response({ ok: true, messages: 2, preview: ['帮我整理同步方案'], firstAt: 1, source: 'history' });
+  }, 'SessionPreview');
+  assert.equal(calls.length, 0);
+  await button(h.render({ id: 'session-x' }), '预览').props.onClick();
+  const shown = text(h.render({ id: 'session-x' }));
+  assert.deepEqual(calls, [{ id: 'session-x' }]);
+  assert.match(shown, /2 条提问/);
+  assert.match(shown, /只在同步历史中/);
+  assert.match(shown, /帮我整理同步方案/);
+});
+
+test('clearing history waits for every computer and takes a second confirmation', async () => {
+  const calls = [];
+  const messages = [];
+  const preview = {
+    ok: true,
+    commits: 423,
+    previewId: 'h1',
+    minVersion: '0.21.0',
+    backupBranches: ['backup/a', 'backup/b'],
+    blockers: [{ deviceId: 'd1', deviceName: '设备 d1', reason: '仍是 0.20.3', appliedAt: 1 }],
+  };
+  const h = harness((url, options) => {
+    calls.push({ url, method: options?.method || 'GET', body: options?.body && JSON.parse(options.body) });
+    return response(
+      options?.method === 'POST'
+        ? { ok: true, removedCommits: 422, deletedBranches: ['backup/a', 'backup/b'], backup: 'x.bundle' }
+        : preview,
+    );
+  }, 'HistoryDialog');
+  const props = { onClose: () => {}, onDone: m => messages.push(m) };
+  h.render(props);
+  await h.effects();
+  let tree = h.render(props);
+  assert.equal(calls.length, 1, 'the check runs when the window opens');
+  assert.match(text(tree), /423 次同步记录/);
+  assert.match(text(tree), /最后同步/);
+  assert.equal(button(tree, '清除…').props.disabled, true, 'an older computer blocks the clearing');
+  checkbox(tree, '设备 d1 已不再使用').props.onChange({ target: { checked: true } });
+  checkbox(tree, '同时删除 GitHub 上 2 个同步前备份分支').props.onChange({ target: { checked: true } });
+  tree = h.render(props);
+  button(tree, '清除…').props.onClick();
+  tree = h.render(props);
+  assert.match(text(tree), /删除 2 个同步前备份分支/);
+  assert.equal(calls.length, 1, 'nothing changes before the second confirmation');
+  await button(tree, '清除').props.onClick();
+  assert.deepEqual(calls[1].body, { previewId: 'h1', retiredDevices: ['d1'], deleteBackupBranches: true });
+  assert.match(messages[0], /已清除 422 次同步记录的历史/);
+  assert.match(messages[0], /本机备份 → 同步仓库旧历史/);
 });

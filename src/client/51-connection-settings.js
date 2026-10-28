@@ -444,7 +444,7 @@ function SyncPreferences({ busy, onSaved, onChanged, onSavingChange, setup = fal
               'span',
               { className: 'dss-choice' },
               '指令与技能',
-              e('small', null, '全局 AGENTS.md 与 skills 文件夹；只影响这台电脑，默认关闭'),
+              e('small', null, '同步全局 AGENTS.md 与 skills 文件夹；每台电脑各自开关'),
             ),
           ),
           e(

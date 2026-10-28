@@ -54,7 +54,7 @@ function harness(
   vm.runInNewContext(
     source.replace(
       'module.exports = {',
-      'module.exports = { testComponents: { LocalStorage, RemoteCleanup, SyncedSessions, ConfirmDialog, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, SyncIssues, TransferLine, STYLE },',
+      'module.exports = { testComponents: { StorageOverview, SessionsDialog, UsageDialog, BackupDialog, RemoteFilesDialog, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, SyncIssues, TransferLine, STYLE },',
     ),
     {
       window: {
@@ -1359,44 +1359,6 @@ test('historical originals stay collapsed and do not count as pending conflicts'
   assert.equal(all(h.render()).filter(n => n.type?.name === 'RecoveryItem').length, 1);
 });
 
-test('remote cleanup waits for every computer, and only retired ones can be confirmed past', async () => {
-  const calls = [];
-  const preview = {
-    ok: true,
-    files: ['ext-bridge-token', 'profiles/desktop/package.json'],
-    minVersion: '0.21.0',
-    previewId: 'p1',
-    blockers: [{ deviceId: 'd1', deviceName: '设备 d1', reason: '仍是 0.20.3', appliedAt: 1 }],
-  };
-  const h = harness((url, options) => {
-    calls.push({ url, body: options?.body && JSON.parse(options.body) });
-    return response(options?.method === 'POST' ? { ok: true, removed: 2 } : preview);
-  }, 'RemoteCleanup');
-  h.render();
-  await all(h.render())
-    .find(n => n.type === 'button' && text(n) === '检查')
-    .props.onClick();
-  let tree = h.render();
-  assert.match(text(tree), /远端有 2 个文件不再同步/);
-  assert.match(text(tree), /还没有确认升级到 0\.21\.0/);
-  const clean = () => all(h.render()).find(n => n.type === 'button' && text(n) === '清理远端文件');
-  assert.equal(clean().props.disabled, true, 'a computer still on an older version blocks the cleanup');
-  all(tree)
-    .find(n => n.props['aria-label'] === '设备 d1 已不再使用')
-    .props.onChange({ target: { checked: true } });
-  assert.equal(clean().props.disabled, true, 'the removal itself still needs confirmation');
-  all(h.render())
-    .find(n => n.props['aria-label'] === '确认清理远端文件')
-    .props.onChange({ target: { checked: true } });
-  assert.equal(clean().props.disabled, false);
-  await clean().props.onClick();
-  assert.deepEqual(calls.at(-1), {
-    url: '/dsh-sync/api/remote-cleanup',
-    body: { previewId: 'p1', retiredDevices: ['d1'] },
-  });
-  assert.match(text(h.render()), /已从同步仓库的最新版本移除 2 个文件/);
-});
-
 test('handled records say how many are automatic backups and how many were conflicts', async () => {
   const records = [
     { id: 'b1', kind: 'scope-backup', category: 'history' },
@@ -1562,7 +1524,117 @@ test('old project history offers a bound preview before any confirmed rebuild', 
   assert.match(text(tree), /再次点击立即同步/);
 });
 
-test('local storage UI waits for inspection, previews selected items and requires confirmation before deletion', async () => {
+const button = (tree, label) => all(tree).find(n => n.type === 'button' && text(n) === label);
+const checkbox = (tree, label) => all(tree).find(n => n.type === 'input' && n.props['aria-label'] === label);
+
+test('the storage section checks every kind on demand and opens one dialog at a time', async () => {
+  const calls = [];
+  const replies = {
+    '/dsh-sync/api/sessions': {
+      ok: true,
+      sharedKnown: true,
+      removedCount: 0,
+      sessions: [
+        { id: 's1', title: 'a', folder: 'f', project: 'p', archived: false },
+        { id: 's2', title: 'b', folder: 'f', project: 'p', archived: true },
+        { id: 's3', title: 'c', folder: 'f', project: null, archived: false },
+      ],
+    },
+    '/dsh-sync/api/repo-usage': { ok: true, totalBytes: 3 * 1048576, historyBytes: 2 * 1048576, groups: [] },
+    '/dsh-sync/api/local-storage/scan': {
+      ok: true,
+      totalBytes: 2048,
+      items: [
+        { id: 'x', bytes: 1024, protected: false },
+        { id: 'y', bytes: 1024, protected: true },
+      ],
+    },
+    '/dsh-sync/api/remote-cleanup': { ok: false, error: '还没有建立同步副本，请先同步一次。' },
+  };
+  const h = harness(url => {
+    calls.push(url);
+    return response(replies[url]);
+  }, 'StorageOverview');
+  let tree = h.render({ remote: true });
+  await h.effects();
+  assert.equal(calls.length, 0, 'nothing is read until the user checks');
+  assert.equal(all(tree).filter(n => n.props?.['data-storage-row']).length, 0);
+  await button(tree, '检查').props.onClick();
+  assert.deepEqual(calls.sort(), Object.keys(replies).sort());
+  tree = h.render({ remote: true });
+  const row = key => all(tree).find(n => n.props?.['data-storage-row'] === key);
+  assert.match(text(row('sessions')), /3 个（已归档 1，DSH 中看不到 1）/);
+  assert.match(text(row('usage')), /约下载 3\.00 MiB，其中历史版本 2\.00 MiB/);
+  assert.match(text(row('backups')), /共 2\.0 KiB，可清理 1\.0 KiB/);
+  assert.match(text(row('remoteFiles')), /请先同步一次/);
+  assert.equal(all(row('remoteFiles')).filter(n => n.type === 'button').length, 0, 'a failed check offers no action');
+  assert.equal(all(tree).filter(n => n.type?.name?.endsWith('Dialog')).length, 0, 'dialogs stay closed');
+  button(row('sessions'), '管理').props.onClick();
+  tree = h.render({ remote: true });
+  const dialogs = all(tree).filter(n => n.type?.name?.endsWith('Dialog'));
+  assert.deepEqual(
+    dialogs.map(n => n.type.name),
+    ['SessionsDialog'],
+  );
+  assert.equal(dialogs[0].props.data.sessions.length, 3);
+
+  const local = harness(url => response(replies[url]), 'StorageOverview');
+  await button(local.render({ remote: false }), '检查').props.onClick();
+  assert.deepEqual(
+    all(local.render({ remote: false }))
+      .filter(n => n.props?.['data-storage-row'])
+      .map(n => n.props['data-storage-row']),
+    ['backups'],
+    'without a sync repository only local backups are listed',
+  );
+});
+
+test('removing sessions from sync takes a group choice and a second confirmation', async () => {
+  const calls = [];
+  const sessions = [
+    {
+      id: 'session-a',
+      title: 'say hi',
+      folder: 'w',
+      project: 'w',
+      archived: false,
+      onThisComputer: true,
+      updatedAt: 2,
+    },
+    { id: 'session-b', title: '', folder: '聊天', project: 'w', archived: true, onThisComputer: true, updatedAt: 1 },
+    { id: 'session-c', title: '', folder: '项目', project: null, archived: false, onThisComputer: false, updatedAt: 1 },
+  ];
+  const messages = [];
+  const h = harness((url, options) => {
+    calls.push({ url, body: options?.body && JSON.parse(options.body) });
+    return response({ ok: true, removed: JSON.parse(options.body).ids });
+  }, 'SessionsDialog');
+  const props = {
+    data: { ok: true, sharedKnown: true, removedCount: 0, sessions },
+    onClose: () => {},
+    onDone: m => messages.push(m),
+  };
+  let tree = h.render(props);
+  const groups = all(tree).filter(n => n.type?.name === 'PickGroup');
+  assert.deepEqual(
+    groups.map(g => g.props.title),
+    ['在 DSH 中可见 · 1 个', '已归档 · 1 个', '在 DSH 中看不到 · 1 个'],
+  );
+  assert.equal(button(tree, '移出同步…').props.disabled, true);
+  groups[1].props.onPick(groups[1].props.ids, true);
+  groups[2].props.onPick(groups[2].props.ids, true);
+  tree = h.render(props);
+  assert.match(text(tree), /已选 2 个/);
+  button(tree, '移出同步…').props.onClick();
+  tree = h.render(props);
+  assert.match(all(tree).find(n => n.type?.name === 'Modal').props.note, /各电脑上的副本留在原处/);
+  assert.equal(calls.length, 0, 'nothing is removed before the second confirmation');
+  await button(tree, '移出同步').props.onClick();
+  assert.deepEqual(calls[0].body.ids.sort(), ['session-b', 'session-c']);
+  assert.match(messages[0], /已把 2 个会话移出同步/);
+});
+
+test('local backups keep protected items unselectable and need a preview plus separate confirmation', async () => {
   const calls = [];
   const item = {
     id: 'backup-a',
@@ -1572,134 +1644,100 @@ test('local storage UI waits for inspection, previews selected items and require
     category: 'config',
     protected: false,
   };
+  const kept = {
+    id: 'backup-b',
+    name: '在用',
+    path: 'C:/fixture/b',
+    bytes: 1,
+    category: 'config',
+    protected: true,
+    reason: '仍在所选保留时间内',
+  };
   const scan = {
     ok: true,
-    totalBytes: 1024,
+    totalBytes: 1025,
     policy: { retentionDays: 30 },
-    categories: [{ id: 'config', title: '配置历史', bytes: 1024, purpose: '恢复旧配置' }],
-    items: [item],
+    categories: [{ id: 'config', title: '配置历史', bytes: 1025, purpose: '恢复旧配置' }],
+    items: [item, kept],
     warnings: [],
     note: '逻辑大小',
   };
+  let rescans = 0;
   const h = harness((url, options) => {
-    const body = options?.body && JSON.parse(options.body);
-    calls.push({ url, body });
+    calls.push({ url, body: options?.body && JSON.parse(options.body) });
     if (url.endsWith('/preview'))
       return response({
         ok: true,
         token: 'preview-token',
         items: [item],
-        warning: '永久移除',
+        bytes: 1024,
+        warning: '永久删除',
         separateConfirmation: true,
       });
-    if (url.endsWith('/apply')) return response({ ok: true, removedBytes: 1024, results: [{ id: item.id, ok: true }] });
-    return response(scan);
-  }, 'LocalStorage');
-  let tree = h.render();
-  await h.effects();
-  assert.equal(calls.length, 0);
-  await all(tree)
-    .find(n => n.type === 'button' && text(n) === '查看占用并清理')
-    .props.onClick();
-  tree = h.render();
+    return response({ ok: true, removedBytes: 1024, results: [{ id: item.id, name: item.name, ok: true }] });
+  }, 'BackupDialog');
+  const props = { scan, onClose: () => {}, onRescan: () => rescans++ };
+  let tree = h.render(props);
+  assert.equal(checkbox(tree, '在用 · 1 B').props.disabled, true, 'protected items cannot be chosen');
+  assert.match(text(tree), /保留：仍在所选保留时间内/);
+  assert.deepEqual(all(tree).find(n => n.type?.name === 'PickGroup').props.ids, ['backup-a']);
+  checkbox(tree, '旧备份 · 1.0 KiB').props.onChange({ target: { checked: true } });
+  tree = h.render(props);
+  assert.equal(button(h.render({ ...props, busy: true }), '删除…').props.disabled, true);
+  tree = h.render(props);
+  await button(tree, '删除…').props.onClick();
+  assert.deepEqual(calls[0].body, { ids: ['backup-a'] });
+  tree = h.render(props);
+  assert.equal(button(tree, '永久删除').props.disabled, true, 'old sync copies need their own confirmation');
   all(tree)
-    .find(n => n.type === 'input')
+    .find(n => n.type === 'input' && n.props['aria-label']?.startsWith('包含旧同步副本'))
     .props.onChange({ target: { checked: true } });
-  tree = h.render();
-  await all(tree)
-    .find(n => n.type === 'button' && text(n).startsWith('预览清理'))
-    .props.onClick();
-  const applyButton = () => all(h.render()).find(n => n.type === 'button' && text(n) === '永久清理所选本地备份');
-  assert.equal(applyButton().props.disabled, true);
+  tree = h.render(props);
   assert.equal(
     calls.some(c => c.url.endsWith('/apply')),
     false,
   );
-  tree = h.render();
-  const confirmations = all(tree)
-    .filter(n => n.type === 'input')
-    .slice(-2);
-  confirmations[0].props.onChange({ target: { checked: true } });
-  assert.equal(applyButton().props.disabled, true);
-  confirmations[1].props.onChange({ target: { checked: true } });
-  assert.equal(applyButton().props.disabled, false);
-  await applyButton().props.onClick();
+  await button(tree, '永久删除').props.onClick();
   assert.deepEqual(calls.find(c => c.url.endsWith('/apply')).body, {
     token: 'preview-token',
     confirm: true,
     confirmSeparate: true,
   });
-  assert.match(text(h.render()), /已移除/);
-  assert.ok(
-    all(h.render({ busy: true }))
-      .filter(n => n.type === 'button')
-      .every(n => n.props.disabled),
-  );
+  assert.equal(rescans, 1);
+  tree = h.render(props);
+  assert.match(all(tree).find(n => n.type?.name === 'Modal').props.note, /已删除 1\.0 KiB/);
+  assert.match(text(tree), /旧备份 已删除/);
 });
 
-test('synced sessions select a whole group and remove it only after the dialog is confirmed', async () => {
+test('remote old files wait for every computer, and only retired ones can be confirmed past', async () => {
   const calls = [];
-  const sessions = [
-    {
-      id: 'session-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-      title: 'say hi',
-      folder: 'default-workspace',
-      project: 'default-workspace',
-      onThisComputer: true,
-      updatedAt: 2,
-    },
-    {
-      id: 'session-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-      title: '',
-      folder: '聊天',
-      project: null,
-      onThisComputer: true,
-      updatedAt: 1,
-    },
-    {
-      id: 'session-cccccccc-cccc-4ccc-8ccc-cccccccccccc',
-      title: '',
-      folder: '项目',
-      project: null,
-      onThisComputer: false,
-      updatedAt: 1,
-    },
-  ];
-  const h = harness(
-    (url, options) => {
-      calls.push({ url, body: options?.body && JSON.parse(options.body) });
-      return response(
-        url.endsWith('/sessions/remove')
-          ? { ok: true, removed: JSON.parse(options.body).ids }
-          : { ok: true, sharedKnown: true, removedCount: 0, sessions },
-      );
-    },
-    'SyncedSessions',
-    { timers: false },
-  );
-  await all(h.render())
-    .find(n => n.type === 'button' && text(n).includes('查看同步的会话'))
-    .props.onClick();
-  await tick();
-  let tree = h.render();
-  assert.match(text(tree), /在 DSH 中可见 · 1 个/);
-  assert.match(text(tree), /在 DSH 中看不到 · 2 个/);
-  assert.equal(all(tree).filter(n => n.type === 'label').length, 0, 'items stay folded until a group is expanded');
-  all(tree)
-    .find(n => n.type === 'input' && n.props['aria-label']?.includes('在 DSH 中看不到'))
-    .props.onChange({ target: { checked: true } });
-  tree = h.render();
-  assert.match(text(tree), /已选 2 个会话/);
-  all(tree)
-    .find(n => n.type === 'button' && text(n) === '从同步中移除')
-    .props.onClick();
-  tree = h.render();
-  const dialog = all(tree).find(n => n.type?.name === 'ConfirmDialog');
-  assert.equal(dialog.props.rows.length, 2);
-  assert.equal(calls.filter(c => c.url.endsWith('/sessions/remove')).length, 0, 'nothing is removed before confirming');
-  await dialog.props.onConfirm();
-  await tick();
-  const removal = calls.find(c => c.url.endsWith('/sessions/remove'));
-  assert.deepEqual(removal.body.ids.sort(), [sessions[1].id, sessions[2].id].sort());
-  assert.match(text(h.render()), /已移出同步 2 个会话/);
+  const messages = [];
+  const preview = {
+    ok: true,
+    files: ['ext-bridge-token', 'profiles/desktop/package.json'],
+    minVersion: '0.21.0',
+    previewId: 'p1',
+    blockers: [{ deviceId: 'd1', deviceName: '设备 d1', reason: '仍是 0.20.3', appliedAt: 1 }],
+  };
+  const h = harness((url, options) => {
+    calls.push({ url, body: options?.body && JSON.parse(options.body) });
+    return response({ ok: true, removed: 2 });
+  }, 'RemoteFilesDialog');
+  const props = { preview, onClose: () => {}, onDone: m => messages.push(m) };
+  let tree = h.render(props);
+  assert.match(text(tree), /2 个文件/);
+  assert.match(text(tree), /最后同步/, 'each computer shows its status and last sync time');
+  assert.equal(button(tree, '移除…').props.disabled, true, 'a computer on an older version blocks the removal');
+  checkbox(tree, '设备 d1 已不再使用').props.onChange({ target: { checked: true } });
+  tree = h.render(props);
+  assert.equal(button(tree, '移除…').props.disabled, false);
+  button(tree, '移除…').props.onClick();
+  tree = h.render(props);
+  assert.equal(calls.length, 0, 'nothing is removed before the second confirmation');
+  await button(tree, '移除').props.onClick();
+  assert.deepEqual(calls[0], {
+    url: '/dsh-sync/api/remote-cleanup',
+    body: { previewId: 'p1', retiredDevices: ['d1'] },
+  });
+  assert.match(messages[0], /已从同步仓库移除 2 个旧文件/);
 });

@@ -13,7 +13,7 @@
 | `autoPullOnStart` | `true` | 总开关开启后，启动时后台同步；不阻塞进入，失败后台重试。旧会话未核对或未完成写入时仅拦截发送。 |
 | `autoPushOnExit` | `true` | 总开关开启后，从菜单完全退出，等待落盘后上传。 |
 | `contentScope` | 全选 | `sessions`、`attachments`、`settings` 三类主数据，两台电脑共用这项选择。 |
-| `syncInstructions` | `false` | 界面名称为「指令与技能」：是否同步全局 `AGENTS.md` 与 `skills/` 文件夹。只影响这台电脑，不随同步偏好共享。 |
+| `syncInstructions` | `false` | 界面名称为「指令与技能」：是否同步全局 `AGENTS.md` 与 `skills/` 文件夹。每台电脑各自开关，不随同步偏好共享。 |
 | `workspaceSync` | `true` | 项目文件两个方向的同步。 |
 | `workspaceBase` | 空 | 可选的本机项目根目录映射。 |
 | `proxy` | 空（自动） | 空或 `auto`：优先使用启动环境的代理变量，否则在 Windows 读取当前系统代理，未启用代理则直连。填写 URL 则使用指定代理。本机保留，不随数据覆盖另一台电脑。 |

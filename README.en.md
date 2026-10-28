@@ -118,7 +118,7 @@ You are responsible for handling keys and other sensitive information written in
 
 Divergent conversations are retained as separate versions. Remote deletion does not directly delete local sessions. Keep separate backups of important material. [Sync and recovery boundaries](docs/configuration.md)
 
-**Sync repository usage (new):** **Sync repository usage** on the Sync page shows how much a new computer downloads on its first sync. It splits current and history size into sessions in use, archived sessions, sessions DSH does not show, attachments, settings and old files that are no longer synced, and lists the largest files in history. It reads only the sync copy from the last sync and the branch names on GitHub. [Sync scope](docs/sync-content.md#同步仓库占用)
+**Sync repository and local storage (new):** Click **Check** on the Sync page to get one line each, with counts and sizes, for synced sessions, the sync repository, local backups and old remote files. The button at the end of each line opens a dialog to see the details, remove sessions from sync or delete backups. The sync repository line shows how much a new computer downloads on its first sync and how much of that is history. [Sync scope](docs/sync-content.md#同步仓库与本机存储) · [Local backups](docs/local-storage.md)
 
 ## Compatibility
 

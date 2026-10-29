@@ -37,11 +37,11 @@ const API = {
       body: JSON.stringify(body),
     }).then(r => r.json()),
   recovery: () => fetch('/dsh-sync/api/recovery').then(r => r.json()),
-  recoveryPreview: id =>
+  recoveryPreview: (id, offsets) =>
     fetch('/dsh-sync/api/recovery/preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id, offsets }),
     }).then(r => r.json()),
   recoveryRestore: (id, side, expectedHash) =>
     fetch('/dsh-sync/api/recovery/restore', {
@@ -107,9 +107,16 @@ const API = {
       body: JSON.stringify({ id }),
     }).then(r => r.json()),
   historyRebuild: () =>
-    fetch('/dsh-sync/api/history-rebuild', { signal: AbortSignal.timeout(300000) }).then(r => r.json()),
+    fetch('/dsh-sync/api/history-rebuild', { signal: AbortSignal.timeout(125000) }).then(r => r.json()),
   applyHistoryRebuild: body =>
     fetch('/dsh-sync/api/history-rebuild', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then(r => r.json()),
+  localHistory: () => fetch('/dsh-sync/api/local-history', { signal: AbortSignal.timeout(300000) }).then(r => r.json()),
+  reclaimLocalHistory: body =>
+    fetch('/dsh-sync/api/local-history', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -140,12 +147,30 @@ const API = {
     }).then(r => r.json()),
 };
 
+function isCurrentSyncMessage(message) {
+  return /^(?:当前)?已是最新\s*[,，]?\s*无需(?:变更|同步)[。.!！]?$/.test(String(message || '').trim());
+}
+function syncMessagePresentation(message, ok, detail) {
+  const problem =
+    detail &&
+    (detail.error ||
+      detail.deferred ||
+      detail.needsReview ||
+      detail.downloadPending ||
+      detail.dataVerificationPending ||
+      detail.dataRepairQueued ||
+      detail.workspaces?.errors?.length);
+  const current = isCurrentSyncMessage(message) && !problem;
+  return { current, ok: Boolean(!problem && (ok || current)) };
+}
+
 /* 气泡提示:挂在触发元素附近,结果反馈保留较长时间便于排障(8s 后淡出) */
 function bubble(anchor, text, ok) {
   try {
     const b = document.createElement('div');
     b.className = 'dss-bubble';
-    if (!ok) b.classList.add('dss-bubble-err');
+    b.classList.add(ok ? 'dss-bubble-ok' : 'dss-bubble-err');
+    if (ok) b.style.color = '#4d6bfe';
     b.textContent = (ok ? '✓ ' : '✗ ') + String(text || '');
     b.setAttribute('role', ok ? 'status' : 'alert');
     // Feedback stays in the current panel's flow, including native dialogs.
@@ -182,6 +207,8 @@ const STYLE = [
   'border:.5px solid var(--dsw-alias-border-l4,rgba(127,127,127,.3));font-size:12px;line-height:1.55;white-space:pre-wrap;',
   'box-shadow:var(--dsw-elevation-prominent,0 2px 8px rgba(0,0,0,.3));transition:opacity .3s}',
   '.dss-bubble-err{color:var(--dsw-alias-state-error-primary,#f2b8b8)}',
+  '.dss-bubble-ok{color:#4d6bfe}',
+  '.dss-auto-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}.dss-auto-options>.dss-check{margin:0;gap:12px;padding:14px 16px}',
   /* 实时传输行 + 百分比进度条(上传/下载字节与速度) */
   '.dss-tx{font-size:11px;line-height:16px;color:var(--dsw-alias-label-tertiary,rgba(127,127,127,.78));margin-top:4px;white-space:nowrap}',
   '.dss-bar{height:3px;border-radius:2px;background:var(--dsw-alias-interactive-bg-hover,rgba(127,127,127,.22));overflow:hidden;margin-top:4px;min-width:150px}',
@@ -207,6 +234,7 @@ const STYLE = [
   '@media(max-width:600px){.dss-recovery-dialog{padding:12px}.dss-diff-header h2{font-size:16px}.dss-diff-title{min-height:62px;padding:6px}.dss-diff-number{width:36px}.dss-recovery-badge{white-space:normal}.dss-diff-tools{font-size:13px}}',
   '.dss-select{max-width:100%;padding:6px 10px;border:1px solid var(--dsw-alias-border-l4,rgba(127,127,127,.4));border-radius:8px;background:var(--dsw-alias-bg-layer-2,#fff);color:var(--dsw-alias-label-primary,#222);font:inherit}',
   '.dss-wrap fieldset:disabled{opacity:.65}',
+  '.dss-readable-comparison{flex:1;min-height:100px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;overflow:hidden}.dss-readable-side{display:flex;flex-direction:column;min-height:0;min-width:0}.dss-readable-heading{padding:8px 0;font-size:13px;color:var(--dsw-alias-label-secondary,#666)}.dss-readable-scroll{flex:1;min-height:0;overflow:auto;padding:12px 16px;border:1px solid var(--dsw-alias-border-l2,#ddd);border-radius:12px}.dss-transcript{width:min(100%,748px);margin:auto;display:flex;flex-direction:column;gap:28px;padding:12px 0}.dss-message{display:flex;min-width:0}.dss-message-user{justify-content:flex-end}.dss-message-user>.dss-message-body{max-width:82%;padding:10px 16px;border-radius:var(--dsw-radius-xl,18px);background:var(--dsw-specific-bubble,#edf2fa)}.dss-message-assistant>.dss-message-body{width:100%;min-width:0;line-height:1.75}.dss-readable-text{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.75}.dss-readable-fields dl{margin:0}.dss-readable-field{display:grid;grid-template-columns:minmax(100px,1fr) minmax(0,2fr);gap:16px;padding:12px 0;border-bottom:1px solid var(--dsw-alias-border-l2,#ddd)}.dss-readable-field dt{color:var(--dsw-alias-label-secondary,#666);overflow-wrap:anywhere}.dss-readable-field dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.dss-readable-projects article{padding:12px 0;border-bottom:1px solid var(--dsw-alias-border-l2,#ddd);overflow-wrap:anywhere}.dss-readable-image{margin:0}.dss-readable-image img{display:block;max-width:100%;max-height:65vh;object-fit:contain}.dss-readable-image figcaption{font-size:12px;color:var(--dsw-alias-label-secondary,#666);margin-top:8px}.dss-file-preview{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:14px;border:1px solid var(--dsw-alias-border-l2,#ddd);border-radius:12px;overflow-wrap:anywhere}.dss-message-body>p:first-child{margin-top:0}.dss-message-body>p:last-child{margin-bottom:0}@media(max-width:650px){.dss-readable-comparison{grid-template-columns:1fr;overflow:auto}.dss-readable-side{min-height:250px}.dss-readable-field{grid-template-columns:1fr;gap:4px}}',
   '.dss-wrap a{color:var(--dsw-alias-accent-color,#3979df)}',
   '.dss-wrap a{text-decoration:underline;text-underline-offset:3px}',
   '.dss-wrap .dss-h{font-size:15px;font-weight:600}',
@@ -317,5 +345,5 @@ const STYLE = [
   /* Repository usage: a compact table that collapses to two columns on narrow panes. */
   '.dss-usage-table{display:flex;flex-direction:column;font-size:13px}.dss-usage-row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1.3fr) minmax(0,1fr) 5em;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--dsw-alias-border-l2,#d9dde3)}.dss-usage-row>:not(:first-child){text-align:right;white-space:nowrap}.dss-usage-head{font-weight:600}.dss-history-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0;padding:12px;border-radius:9px;background:var(--dsw-alias-bg-layer-2,rgba(127,127,127,.08))}.dss-history-bar .dss-group-text{flex:1 1 240px}.dss-session-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0 8px}.dss-session-row>.dss-pick{flex:1 1 0;min-width:0}.dss-session-preview{flex:1 0 100%;margin:0 0 8px 24px;padding:8px 12px;border-left:2px solid var(--dsw-alias-border-l2,#d9dde3);font-size:13px}.dss-session-preview p{margin:4px 0;overflow-wrap:anywhere}.dss-steps{margin:0;padding-left:20px}.dss-steps li{margin:6px 0}@media (max-width:480px){.dss-usage-row{grid-template-columns:minmax(0,1fr) auto auto auto;font-size:12px}}',
   '.dss-confirm-dialog{box-sizing:border-box;width:min(520px,calc(100vw - 32px));max-height:min(80dvh,640px);padding:0;border:1px solid var(--dsw-alias-border-l2,#888);border-radius:14px;background:var(--dsw-alias-bg-layer-1,Canvas);color:var(--dsw-alias-label-primary,CanvasText);font:14px/1.6 system-ui;overflow:hidden}.dss-confirm-dialog[open]{display:flex;flex-direction:column}.dss-confirm-dialog::backdrop{background:#0009}.dss-confirm-head{padding:16px 20px 12px;border-bottom:1px solid var(--dsw-alias-border-l2,#d9dde3)}.dss-confirm-head h2{font-size:17px;margin:0 0 4px}.dss-confirm-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:8px 20px}.dss-confirm-row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;overflow-wrap:anywhere}.dss-confirm-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--dsw-alias-border-l2,#d9dde3)}.dss-confirm-dialog button.dss-pill{background:transparent;border-color:var(--dsw-alias-border-l4,rgba(127,127,127,.4));color:inherit;font-weight:500}.dss-confirm-dialog button.dss-primary{background:#4d6bfe;border-color:#4d6bfe;color:#fff}.dss-confirm-dialog button.dss-danger{background:#d93838;border-color:#d93838;color:#fff}',
-  '.dss-wrap>.dss-settings-group{padding-top:0}.dss-wrap .dss-setting-card{border:0;border-radius:0;padding:28px 0;gap:20px}.dss-settings-body{gap:0}.dss-settings-body>.dss-setting-card+.dss-setting-card{border-top:1px solid var(--dsw-alias-border-l2,#d9dde3)}.dss-settings-body>.dss-setting-card:last-child{padding-bottom:0}.dss-scope-fields{display:flex;flex-direction:column;gap:12px;text-align:left}.dss-scope-fields>.dss-check{margin:0;gap:12px;padding:14px 16px}.dss-scope-help{margin-top:4px}.dss-scope-fields>.dss-workspace-locations{margin-top:12px;padding:18px 16px}.dss-scope-fields>.dss-subsection-heading{margin-top:12px;padding-top:24px}.dss-wrap .dss-setting-card>.dss-section-title{text-align:left}.dss-scope-fields .dss-choice{gap:4px}.dss-scope-fields .dss-choice small{font-size:13px;line-height:1.6}',
+  '.dss-wrap>.dss-settings-group{padding-top:0}.dss-wrap .dss-setting-card{border:0;border-radius:0;padding:28px 0;gap:20px}.dss-settings-body{gap:0}.dss-settings-body>.dss-setting-card+.dss-setting-card{border-top:1px solid var(--dsw-alias-border-l2,#d9dde3)}.dss-settings-body>.dss-setting-card:last-child{padding-bottom:0}.dss-scope-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px;text-align:left}.dss-scope-fields>.dss-span-all,.dss-scope-fields>.dss-workspace-locations{grid-column:1/-1}.dss-scope-fields>.dss-check{margin:0;gap:12px;padding:14px 16px}.dss-scope-help{margin-top:4px}.dss-scope-fields>.dss-workspace-locations{margin-top:12px;padding:18px 16px}.dss-scope-fields>.dss-subsection-heading{margin-top:12px;padding-top:24px}.dss-wrap .dss-setting-card>.dss-section-title{text-align:left}.dss-scope-fields .dss-choice{gap:4px}.dss-scope-fields .dss-choice small{font-size:13px;line-height:1.6}',
 ].join('\n');

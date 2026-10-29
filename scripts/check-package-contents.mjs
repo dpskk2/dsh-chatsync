@@ -42,6 +42,8 @@ const metadata = new Set([
   'icon.png',
   'cordis.patch.yml',
   'scripts/restart-dsh-desktop.ps1',
+  'locale/zh.json',
+  'locale/en.json',
 ]);
 for (const file of files) {
   assert.ok(!/(?:work-laptop|MOLE-LAPTOP)/i.test(file), `Conflict copy in package: ${file}`);
@@ -62,9 +64,16 @@ const required = [
   pkg.main,
   pkg.icon,
   pkg.dsh.bundle.patch,
-  ...Object.values(pkg.exports),
+  ...Object.values(pkg.exports).filter(file => !file.includes('*')),
 ].map(file => file.replace(/^\.\//, ''));
 for (const file of required) assert.ok(files.has(file), `Required file missing: ${file}`);
+for (const target of Object.values(pkg.exports).filter(file => file.includes('*'))) {
+  const [prefix, suffix] = target.replace(/^\.\//, '').split('*');
+  assert.ok(
+    [...files].some(file => file.startsWith(prefix) && file.endsWith(suffix)),
+    `Export pattern has no files: ${target}`,
+  );
+}
 assert.ok(
   fs.readFileSync(path.join(root, pkg.dsh.bundle.patch), 'utf8').includes(pkg.name),
   'Bundle patch must register the package',

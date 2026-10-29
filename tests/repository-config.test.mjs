@@ -53,3 +53,13 @@ test('repository setup stops when required local configuration cannot be read or
     args[0].includes('--replace-all') ? { code: 1, out: '', err: 'injected config lock' } : invoke(...args);
   assert.equal(await engine.ensureRepo({ ...cfg, gitUserName: 'changed identity' }), false);
 });
+
+test('repository size counts loose and packed objects and returns null when Git fails', async t => {
+  const { engine } = fixture(t);
+  assert.equal(engine.repoStats(), null, 'a missing repository has unknown size');
+  assert.equal(await engine.ensureRepo(engine.loadConfig()), true);
+  const before = engine.repoStats();
+  assert.equal(engine.repoSizeBytes(), before.packBytes + before.looseBytes);
+  engine.repoStats = () => ({ packBytes: 1024, looseBytes: 2048, looseCount: 1 });
+  assert.equal(engine.repoSizeBytes(), 3072);
+});

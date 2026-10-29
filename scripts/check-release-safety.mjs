@@ -50,6 +50,26 @@ export function sourceFingerprint(root) {
   return sha256(entries.join('\n'));
 }
 
+// Local candidates can contain unstaged and new files. The release fingerprint
+// intentionally describes the index, so it cannot identify such a candidate.
+// Hash the actual selected source bytes for local evidence without changing the
+// release gate's requirement for a clean, committed tree.
+export function workingSourceFingerprint(root) {
+  const names = [...new Set(git(root, ['ls-files', '--cached', '--others', '--exclude-standard', '-z']).split('\0'))]
+    .filter(name => name && !name.startsWith('release-evidence/'))
+    .sort();
+  if (!names.length) throw new Error('本机候选源码为空');
+  return sha256(
+    JSON.stringify(
+      names.map(name => {
+        const file = path.join(root, name);
+        if (!fs.lstatSync(file).isFile()) throw new Error('本机候选包含非普通文件：' + name);
+        return [name, sha256(fs.readFileSync(file))];
+      }),
+    ),
+  );
+}
+
 export function template(pkg) {
   const tier = releaseTier(pkg.version);
   return {

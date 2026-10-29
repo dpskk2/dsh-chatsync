@@ -121,7 +121,9 @@ test('session import preflight is read-only and unsupported hosts retain origina
   const f = fixture(t);
   const before = fs.readFileSync(f.engine.recovery.recordPath(f.record.id));
   assert.equal((await sessionRecoveryOptions(f.engine, {}, f.record.id, async () => catalog)).available, false);
-  assert.equal((await sessionRecoveryOptions(f.engine, f.ctx, f.record.id, async () => catalog)).available, true);
+  const options = await sessionRecoveryOptions(f.engine, f.ctx, f.record.id, async () => catalog);
+  assert.equal(options.available, true);
+  assert.deepEqual(options.workspaces, [{ id: f.workspace.id, title: f.workspace.title, path: f.workspace.path }]);
   assert.deepEqual(fs.readFileSync(f.engine.recovery.recordPath(f.record.id)), before);
   await assert.rejects(importRecoverySession(f.engine, {}, f.request), /缺少/);
   assert.equal(f.storage.size, 0);

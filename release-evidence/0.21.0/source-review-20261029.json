@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "kind": "local-source-review-not-release-approval",
+  "status": "awaiting-maintainer-visual-acceptance",
+  "date": "2026-10-29",
+  "version": "0.21.0",
+  "build": "2026-10-29-local-0.21.0-source-review",
+  "baseCommit": "49091521f0ab4924214a063d1dd333cbeacc732c",
+  "workingTree": true,
+  "review": "docs/history/source-review-20261029.md",
+  "standaloneRegression": {
+    "command": "npm test",
+    "node": "24.19.0",
+    "tests": 528,
+    "passed": 527,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 1,
+    "skip": "Windows GUI process invocation covered by the desktop regression",
+    "exitCode": 0,
+    "staticChecks": "passed"
+  },
+  "desktopRegression": {
+    "node": "24.21.0",
+    "electron": "44.7.0",
+    "tests": 529,
+    "passed": 529,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "focusedRecoveryTests": {
+    "passed": 27,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "releaseSafetyTests": {
+    "passed": 17,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "nativeRelocation": "passed-with-synthetic-isolated-data",
+  "nativeIssue4": {
+    "status": "passed",
+    "isolatedHosts": 2,
+    "physicalMachines": 1,
+    "githubUsed": false,
+    "coldReadContinuousEvents": 32
+  },
+  "finalStorageRegression": {
+    "standalonePassed": 11,
+    "electronPassed": 11,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "candidateEvidence": "release-evidence/0.21.0/source-review-20261029-candidate.json",
+  "sourceSha256": "b4ad49615473e1ef6195eb3316173d428b5babbd56dc758007163eaf326dc270",
+  "packageSha256": "99a80f5ad2703d3b94ebc8521fb8bc9e7559eddbccde0aa35b97cfc36e551de9",
+  "installedRuntimeFiles": 72,
+  "installedLocaleFiles": 2,
+  "dailyRuntimeRestartRequired": true,
+  "npmAuditVulnerabilities": 0,
+  "issueStates": {
+    "4": "closed",
+    "6": "open",
+    "10": "open-partial",
+    "11": "open"
+  },
+  "visualAcceptance": "not-verified",
+  "maintainerVisualResponse": "暂未验收",
+  "physicalTwoDeviceGitHub": "not-verified",
+  "fullFaultMatrix": "not-verified",
+  "recoveryDrill": "not-verified",
+  "releaseApproval": false,
+  "releaseGate": "blocked: source not frozen; prior build and package evidence not current; physical two-device verification pending"
+}

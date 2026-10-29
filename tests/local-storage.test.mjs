@@ -13,6 +13,7 @@ import {
   saveStoragePolicy,
 } from '../lib/local-storage.js';
 import { scopeMirrorPath } from '../lib/scope.js';
+import { digest } from '../lib/recovery.js';
 import { removeFixture } from './helpers/fixture-cleanup.mjs';
 
 function fixture(t) {
@@ -201,6 +202,12 @@ test('old synchronized repositories can be removed only when clean and fully cov
   const row = (await scanLocalStorage(h.engine)).items.find(item => item.path === old);
   assert.equal(row.protected, true);
   assert.match(row.reason, /独有/);
+  git(['config', 'user.name', 'Fixture'], tree);
+  git(['config', 'user.email', 'fixture@example.invalid'], tree);
+  git(['stash', 'push', '--include-untracked', '-m', 'unique synthetic stash'], tree);
+  assert.equal(git(['status', '--porcelain'], tree).toString().trim(), '');
+  const stashed = (await scanLocalStorage(h.engine)).items.find(item => item.path === old);
+  assert.equal(stashed.protected, true, 'a clean worktree must not hide a unique stash');
 });
 
 test('configuration or dependency changes during asynchronous repository inspection invalidate the entire inventory', async t => {
@@ -221,4 +228,67 @@ test('configuration or dependency changes during asynchronous repository inspect
   };
   await assert.rejects(scanLocalStorage(h.engine), /记录发生变化/);
   assert.equal(fs.readFileSync(backup, 'utf8'), 'still needed');
+});
+
+test('only verified archived relocations release their preview index; pending changes revoke cleanup', async t => {
+  const h = fixture(t),
+    bytes = Buffer.from('source conversation'),
+    hash = digest(bytes);
+  const sourceId = 'session-11111111-1111-1111-1111-111111111111',
+    targetId = 'session-22222222-2222-2222-2222-222222222222',
+    sourcePath = `sessions/source/${sourceId}/session.v4.jsonl`;
+  const source = h.put(sourcePath, bytes),
+    target = h.put('sessions/target.txt', 'verified conversation');
+  const record = h.engine.recovery.save(
+    { kind: 'main', status: 'merged', path: sourcePath, reason: 'local-project-unavailable' },
+    { local: bytes, remote: bytes },
+  );
+  h.put('.chatsync-local/data-forks/' + hash + '.json', JSON.stringify({ recordId: record.id }));
+  const row = async () => (await scanLocalStorage(h.engine)).items.find(item => item.recordId === record.id);
+  assert.equal((await row()).protected, true);
+  const imported = { local: { status: 'verified', sessionId: targetId } };
+  h.engine.recovery.finish(record.id, { imports: imported, reviewState: 'archived' });
+  assert.equal((await row()).protected, true, 'review alone cannot release a relocation still awaiting archiving');
+  h.engine.recovery.finish(record.id, {
+    relocation: { archivedSource: true, sourceSessionId: sourceId, sessionId: targetId, sourceHash: hash },
+  });
+  const folder = path.dirname(h.engine.recovery.recordPath(record.id));
+  const preview = await previewFile(h, folder);
+  h.engine.recovery.finish(record.id, { imports: { local: { status: 'pending', sessionId: targetId } } });
+  await assert.rejects(applyStorageCleanup(h.engine, { token: preview.token, confirm: true }), /变化/);
+  assert.equal(fs.existsSync(folder), true);
+  h.engine.recovery.finish(record.id, { imports: imported });
+  const final = await previewFile(h, folder);
+  assert.equal((await applyStorageCleanup(h.engine, { token: final.token, confirm: true })).ok, true);
+  assert.deepEqual(fs.readFileSync(source), bytes);
+  assert.equal(fs.readFileSync(target, 'utf8'), 'verified conversation');
+});
+
+test('matching remote URLs cannot authorize removal of unique old main commits or reflog history', async t => {
+  const h = fixture(t),
+    remote = path.join(h.root, 'remote.git');
+  const git = (args, cwd = h.home) => execFileSync('git', args, { cwd, stdio: 'pipe', encoding: 'utf8' });
+  git(['init', '--bare', '--initial-branch=main', remote]);
+  git(['init', '--initial-branch=main']);
+  git(['config', 'user.name', 'Fixture']);
+  git(['config', 'user.email', 'fixture@example.invalid']);
+  git(['remote', 'add', 'origin', remote]);
+  h.put('tracked.txt', 'shared');
+  git(['add', 'tracked.txt']);
+  git(['commit', '-m', 'shared']);
+  git(['push', 'origin', 'HEAD']);
+  h.engine.overrides.remote = remote;
+  const mirror = scopeMirrorPath(h.home, h.engine.loadConfig());
+  fs.mkdirSync(path.dirname(mirror), { recursive: true });
+  git(['clone', remote, mirror]);
+  const item = async () => (await scanLocalStorage(h.engine)).items.find(row => row.path === path.join(h.home, '.git'));
+  assert.equal((await item()).protected, false, 'shared history can be explicitly cleaned');
+  h.put('tracked.txt', 'unique local commit');
+  git(['add', 'tracked.txt']);
+  git(['commit', '-m', 'unique']);
+  assert.equal((await item()).protected, true, 'matching URL does not cover unpushed commits');
+  git(['reset', '--hard', 'HEAD^']);
+  assert.equal((await item()).protected, true, 'a reset cannot hide unique commits still in the old reflog');
+  const retained = git(['reflog', '--format=%H']);
+  assert.ok(retained.trim().split('\n').length > 1);
 });

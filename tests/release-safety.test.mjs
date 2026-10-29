@@ -12,6 +12,7 @@ import {
   patchChecks,
   releaseTier,
   sourceFingerprint,
+  workingSourceFingerprint,
   template,
   validateRelease,
 } from '../scripts/check-release-safety.mjs';
@@ -107,6 +108,22 @@ test('complete committed evidence for the exact candidate passes; adding evidenc
   const f = fixture(t);
   assert.equal(sourceFingerprint(f.root), f.manifest.sourceSha256);
   assert.deepEqual(f.errors(), []);
+});
+
+test('local candidate evidence follows unstaged and new source bytes while ignoring evidence and ignored output', t => {
+  const f = fixture(t),
+    committed = sourceFingerprint(f.root),
+    first = workingSourceFingerprint(f.root);
+  fs.appendFileSync(path.join(f.root, 'source.mjs'), '// unstaged candidate change\n');
+  const changed = workingSourceFingerprint(f.root);
+  assert.notEqual(changed, first);
+  assert.equal(sourceFingerprint(f.root), committed, 'the release index does not describe unstaged source');
+  fs.writeFileSync(path.join(f.root, 'new.mjs'), 'export const added = true;\n');
+  const added = workingSourceFingerprint(f.root);
+  assert.notEqual(added, changed);
+  fs.writeFileSync(path.join(f.evidenceDir, 'new-report.json'), '{}');
+  fs.writeFileSync(path.join(f.root, 'work', 'ignored.mjs'), 'ignored output');
+  assert.equal(workingSourceFingerprint(f.root), added);
 });
 
 test('a patch release needs no two-device check; a minor release does, and the maintainer may confirm it', t => {

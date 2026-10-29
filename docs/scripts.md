@@ -38,10 +38,10 @@
 | `check-issue4-safe.mjs` | 宿主公开写入接口 + 两个隔离宿主下的 issue #4 安全验证 |
 | `check-data-repair-native.mjs` | 历史数据修复在真实宿主中的验收 |
 | `check-lifecycle-desktop.mjs` | 桌面宿主关闭与退出上传进程 |
-| `check-local-package-desktop.mjs` | 实际打包的插件装入隔离桌面宿主后的检查 |
+| `check-local-package-desktop.mjs` | 实际打包的插件装入隔离桌面宿主后的检查；未提交的本地候选加 `--working-tree` 与当前维护源码比对，默认仍与 HEAD 比对 |
 | `check-connection-desktop.mjs` | 桌面端备份连接接口；只读检查已有仓库 |
 | `check-grouping-desktop.mjs`、`check-grouping-intent-desktop.mjs` | 会话分组检查与归档行为 |
-| `check-relocation-desktop.mjs` | 会话迁移 |
+| `check-relocation-desktop.mjs [outputs 下的新目录]` | 会话迁移、匹配本机项目预选、完成后原件清理及重启读回；仅使用隔离合成数据 |
 | `check-send-guard-desktop.mjs` | 启动同步期间的发送前检查 |
 | `preview-settings-desktop.mjs` | 用当前源码和首次安装默认值预览设置页 |
 | `native-fixture.mjs` | 上面几项共用的真实宿主夹具（不单独运行） |

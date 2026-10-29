@@ -18,7 +18,7 @@ import { acceptFixturePreviews } from './helpers/reviewed-sync.mjs';
 import { fixtureCatalog, attachFixturePersistence } from './helpers/session-persistence.mjs';
 
 test(
-  'first scoped clone reuses local history without borrowing storage or seeding unsent commits',
+  'first scoped clone takes only the remote snapshot without borrowing old storage or seeding unsent commits',
   { timeout: 60000 },
   async t => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-reference-'));
@@ -52,8 +52,8 @@ test(
       const result = await original(args, ...rest);
       if (args[0] === 'clone') {
         assert.equal(engine.ok(result), true, result.err);
-        assert.ok(args.includes('--dissociate'));
-        assert.equal(args[args.indexOf('--reference-if-able') + 1], home);
+        assert.ok(args.includes('--depth=1'));
+        assert.ok(!args.includes('--reference-if-able'));
         const folder = scopeMirrorPath(home, engine.loadConfig());
         assert.equal(git(['rev-parse', 'HEAD'], folder), remoteHead);
         assert.notEqual(remoteHead, localHead);

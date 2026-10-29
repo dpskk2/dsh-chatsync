@@ -161,9 +161,10 @@ export function apply(ctx) {
   await call(1, 'hold');
   const worker = `
     import { Context } from ${JSON.stringify(pathToFileURL(require.resolve('@deepseek-ai/cordis')).href)};
-    import Persistence from ${JSON.stringify(pathToFileURL(require.resolve('@deepseek-ai/dsh-session-persistence-jsonl')).href)};
+    import * as Persistence from ${JSON.stringify(pathToFileURL(require.resolve('@deepseek-ai/dsh-session-persistence-jsonl')).href)};
     const ctx = new Context();
-    const fiber = await ctx.plugin(Persistence, { root: process.argv[1] });
+    const fiber = ctx.plugin(Persistence, { root: process.argv[1] });
+    await fiber.await();
     let outcome;
     try { const handle = await ctx.get('sessionPersistence').open(process.argv[2], 'write'); await handle.close(); outcome = 'unexpected-write-owner'; }
     catch (error) { outcome = error.name; }

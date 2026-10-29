@@ -94,6 +94,7 @@ function Section(props) {
     return run(runRef.current);
   };
   const detail = useMemo(() => (status ? lastDetailText(status.lastDetail) : ''), [status]);
+  const currentNotice = status && syncMessagePresentation(status.lastMessage, status.lastOk, status.lastDetail).current;
   const verificationPending = status?.dataVerificationPending ?? status?.lastDetail?.dataVerificationPending;
   const repairQueued = status?.queuedRepairs > 0;
 
@@ -162,7 +163,7 @@ function Section(props) {
           e(
             'nav',
             { className: 'dss-steps', 'aria-label': '同步设置步骤' },
-            ['备份地址', '选择内容', '首次同步'].map((label, i) =>
+            ['同步仓库', '选择内容', '首次同步'].map((label, i) =>
               e(
                 'button',
                 {
@@ -253,6 +254,13 @@ function Section(props) {
             ),
           ),
           e(TransferReview, { review, busy: busy || settingsPending, onConfirm: id => run(runRef.current, id) }),
+          !busy && currentNotice
+            ? e(
+                'div',
+                { className: 'dss-current-status', role: 'status', style: { color: '#4d6bfe' } },
+                status.lastMessage,
+              )
+            : null,
           verificationPending || repairQueued
             ? e(
                 'div',
@@ -312,35 +320,6 @@ function Section(props) {
             'div',
             { className: 'dss-settings-body' },
             e(SyncPreferences, { busy, onSavingChange: setSettingsPending, onChanged: refresh }),
-            e(
-              'div',
-              { className: 'dss-rowline dss-restartrow dss-setting-card', 'data-grouping-setting': true },
-              e(
-                'div',
-                { className: 'dss-rowtext' },
-                e('h2', { className: 'dss-section-title' }, '同步后分组检查'),
-                e(
-                  'button',
-                  { type: 'button', className: 'dss-pill', onClick: () => openRepair({ mode: 'grouping' }) },
-                  '处理未分组会话',
-                ),
-              ),
-              autoRestart === null
-                ? e('span', { className: 'dss-desc' }, '正在读取…')
-                : e(
-                    'button',
-                    {
-                      type: 'button',
-                      className: 'dss-switch' + (autoRestart ? ' dss-switch-on' : ''),
-                      role: 'switch',
-                      'aria-checked': autoRestart,
-                      'aria-label': '同步后分组检查',
-                      disabled: settingsPending,
-                      onClick: toggleAutoRestart,
-                    },
-                    e('span', { className: 'dss-switch-knob' }),
-                  ),
-            ),
             e(ConnectionSettings, {
               remote: status?.remote,
               branch: status?.branch,
@@ -354,7 +333,7 @@ function Section(props) {
       ? e(
           'section',
           { className: 'dss-sec', 'data-sync-recovery': true },
-          e('h2', { className: 'dss-section-title' }, '找回同步前的内容'),
+          e('h2', { className: 'dss-section-title' }, '找回同步前的内容（实验性）'),
           e(RecoveryCenter, { busy: busy || settingsPending, lastSyncAt: status?.lastSyncAt }),
         )
       : null,
@@ -365,8 +344,28 @@ function Section(props) {
       ? e(
           'section',
           { className: 'dss-sec' },
-          e('h2', { className: 'dss-section-title' }, '修复会话问题'),
+          e('h2', { className: 'dss-section-title' }, '修复会话问题（实验性）'),
           e('p', { className: 'dss-desc' }, '会话未分组、消息打不开或项目归属不对时，在这里检查并修复。'),
+          e(
+            'div',
+            { className: 'dss-rowline', 'data-grouping-setting': true },
+            e('span', null, '同步后自动检查分组'),
+            autoRestart === null
+              ? e('span', { className: 'dss-desc' }, '正在读取…')
+              : e(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dss-switch' + (autoRestart ? ' dss-switch-on' : ''),
+                    role: 'switch',
+                    'aria-checked': autoRestart,
+                    'aria-label': '同步后分组检查',
+                    disabled: busy || settingsPending,
+                    onClick: toggleAutoRestart,
+                  },
+                  e('span', { className: 'dss-switch-knob' }),
+                ),
+          ),
           e(
             'button',
             { type: 'button', className: 'dss-pill', onClick: () => openRepair({ mode: 'all' }) },

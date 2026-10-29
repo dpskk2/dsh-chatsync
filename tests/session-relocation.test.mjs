@@ -5,7 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { SyncEngine } from '../lib/sync.js';
 import { digest } from '../lib/recovery.js';
-import { importRelocatedSession } from '../lib/session-relocation.js';
+import { importRelocatedSession, previewSessionRelocation } from '../lib/session-relocation.js';
+import { sessionRecoveryOptions } from '../lib/session-recovery.js';
 
 function fixture(t) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-relocation-'));
@@ -87,4 +88,32 @@ test('active or changed originals and failed imports never archive the source', 
   };
   await assert.rejects(importRelocatedSession(f.engine, { workspaceRegistry: f.registry }, f.body, racing), /变化/);
   assert.deepEqual(f.registry.archivedSessionIds, []);
+});
+
+test('relocation preview suggests the actual mapped host project and rebuilds an explicitly cleaned backup', async t => {
+  const f = fixture(t);
+  const workspace = { id: 'local-project', title: 'Local project', path: path.join(f.home, 'project') };
+  fs.mkdirSync(workspace.path);
+  f.registry.list = () => [workspace];
+  const ctx = {
+    workspaceRegistry: f.registry,
+    sessions: { prepare() {} },
+    sessionPersistence: { create() {}, open() {}, stat() {} },
+    sessionQuery: { readSession() {} },
+  };
+  f.engine.workspacePathOf = () => workspace.path;
+  const optionsFor = (engine, context, id) =>
+    sessionRecoveryOptions(engine, context, id, async () => ({ buildForkSeed() {} }));
+  const issue = { kind: 'relocate', file: f.file, cwd: 'C:/Users/remote/project' };
+  const first = await previewSessionRelocation(f.engine, ctx, issue, optionsFor);
+  assert.equal(first.suggestedWorkspaceId, workspace.id);
+  assert.equal(first.suggestedPath, workspace.path);
+  assert.equal((await previewSessionRelocation(f.engine, ctx, issue, optionsFor)).recoveryId, first.recoveryId);
+  fs.rmSync(path.dirname(f.engine.recovery.recordPath(first.recoveryId)), { recursive: true });
+  const next = await previewSessionRelocation(f.engine, ctx, issue, optionsFor);
+  assert.notEqual(next.recoveryId, first.recoveryId);
+  assert.deepEqual(f.engine.recovery.version(f.engine.recovery.read(next.recoveryId), 'local'), f.bytes);
+  assert.deepEqual(fs.readFileSync(path.join(f.home, f.file)), f.bytes);
+  f.registry.list = () => [workspace, { ...workspace, id: 'ambiguous-project' }];
+  assert.equal((await previewSessionRelocation(f.engine, ctx, issue, optionsFor)).suggestedWorkspaceId, null);
 });

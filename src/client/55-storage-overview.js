@@ -3,6 +3,7 @@
 // in a dialog whose body scrolls while its buttons stay in view.
 function Modal({ title, note, wide = false, onClose, children }) {
   const dialog = useRef(null);
+  useDialogWheel(dialog);
   useEffect(() => {
     const node = dialog.current;
     if (node && !node.open) node.showModal?.();
@@ -265,7 +266,13 @@ function SessionsDialog({ data, busy, focus, onClose, onDone }) {
 
 /* —— 同步仓库占用 —— */
 function usageSummary(data) {
-  return '新电脑首次同步约下载 ' + fmtBytes(data.totalBytes) + '，其中历史版本 ' + fmtBytes(data.historyBytes);
+  return (
+    '当前内容 ' +
+    fmtBytes(data.currentBytes) +
+    '；同步分支历史 ' +
+    fmtBytes(data.historyBytes) +
+    (data.localOtherBytes ? '；本机另存旧历史 ' + fmtBytes(data.localOtherBytes) : '')
+  );
 }
 // What each row can do: sessions leave the sync, old files leave the repository.
 const USAGE_ACTIONS = {
@@ -280,15 +287,14 @@ function UsageDialog({ data, busy, onClose, onRefresh, onOpen }) {
     {
       title: '同步仓库占用',
       note:
-        '新电脑首次同步约下载 ' +
-        fmtBytes(data.totalBytes) +
-        '：当前内容 ' +
+        '本机可见的同步分支：当前内容 ' +
         fmtBytes(data.currentBytes) +
         '，历史版本 ' +
         fmtBytes(data.historyBytes) +
         '，目录与提交记录 ' +
         fmtBytes(data.structureBytes) +
-        '。',
+        '。' +
+        (data.localBytes != null ? '这台电脑的同步副本共占 ' + fmtBytes(data.localBytes) + '。' : ''),
       wide: true,
       onClose,
     },
@@ -337,11 +343,31 @@ function UsageDialog({ data, busy, onClose, onRefresh, onOpen }) {
           e(
             'small',
             { className: 'dss-desc' },
-            '删除或改过的内容仍留在历史里，新电脑首次同步时一并下载。清除后只保留当前内容。',
+            '这些是 chatsync 每次同步产生的 Git 提交，不是 DSH 自带数据。新电脑只取当前快照；GitHub 可能保留更多旧历史，可打开仓库查看。',
           ),
         ),
-        pill('清除历史版本…', () => onOpen('history'), { disabled: busy || data.commits <= 1 }),
+        pill('清除历史版本…', () => onOpen('history'), { disabled: busy || (data.commits <= 1 && !data.shallow) }),
+        data.repositoryUrl
+          ? helpLink('在 GitHub 查看历史', data.repositoryUrl + '/commits/' + encodeURIComponent(data.branch))
+          : null,
       ),
+      data.localOtherBytes
+        ? e(
+            'div',
+            { className: 'dss-history-bar', 'data-local-history': true },
+            e(
+              'div',
+              { className: 'dss-group-text' },
+              e('span', null, '本机另存的旧历史 ' + fmtBytes(data.localOtherBytes)),
+              e(
+                'small',
+                { className: 'dss-desc' },
+                '同步分支已不包含、只在这台电脑的同步副本中保留的旧提交，例如早先版本清除历史后留下的同步前备份。新电脑不会下载它们。',
+              ),
+            ),
+            pill('回收本机空间…', () => onOpen('localHistory'), { disabled: busy }),
+          )
+        : null,
       e(
         'p',
         { className: 'dss-desc' },
@@ -399,10 +425,11 @@ function HistoryDialog({ busy, onClose, onDone }) {
       });
       if (!d?.ok) throw new Error(d?.error || '没有完成，请重新检查');
       onDone(
-        (d.removedCommits ? '已清除 ' + d.removedCommits + ' 次同步记录的历史，同步仓库只保留当前内容。' : '') +
+        (d.commit ? '同步分支已改为只含当前内容。' : '') +
           (d.deletedBranches?.length ? '已删除 ' + d.deletedBranches.length + ' 个同步前备份分支。' : '') +
           (d.branchError || '') +
-          (d.backup ? '旧历史已保存在「本机备份 → 同步仓库旧历史」。' : ''),
+          (d.localCleanupError || '') +
+          (d.backup ? '旧历史保留在 GitHub 的 ' + d.backup + ' 分支，没有生成本机备份。' : ''),
       );
     } catch (err) {
       setError(err.message || String(err));
@@ -415,14 +442,15 @@ function HistoryDialog({ busy, onClose, onDone }) {
   if (confirming)
     return e(
       Modal,
-      { title: '清除历史版本', note: '同步仓库将只保留当前内容。', onClose },
+      { title: '清除历史版本', note: '同步分支将只保留当前内容；旧历史保留在 GitHub 归档分支。', onClose },
       dialogBody(
         errorLine,
         e(
           'ul',
           { className: 'dss-steps' },
-          e('li', null, '把完整的旧历史保存到这台电脑（「本机备份 → 同步仓库旧历史」）。'),
+          e('li', null, '旧历史留在 GitHub 的归档分支，不下载、不生成本机备份。'),
           e('li', null, '把 GitHub 上的同步分支换成只含当前内容的一次记录。'),
+          e('li', null, '回收这台电脑同步副本中的旧历史；GitHub 仓库总占用不会因此清零。'),
           deleteBranches ? e('li', null, '删除 ' + preview.backupBranches.length + ' 个同步前备份分支。') : null,
           e('li', null, '其他电脑下次同步时自动改用新的历史，各电脑上的数据不变。'),
         ),
@@ -437,12 +465,14 @@ function HistoryDialog({ busy, onClose, onDone }) {
     Modal,
     {
       title: '清除历史版本',
-      note: '清除后，同步仓库只保留当前内容，新电脑首次同步只下载当前内容。',
+      note: '清除后，同步分支只保留当前内容，并回收本机旧历史。旧历史仍保留在 GitHub 归档分支。',
       onClose,
     },
     dialogBody(
       errorLine,
-      pending && !preview ? e('p', { className: 'dss-desc', role: 'status' }, '正在检查各电脑的状态…') : null,
+      pending && !preview
+        ? e('p', { className: 'dss-desc', role: 'status' }, '正在读取同步仓库与设备回执（最多 2 分钟）…')
+        : null,
       preview
         ? e(
             'div',
@@ -450,9 +480,11 @@ function HistoryDialog({ busy, onClose, onDone }) {
             e(
               'p',
               { className: 'dss-desc' },
-              '同步仓库现有 ' +
+              '本机已取回 ' +
                 preview.commits +
-                ' 次同步记录。完整的旧历史会先保存在这台电脑上，确认用不上后可以在「本机备份」中删除。',
+                ' 次同步记录' +
+                (preview.shallow ? '（仅当前快照，GitHub 可能有更多历史）' : '') +
+                '。旧历史只保留在 GitHub，不生成完整本机备份。',
             ),
             preview.blockers.length
               ? e(
@@ -494,8 +526,112 @@ function HistoryDialog({ busy, onClose, onDone }) {
     dialogActions(
       waiting.length ? waiting.length + ' 台电脑需要先升级' : '',
       pill('关闭', onClose),
+      error ? pill('重新检查', load, { disabled: blocked }) : null,
       pill('清除…', () => setConfirming(true), {
-        disabled: blocked || !preview || waiting.length > 0 || (preview.commits <= 1 && !deleteBranches),
+        disabled:
+          blocked || !preview || waiting.length > 0 || (preview.commits <= 1 && !preview.shallow && !deleteBranches),
+      }),
+    ),
+  );
+}
+
+/* —— 回收本机另存的旧历史 —— */
+function LocalHistoryDialog({ busy, onClose, onDone }) {
+  const [preview, setPreview] = useState(null),
+    [pending, setPending] = useState(true),
+    [error, setError] = useState('');
+  const load = async () => {
+    setPending(true);
+    setError('');
+    try {
+      const d = await API.localHistory();
+      if (!d?.ok) throw new Error(d?.error || '检查失败，请重试');
+      setPreview(d);
+    } catch (err) {
+      setError(err.message || String(err));
+    } finally {
+      setPending(false);
+    }
+  };
+  useEffect(() => {
+    load();
+  }, []);
+  const removable = preview ? preview.refs.filter(r => r.removable) : [];
+  const apply = async () => {
+    setPending(true);
+    setError('');
+    try {
+      const d = await API.reclaimLocalHistory({ previewId: preview.previewId });
+      if (!d?.ok) throw new Error(d?.error || '没有完成，请重新检查');
+      onDone(
+        '已删除 ' +
+          d.removed.length +
+          ' 个本机旧备份引用，回收 ' +
+          fmtBytes(d.freedBytes) +
+          '；同步副本现占 ' +
+          fmtBytes(d.totalBytes) +
+          '。',
+      );
+    } catch (err) {
+      setError(err.message || String(err));
+    } finally {
+      setPending(false);
+    }
+  };
+  return e(
+    Modal,
+    {
+      title: '回收本机空间',
+      note: '只删除 GitHub 上仍保留着的旧备份在这台电脑的副本；GitHub、其他电脑和 DSH 数据都不变。',
+      onClose,
+    },
+    dialogBody(
+      error ? e('div', { className: 'dss-err', role: 'alert' }, error) : null,
+      pending && !preview
+        ? e('p', { className: 'dss-desc', role: 'status' }, '正在核对本机副本与 GitHub 上的历史…')
+        : null,
+      preview
+        ? e(
+            'div',
+            { className: 'dss-stack' },
+            e(
+              'p',
+              { className: 'dss-desc' },
+              '同步副本共占 ' +
+                fmtBytes(preview.totalBytes) +
+                '，其中当前同步分支 ' +
+                fmtBytes(preview.currentBytes) +
+                '。',
+            ),
+            preview.refs.length
+              ? e(
+                  'ul',
+                  { className: 'dss-steps' },
+                  preview.refs.map(r =>
+                    e(
+                      'li',
+                      { key: r.ref },
+                      r.ref.replace(/^refs\/(?:heads|remotes)\//, '') +
+                        ' · 另占 ' +
+                        fmtBytes(r.bytes) +
+                        (r.removable ? ' · GitHub 已保留，可删除' : ' · ' + r.reason),
+                    ),
+                  ),
+                )
+              : e('p', { className: 'dss-desc' }, '没有占用空间的旧备份引用；可能只是尚未回收的旧对象。'),
+            preview.reflogClean
+              ? null
+              : e('p', { className: 'dss-err' }, '恢复记录中还有未归档的独有提交，暂不能回收。'),
+          )
+        : null,
+    ),
+    dialogActions(
+      removable.length ? '可删除 ' + removable.length + ' 个' : '',
+      pill('关闭', onClose),
+      error ? pill('重新检查', load, { disabled: busy || pending }) : null,
+      pill(pending && preview ? '正在回收…' : '回收', apply, {
+        disabled: busy || pending || !preview || !preview.reflogClean || (!removable.length && !preview.otherBytes),
+        kind: 'danger',
       }),
     ),
   );
@@ -504,6 +640,16 @@ function HistoryDialog({ busy, onClose, onDone }) {
 /* —— 本机备份 —— */
 function backupSummary(scan) {
   const free = scan.items.filter(i => !i.protected).reduce((sum, i) => sum + i.bytes, 0);
+  if (scan.backupBytes !== undefined)
+    return (
+      '恢复原件 ' +
+      fmtBytes(scan.backupBytes) +
+      ' · 同步副本 ' +
+      fmtBytes(scan.transportBytes) +
+      ' · 旧版遗留 ' +
+      fmtBytes(scan.legacyBytes) +
+      (free ? '；可清理 ' + fmtBytes(free) : '')
+    );
   return '共 ' + fmtBytes(scan.totalBytes) + (free ? '，可清理 ' + fmtBytes(free) : '，没有可清理的');
 }
 function BackupDialog({ scan, busy, onClose, onRescan }) {
@@ -575,7 +721,7 @@ function BackupDialog({ scan, busy, onClose, onRescan }) {
         preview.separateConfirmation
           ? pickRow({
               key: 'separate',
-              label: '包含旧同步副本或项目旁备份，我已核对并关闭了相关编辑',
+              label: '我已核对所选原件和旧仓库，不再需要其中的独有历史，并已关闭相关编辑',
               checked: separate,
               disabled: blocked,
               onChange: setSeparate,
@@ -602,8 +748,8 @@ function BackupDialog({ scan, busy, onClose, onRescan }) {
   return e(
     Modal,
     {
-      title: '本机备份',
-      note: '同步前自动保存的原件、修复材料和旧同步副本。受保护的项会注明原因，不能选择。',
+      title: '本机存储明细',
+      note: '当前同步副本、恢复原件和旧版遗留分别列出。这里只管理本插件产生的材料；不会把应用运行时和其他插件算作备份。',
       wide: true,
       onClose,
     },
@@ -782,16 +928,16 @@ const STORAGE_ROWS = [
     key: 'sessions',
     title: '同步的会话',
     remote: true,
-    action: '管理',
+    action: '明细',
     load: () => API.sessions(),
     summary: sessionsSummary,
   },
   { key: 'usage', title: '同步仓库', remote: true, action: '明细', load: () => API.repoUsage(), summary: usageSummary },
   {
     key: 'backups',
-    title: '本机备份',
+    title: '本机存储',
     remote: false,
-    action: '清理',
+    action: '明细',
     load: () => API.localStorage(),
     summary: backupSummary,
   },
@@ -799,7 +945,7 @@ const STORAGE_ROWS = [
     key: 'remoteFiles',
     title: '远端旧文件',
     remote: true,
-    action: '清理',
+    action: '明细',
     load: () => API.remoteCleanup(),
     summary: remoteSummary,
     empty: data => !data.files.length,
@@ -841,26 +987,28 @@ function StorageOverview({ busy, remote }) {
   const dialog =
     open?.key === 'history'
       ? e(HistoryDialog, { ...dialogProps, onDone: done(['usage', 'backups']) })
-      : !data
-        ? null
-        : open.key === 'sessions'
-          ? e(SessionsDialog, { ...dialogProps, data, focus: open.focus, onDone: done(['sessions', 'usage']) })
-          : open.key === 'usage'
-            ? e(UsageDialog, {
-                ...dialogProps,
-                data,
-                onRefresh: () => load(['usage']),
-                onOpen: (key, focus) => setOpen({ key, focus }),
-              })
-            : open.key === 'backups'
-              ? e(BackupDialog, { ...dialogProps, scan: data, onRescan: () => load(['backups']) })
-              : open.key === 'remoteFiles'
-                ? e(RemoteFilesDialog, { ...dialogProps, preview: data, onDone: done(['remoteFiles', 'usage']) })
-                : null;
+      : open?.key === 'localHistory'
+        ? e(LocalHistoryDialog, { ...dialogProps, onDone: done(['usage']) })
+        : !data
+          ? null
+          : open.key === 'sessions'
+            ? e(SessionsDialog, { ...dialogProps, data, focus: open.focus, onDone: done(['sessions', 'usage']) })
+            : open.key === 'usage'
+              ? e(UsageDialog, {
+                  ...dialogProps,
+                  data,
+                  onRefresh: () => load(['usage']),
+                  onOpen: (key, focus) => setOpen({ key, focus }),
+                })
+              : open.key === 'backups'
+                ? e(BackupDialog, { ...dialogProps, scan: data, onRescan: () => load(['backups']) })
+                : open.key === 'remoteFiles'
+                  ? e(RemoteFilesDialog, { ...dialogProps, preview: data, onDone: done(['remoteFiles', 'usage']) })
+                  : null;
   return e(
     'section',
     { className: 'dss-sec', 'data-storage-overview': true },
-    e('h2', { className: 'dss-section-title' }, '同步仓库与本机存储'),
+    e('h2', { className: 'dss-section-title' }, '同步仓库与本机存储（实验性）'),
     e(
       'div',
       { className: 'dss-storage-head' },

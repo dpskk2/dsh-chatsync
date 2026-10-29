@@ -123,7 +123,11 @@ function RepairPage() {
   const grouping = request.mode === 'grouping';
   return e(
     'main',
-    { id: 'dss-repair-page', className: 'dss-panel', 'aria-label': grouping ? '处理未分组会话' : '修复会话问题' },
+    {
+      id: 'dss-repair-page',
+      className: 'dss-panel',
+      'aria-label': grouping ? '处理未分组会话' : '修复会话问题（实验性）',
+    },
     e(
       'div',
       { className: 'dss-wrap' },
@@ -131,7 +135,7 @@ function RepairPage() {
       e(
         'header',
         { className: 'dss-repair-heading' },
-        e('h1', null, grouping ? '处理未分组会话' : '修复会话问题'),
+        e('h1', null, grouping ? '处理未分组会话' : '修复会话问题（实验性）'),
         e(
           'button',
           { type: 'button', className: 'dss-pill', onClick: () => repairNavigation.selectPanel('dsh-sync') },
@@ -153,7 +157,14 @@ function RepairPage() {
 function recoveryFileInfo(record) {
   const file = record.path.replace(/\\/g, '/');
   if (typeof record.sessionTitle === 'string')
-    return { name: '会话「' + (record.sessionTitle || '未命名') + '」', location: '' };
+    return {
+      name:
+        '会话「' +
+        (record.sessionTitle || '未命名') +
+        '」' +
+        (/^storages\/session_projcache\//.test(file) ? '的列表信息' : ''),
+      location: '',
+    };
   const project = record.kind === 'ws' || record.kind === 'restore-backup';
   const title =
     record.guide?.title ||

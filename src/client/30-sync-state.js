@@ -84,7 +84,8 @@ function useSync() {
     return API.status()
       .then(d => {
         if (!d || !d.ok) throw new Error((d && d.error) || '无法读取同步状态');
-        setStatus(d);
+        const notice = syncMessagePresentation(d.lastMessage, d.lastOk, d.lastDetail);
+        setStatus(notice.current ? { ...d, lastOk: true } : d);
         setStatusError('');
         setReview(d.lastDetail?.needsReview && !d.lastDetail.privacy ? d.lastDetail.review : null);
       })
@@ -104,7 +105,12 @@ function useSync() {
           bubble(anchor, '等待确认同步预览，请打开“同步”查看并继续。', false);
           return;
         }
-        bubble(anchor, (d && d.summary) || (d && d.error) || '同步完成', Boolean(d && (d.ok || d.detail?.cancelled)));
+        const message = (d && d.error) || (d && d.summary) || '同步完成';
+        const notice = syncMessagePresentation(message, d?.ok || d?.detail?.cancelled, {
+          ...d?.detail,
+          ...(d?.error ? { error: d.error } : {}),
+        });
+        bubble(anchor, message, notice.ok);
       } catch (err) {
         bubble(anchor, err.message || String(err), false);
       } finally {

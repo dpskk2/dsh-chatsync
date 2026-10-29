@@ -33,6 +33,7 @@ function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, group
   };
   useEffect(() => {
     if (preview) {
+      if (preview.relocation) setRepairWorkspace(preview.suggestedWorkspaceId || '');
       previewRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
       previewRef.current?.focus?.({ preventScroll: true });
     }
@@ -252,7 +253,9 @@ function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, group
                 'p',
                 { className: 'dss-desc' },
                 preview.relocation
-                  ? '原会话使用的目录：' + preview.issue.cwd
+                  ? '原会话使用的目录：' +
+                      preview.issue.cwd +
+                      (preview.suggestedPath ? '；已匹配本机项目：' + preview.suggestedPath : '')
                   : '当前登记：' +
                       (preview.issue.currentProjects || []).map(ws => ws.title).join('、') +
                       '；建议按原始目录归位：' +
@@ -298,7 +301,7 @@ function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, group
                       }
                     },
                   },
-                  '确认项目并恢复会话',
+                  '在本机项目继续会话',
                 ),
               )
             : null,
@@ -527,23 +530,10 @@ function RecoveryCenter({ busy, lastSyncAt }) {
   const newest = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
   const history = (records?.filter(record => record.category === 'history') || []).sort(newest);
   const attention = (records?.filter(record => record.category !== 'history') || []).sort(newest);
-  // Most saved versions are routine copies kept before overwriting, not conflicts.
-  const automatic = history.filter(record =>
-    ['scope-backup', 'restore-backup', 'data-repair'].includes(record.kind),
-  ).length;
   const status =
     records === null
       ? '正在读取…'
-      : (attention.length ? attention.length + ' 条需要你核对' : '没有需要核对的内容') +
-        (history.length
-          ? '；已保存 ' +
-            history.length +
-            ' 份：同步前自动备份 ' +
-            automatic +
-            ' 份，已处理的冲突 ' +
-            (history.length - automatic) +
-            ' 份'
-          : '');
+      : records.length + ' 条记录 · 待查看 ' + attention.length + ' 条 · 留存备份 ' + history.length + ' 条';
   const list = (title, rows) =>
     rows.length
       ? [
@@ -558,11 +548,7 @@ function RecoveryCenter({ busy, lastSyncAt }) {
   return e(
     'div',
     { className: 'dss-stack' },
-    e(
-      'p',
-      { className: 'dss-desc' },
-      '同步会覆盖这台电脑上的文件，覆盖前先保存原来的版本。同步后消息或文件不见了，可以在这里比较两边并找回。',
-    ),
+    e('p', { className: 'dss-desc' }, '查看同步、迁移或修复前保存的版本，找回缺失的消息或文件。'),
     error
       ? e(
           'div',
@@ -581,11 +567,10 @@ function RecoveryCenter({ busy, lastSyncAt }) {
           Modal,
           {
             title: '找回同步前的内容',
-            note: '点「查看内容」比较当时本机和远端的版本，再选择找回哪一边。',
             wide: true,
             onClose: () => setOpen(false),
           },
-          dialogBody(...list('需要核对', attention), ...list('已保存的版本', history)),
+          dialogBody(...list('待查看', attention), ...list('留存备份', history)),
           dialogActions(
             '',
             pill('关闭', () => setOpen(false)),

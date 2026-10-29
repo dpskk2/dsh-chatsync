@@ -59,17 +59,17 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
       dirty.current = false;
       setMessage(
         d.hint ||
-          (d.config.remote ? '已验证并保存备份仓库。' : '已使用默认备份；首次同步时自动创建或复用 dsh-sync 私有仓库。'),
+          (d.config.remote ? '已验证并保存同步仓库。' : '已使用默认仓库；首次同步时自动创建或复用 dsh-sync 私有仓库。'),
       );
       let ready = true;
       if (!d.config.remote) {
         // The default backup connects on the first sync; check gh now so problems show immediately.
-        setMessage('已使用默认备份，正在检查 GitHub 登录…');
+        setMessage('已使用默认仓库，正在检查 GitHub 登录…');
         const check = await API.checkConnection().catch(err => ({ ok: false, message: err.message || String(err) }));
         ready = Boolean(check && check.ok);
         if (ready) setMessage(check.message);
         else {
-          setMessage('已使用默认备份。');
+          setMessage('已使用默认仓库。');
           setError((check && check.message) || '无法检查 GitHub 登录，请稍后重试。');
         }
       }
@@ -89,7 +89,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
   return e(
     'form',
     { className: 'dss-sec dss-setting-card', id: 'dss-connect', tabIndex: -1, onSubmit: save },
-    setup ? stepHeading(1, '设置备份地址') : e('h2', { className: 'dss-section-title' }, '备份仓库'),
+    setup ? stepHeading(1, '设置同步仓库') : e('h2', { className: 'dss-section-title' }, '同步仓库'),
     !config && !error ? e('div', { className: 'dss-desc' }, '正在读取连接设置…') : null,
     error ? e('div', { className: 'dss-err', role: 'alert' }, error) : null,
     !config && error
@@ -102,7 +102,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
           e(
             'div',
             { className: 'dss-connection-status' },
-            config.remote ? (parsedLink ? '已连接备份仓库' : '请更换备份仓库') : '使用默认备份',
+            config.remote ? (parsedLink ? '已连接同步仓库' : '请更换同步仓库') : '使用默认仓库',
           ),
           !config.remote
             ? e('div', { className: 'dss-desc' }, '首次同步时，自动创建或复用当前 GitHub 账号下的 dsh-sync 私有仓库。')
@@ -116,13 +116,13 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
               ? e(
                   'button',
                   { type: 'submit', className: 'dss-pill', disabled: busy || saving },
-                  saving ? '正在保存…' : setup ? '使用默认备份并继续' : '使用默认备份',
+                  saving ? '正在保存…' : setup ? '使用默认仓库并继续' : '使用默认仓库',
                 )
               : null,
             e(
               'button',
               { type: 'button', className: 'dss-pill', disabled: busy || saving, onClick: startEditing },
-              config.remote ? '更换备份仓库' : '使用其他仓库',
+              config.remote ? '更换同步仓库' : '使用其他仓库',
             ),
             setup && config.remote
               ? e(
@@ -135,8 +135,8 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
           parsedLink
             ? e(
                 'nav',
-                { className: 'dss-links', 'aria-label': '备份仓库' },
-                helpLink('在 GitHub 查看备份', 'https://github.com/' + parsedLink[1]),
+                { className: 'dss-links', 'aria-label': '同步仓库' },
+                helpLink('在 GitHub 查看仓库', 'https://github.com/' + parsedLink[1]),
               )
             : null,
         )
@@ -158,7 +158,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
               className: 'dss-input',
               type: 'text',
               value: draft,
-              placeholder: '留空使用默认备份；或填写已有私有仓库地址',
+              placeholder: '留空使用默认仓库；或填写已有私有仓库地址',
               autoComplete: 'off',
               spellCheck: false,
               onChange: ev => {
@@ -174,14 +174,14 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
             { className: 'dss-desc' },
             '使用其他仓库时，请先在 GitHub 创建私有仓库，再填写地址。保存时检查仓库及写入权限。',
           ),
-          editing ? e('div', { className: 'dss-desc' }, '留空并保存可改用默认仓库。原仓库中的备份会保留。') : null,
+          editing ? e('div', { className: 'dss-desc' }, '留空并保存可改用默认仓库。原仓库中的内容会保留。') : null,
           e(
             'div',
             { className: 'dss-actions dss-connection-actions' },
             e(
               'button',
               { type: 'submit', className: 'dss-pill dss-primary' },
-              saving ? '正在检查并保存…' : setup ? '保存并选择内容' : '保存备份设置',
+              saving ? '正在检查并保存…' : setup ? '保存并选择内容' : '保存仓库设置',
             ),
             editing ? e('button', { type: 'button', className: 'dss-pill', onClick: cancel }, '取消') : null,
           ),
@@ -210,7 +210,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
           '打开 Windows 终端，运行下面的命令，按提示在浏览器完成授权。',
           e('code', { className: 'dss-command' }, 'gh auth login --hostname github.com --git-protocol https --web'),
         ),
-        e('li', null, '两台电脑登录同一 GitHub 账号，即可使用同一个默认备份仓库。'),
+        e('li', null, '两台电脑登录同一 GitHub 账号，即可使用同一个默认同步仓库。'),
       ),
       e(
         'nav',
@@ -252,7 +252,7 @@ function WorkspaceLocations({ busy }) {
         if (next && workspaces === null && !pending) load();
       },
     },
-    e('summary', null, '项目文件保存位置'),
+    e('summary', null, '项目文件保存位置（实验性）'),
     open
       ? e(
           'div',
@@ -408,7 +408,7 @@ function SyncPreferences({ busy, onSaved, onChanged, onSavingChange, setup = fal
           [
             ['sessions', '会话', '对话记录与项目分组'],
             ['attachments', '聊天附件', '上传或附加到对话的图片、文件'],
-            ['settings', '设置', '模型、界面与插件偏好；密钥、代理和本机路径各自保留'],
+            ['settings', '设置', '模型、界面与插件偏好'],
           ].map(([key, label, description]) =>
             e(
               'label',
@@ -443,8 +443,8 @@ function SyncPreferences({ busy, onSaved, onChanged, onSavingChange, setup = fal
             e(
               'span',
               { className: 'dss-choice' },
-              '指令与技能',
-              e('small', null, '同步全局 AGENTS.md 与 skills 文件夹；每台电脑各自开关'),
+              '指令与技能（实验性）',
+              e('small', null, '同步全局 AGENTS.md 与 skills 文件夹'),
             ),
           ),
           e(
@@ -458,12 +458,12 @@ function SyncPreferences({ busy, onSaved, onChanged, onSavingChange, setup = fal
             }),
             e('span', { className: 'dss-choice' }, '项目文件', e('small', null, '项目文件夹中的文件')),
           ),
-          e('div', { className: 'dss-scope-help' }, helpLink('范围与排除规则', DOCS + 'sync-content.md')),
+          e('div', { className: 'dss-scope-help dss-span-all' }, helpLink('范围与排除规则', DOCS + 'sync-content.md')),
           config.workspaceSync !== false ? e(WorkspaceLocations, { busy: busy || saving || uncertain }) : null,
           e(
             'div',
-            { className: 'dss-rowline dss-subsection-heading' },
-            e('div', { className: 'dss-rowtext' }, e('h4', { className: 'dss-subtitle' }, '自动同步')),
+            { className: 'dss-rowline dss-subsection-heading dss-span-all' },
+            e('div', { className: 'dss-rowtext' }, e('h4', { className: 'dss-subtitle' }, '自动同步（实验性）')),
             e(
               'button',
               {
@@ -477,32 +477,36 @@ function SyncPreferences({ busy, onSaved, onChanged, onSavingChange, setup = fal
               e('span', { className: 'dss-switch-knob' }),
             ),
           ),
-          !automatic ? e('div', { className: 'dss-desc' }, '自动操作已暂停，仍可手动同步') : null,
+          !automatic ? e('div', { className: 'dss-desc dss-span-all' }, '自动操作已暂停，仍可手动同步') : null,
           e(
-            'label',
-            { className: 'dss-check' },
-            e('input', {
-              type: 'checkbox',
-              'aria-label': '启动时自动同步',
-              checked: config.autoPullOnStart !== false,
-              onChange: event => save({ autoPullOnStart: event.target.checked }),
-            }),
-            e('span', { className: 'dss-choice' }, '启动时自动同步'),
-          ),
-          e(
-            'label',
-            { className: 'dss-check' },
-            e('input', {
-              type: 'checkbox',
-              'aria-label': '退出时自动同步',
-              checked: config.autoPushOnExit !== false,
-              onChange: event => save({ autoPushOnExit: event.target.checked }),
-            }),
+            'div',
+            { className: 'dss-auto-options dss-span-all' },
             e(
-              'span',
-              { className: 'dss-choice' },
-              '退出时自动同步',
-              e('small', null, '完全退出应用后上传本机改动，下次启动显示结果'),
+              'label',
+              { className: 'dss-check' },
+              e('input', {
+                type: 'checkbox',
+                'aria-label': '启动时自动同步',
+                checked: config.autoPullOnStart !== false,
+                onChange: event => save({ autoPullOnStart: event.target.checked }),
+              }),
+              e('span', { className: 'dss-choice' }, '启动时自动同步'),
+            ),
+            e(
+              'label',
+              { className: 'dss-check' },
+              e('input', {
+                type: 'checkbox',
+                'aria-label': '退出时自动同步',
+                checked: config.autoPushOnExit !== false,
+                onChange: event => save({ autoPushOnExit: event.target.checked }),
+              }),
+              e(
+                'span',
+                { className: 'dss-choice' },
+                '退出时自动同步',
+                e('small', null, '完全退出应用后上传本机改动，下次启动显示结果'),
+              ),
             ),
           ),
           setup
@@ -524,6 +528,39 @@ function SyncPreferences({ busy, onSaved, onChanged, onSavingChange, setup = fal
       : null,
     e('div', { className: 'dss-save-state', role: 'status', 'aria-live': 'polite' }, saving ? '正在保存…' : message),
   );
+}
+
+// Compare JSON values without treating indentation, key order or JSONL blank
+// lines as changes. String values (including message whitespace) stay exact.
+function recoveryContentText(text) {
+  const parse = value =>
+    JSON.parse(value, (_key, field) => {
+      // Preserve the original text when numeric parsing could hide a difference.
+      if (typeof field === 'number' && (!Number.isSafeInteger(field) || Object.is(field, -0)))
+        throw new Error('保留数值原文');
+      return field;
+    });
+  const sorted = value =>
+    Array.isArray(value)
+      ? value.map(sorted)
+      : value && typeof value === 'object'
+        ? Object.fromEntries(
+            Object.keys(value)
+              .sort()
+              .map(key => [key, sorted(value[key])]),
+          )
+        : value;
+  try {
+    return JSON.stringify(sorted(parse(text)), null, 2);
+  } catch {
+    try {
+      const lines = text.split(/\r?\n/).filter(line => line.trim());
+      if (!lines.length) return text;
+      return lines.map(line => JSON.stringify(sorted(parse(line)))).join('\n');
+    } catch {
+      return text;
+    }
+  }
 }
 
 function recoveryRows(left, right) {

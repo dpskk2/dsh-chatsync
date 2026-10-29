@@ -258,5 +258,35 @@ test('three-way merge respects workspace deletion, member removal and unarchive'
   inputs[':3:storages/workspace.json'].tables.workspaces.ws.sessionIds = ['a', 'c'];
   assert.equal(await h.engine.unionMergeWorkspaceJson(), true);
   merged = JSON.parse(fs.readFileSync(path.join(h.engine.home, 'storages/workspace.json')));
-  assert.deepEqual(merged.tables.workspaces.ws.sessionIds, ['b', 'c']);
+  assert.deepEqual(merged.tables.workspaces.ws.sessionIds, ['b', 'c'], 'an explicit archive still removes membership');
+});
+
+test('cross-device missing membership keeps content and mapped workspace paths coalesce', async t => {
+  const h = fixture(t),
+    base = structuredClone(h.record),
+    local = structuredClone(base),
+    remote = structuredClone(base);
+  local.tables.workspaces.ws.sessionIds = [];
+  const inputs = {
+    ':1:storages/workspace.json': base,
+    ':2:storages/workspace.json': local,
+    ':3:storages/workspace.json': remote,
+  };
+  h.engine.git = async args => ({ code: 0, out: JSON.stringify(inputs[args[1]]) });
+  h.engine.localSessionIds = () => new Set(['a']);
+  h.engine.remoteSessionIds = async () => new Set(['a']);
+  assert.equal(await h.engine.unionMergeWorkspaceJson(), true);
+  let merged = JSON.parse(fs.readFileSync(path.join(h.engine.home, 'storages/workspace.json')));
+  assert.deepEqual(merged.tables.workspaces.ws.sessionIds, ['a']);
+  remote.tables.workspaces = { foreign: { ...base.tables.workspaces.ws, path: 'C:/Users/foreign/project' } };
+  remote.global.workspaceIds = ['foreign'];
+  inputs[':1:storages/workspace.json'] = {
+    global: { workspaceIds: [], archivedSessionIds: [] },
+    tables: { workspaces: {} },
+  };
+  h.engine.workspacePathOf = () => path.join(h.engine.home, 'project');
+  assert.equal(await h.engine.unionMergeWorkspaceJson(), true);
+  merged = JSON.parse(fs.readFileSync(path.join(h.engine.home, 'storages/workspace.json')));
+  assert.deepEqual(Object.keys(merged.tables.workspaces), ['ws']);
+  assert.deepEqual(merged.tables.workspaces.ws.sessionIds, ['a']);
 });

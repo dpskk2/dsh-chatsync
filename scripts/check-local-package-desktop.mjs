@@ -6,11 +6,14 @@ import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { profile, bootHost, stopHost, repo } from './native-fixture.mjs';
 import { digest } from '../lib/recovery.js';
-import { sourceFingerprint } from './check-release-safety.mjs';
+import { sourceFingerprint, workingSourceFingerprint } from './check-release-safety.mjs';
 
-const [packageArg, outputArg] = process.argv.slice(2);
-if (!packageArg || !outputArg || process.argv.length !== 4)
-  throw new Error('Usage: node scripts/check-local-package-desktop.mjs <package.tgz> <new outputs directory>');
+const [packageArg, outputArg, option] = process.argv.slice(2);
+const workingTree = option === '--working-tree';
+if (!packageArg || !outputArg || process.argv.length > 5 || (option && !workingTree))
+  throw new Error(
+    'Usage: node scripts/check-local-package-desktop.mjs <package.tgz> <new outputs directory> [--working-tree]',
+  );
 const packageFile = path.resolve(packageArg),
   output = path.resolve(outputArg);
 for (const target of [packageFile, output])
@@ -20,7 +23,13 @@ const installation = path.join(process.env.LOCALAPPDATA, 'Programs/DeepSeek Harn
 if (!process.versions.electron) {
   const child = spawn(
     path.join(installation, 'DeepSeek Harness.exe'),
-    ['--expose-internals', fileURLToPath(import.meta.url), packageFile, output],
+    [
+      '--expose-internals',
+      fileURLToPath(import.meta.url),
+      packageFile,
+      output,
+      ...(workingTree ? ['--working-tree'] : []),
+    ],
     { windowsHide: true, env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: 'inherit' },
   );
   const timeout = setTimeout(() => stopHost(child), 120000);
@@ -41,27 +50,40 @@ if (!process.versions.electron) {
   const source = JSON.parse(fs.readFileSync(path.join(repo, 'package.json')));
   assert.equal(packed.version, source.version);
   assert.equal(packed.chatsyncBuild, source.chatsyncBuild);
-  let verifiedRuntimeFiles = 0;
+  let verifiedRuntimeFiles = 0,
+    verifiedLocaleFiles = 0;
   const loadedFileHashes = {};
-  for (const relative of fs.readdirSync(path.join(repo, 'lib'), { recursive: true })) {
-    const own = path.join(repo, 'lib', relative);
+  const selected = ['lib', 'locale'].flatMap(directory =>
+    fs
+      .readdirSync(path.join(repo, directory), { recursive: true })
+      .map(relative => directory + '/' + relative.replaceAll('\\', '/')),
+  );
+  for (const relative of selected) {
+    const own = path.join(repo, relative);
     if (!fs.statSync(own).isFile()) continue;
     // The release artifact uses Git blob bytes, independently of Windows CRLF.
-    let expected = execFileSync('git', ['show', 'HEAD:lib/' + relative.replaceAll('\\', '/')], {
-      cwd: repo,
-      windowsHide: true,
-    });
-    if (packed.name === 'chatsync' && ['client.js', 'updates.js'].includes(relative))
+    let expected = workingTree
+      ? fs.readFileSync(own)
+      : execFileSync('git', ['show', 'HEAD:' + relative], {
+          cwd: repo,
+          windowsHide: true,
+        });
+    if (packed.name === 'chatsync' && ['lib/client.js', 'lib/updates.js'].includes(relative))
       expected = Buffer.from(
         expected
           .toString()
           .replaceAll('@dpskk2/dsh-chatsync', 'chatsync')
           .replaceAll('@dpskk2%2Fdsh-chatsync', 'chatsync'),
       );
-    const actual = fs.readFileSync(path.join(packedRoot, 'lib', relative));
-    assert.deepEqual(actual, expected, relative);
-    verifiedRuntimeFiles++;
-    loadedFileHashes['lib/' + relative.replaceAll('\\', '/')] = digest(actual);
+    const actual = fs.readFileSync(path.join(packedRoot, relative));
+    assert.equal(
+      digest(actual),
+      digest(expected),
+      'Packed runtime differs from ' + (workingTree ? 'working source: ' : 'HEAD: ') + relative,
+    );
+    if (relative.startsWith('lib/')) verifiedRuntimeFiles++;
+    else verifiedLocaleFiles++;
+    loadedFileHashes[relative] = digest(actual);
   }
   // The fixture helper generates a source junction; replace only that verified junction.
   const profileRoot = profile(home, [], 'desktop'),
@@ -111,9 +133,11 @@ if (!process.versions.electron) {
     packageName: packed.name,
     packageSha256: digest(fs.readFileSync(packageFile)),
     sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8', windowsHide: true }).trim(),
-    sourceSha256: sourceFingerprint(repo),
+    sourceSha256: workingTree ? workingSourceFingerprint(repo) : sourceFingerprint(repo),
+    sourceFingerprintKind: workingTree ? 'working-source-bytes' : 'git-index',
     loadedFileHashes,
     verifiedRuntimeFiles,
+    verifiedLocaleFiles,
     physicalMachines: 1,
     githubUsed: false,
     nativeDesktopWindow: false,

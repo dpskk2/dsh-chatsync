@@ -23,7 +23,6 @@ test('only listed DSH data belongs to a sync category', () => {
     attachments: ['attachments/a/photo.png'],
     settings: [
       'settings.yaml',
-      'settings.yaml.imported',
       'cordis.patch.yml',
       'profiles/desktop/cordis.patch.yml',
       'profiles/web/cordis.patch.yml',
@@ -38,6 +37,9 @@ test('only listed DSH data belongs to a sync category', () => {
   for (const [kind, files] of Object.entries(expected))
     for (const file of files) assert.equal(contentKind(file), kind, file);
   for (const file of [
+    'settings.yaml.imported',
+    'electron/resources/default_app.asar',
+    'dsh-runtimes/node/node.exe',
     'ext-bridge-token',
     'profiles/desktop/package.json',
     'profiles/desktop/pnpm-lock.yaml',

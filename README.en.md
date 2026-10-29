@@ -82,7 +82,7 @@ Run this in PowerShell and follow the prompts to authorize access in your browse
 gh auth login --hostname github.com --git-protocol https --web
 ```
 
-**② Backup destination** — Click **Use default backup and continue**. The first sync automatically creates or reuses the private `dsh-sync` repository. To use an existing repository, click **Use another repository**.
+**② Sync repository** — Click **Use default repository and continue**. The first sync automatically creates or reuses the private `dsh-sync` repository. To use an existing repository, click **Use another repository**.
 
 **③ Choose content** — Select what you need; changes save immediately. Start manually when first connecting, then enable automatic sync if you want it. [Full sync scope and exclusion rules](docs/sync-content.md)
 
@@ -91,7 +91,7 @@ gh auth login --hostname github.com --git-protocol https --web
 ## Moving to another computer
 
 1. After a successful sync on the original computer, install the plugin on the new computer and sign in to the same GitHub account.
-2. Open **Sync** and use the default backup. For a custom repository, use the same repository and branch on both computers.
+2. Open **Sync** and use the default repository. For a custom repository, use the same repository and branch on both computers.
 3. After syncing to retrieve your data, check your sessions, attachments and project files, and configure this computer's model API keys. If prompted to restart, fully exit DSH and open it again.
 
 Other plugins and project dependencies need to be installed separately. If project folders are in different locations, adjust their local save locations in Sync settings. [Detailed guide](docs/getting-started.md#4-换台电脑接着使用)
@@ -106,7 +106,7 @@ During startup sync, you can create sessions and workspaces and edit drafts as u
 
 ## Conflicts and repair
 
-- **View conflicts:** Select a file and click **View content** to compare both originals. For project files, choose a version to restore; a divergent conversation can be saved as a separate session.
+- **View conflicts:** Select a file and click **View content**. Conversations show user and assistant messages by default; settings and session-list information use readable fields. Switch to the original records when troubleshooting. For project files, choose a version to restore; a divergent conversation can be saved as a separate session.
 - **Session and data repair:** Open the processing page from Sync, review the checks, preview a plan and confirm. Repairs that require exiting DSH say so explicitly; originals and backups are retained.
 - **Grouping checks:** If session grouping looks wrong, view the checks and proposed fixes on the Sync page.
 
@@ -118,7 +118,11 @@ You are responsible for handling keys and other sensitive information written in
 
 Divergent conversations are retained as separate versions. Remote deletion does not directly delete local sessions. Keep separate backups of important material. [Sync and recovery boundaries](docs/configuration.md)
 
-**Sync repository and local storage (new):** Click **Check** on the Sync page to get one line each, with counts and sizes, for synced sessions, the sync repository, local backups and old remote files. The button at the end of each line opens a dialog to see the details, remove sessions from sync or delete backups. The sync repository line shows how much a new computer downloads on its first sync and how much of that is history; its details can clear the history and keep only the current content. Sessions are shown by title and can be previewed. [Sync scope](docs/sync-content.md#同步仓库与本机存储) · [Local backups](docs/local-storage.md)
+**Sync repository and local storage (experimental):** Each row opens Details. First sync downloads only the current snapshot. Older Git history stays on GitHub; clearing history archives it there without creating a full local backup. Local storage separates active transport data, recovery originals, and legacy material. [Sync scope](docs/sync-content.md#同步仓库与本机存储) · [Local storage](docs/local-storage.md)
+
+“Local sync copy (including history)” in the last sync details measures local Git objects, including loose objects. It is not the transfer size or the download size for a new computer. Clearing history reclaims archived history from the active local copy while preserving local-only branches. Pre-sync backups that an earlier version left in the local copy after clearing appear as “old history kept locally”; when GitHub still holds them, use “Reclaim local space” in the repository details. History checks reuse cached device receipts, wait up to two minutes, and identify the stage that failed.
+
+Migration originals can be cleaned manually after verification and archiving of the old session. Old repositories remain protected when they contain commits, including reflog history, that the current copy does not cover.
 
 ## Compatibility
 

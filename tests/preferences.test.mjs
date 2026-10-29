@@ -19,7 +19,7 @@ function text(node) {
 function harness(
   fetchImpl,
   componentName = 'SyncPreferences',
-  { timers = true, confirm = () => false, interval } = {},
+  { timers = true, confirm = () => false, interval, document, timeout = setTimeout, ui = {} } = {},
 ) {
   let hooks = [],
     cursor = 0,
@@ -54,7 +54,7 @@ function harness(
   vm.runInNewContext(
     source.replace(
       'module.exports = {',
-      'module.exports = { testComponents: { StorageOverview, SessionsDialog, SessionPreview, UsageDialog, HistoryDialog, BackupDialog, RemoteFilesDialog, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, SyncIssues, TransferLine, STYLE },',
+      'module.exports = { testComponents: { RecoveryReadableVersion, RecoveryReadableComparison, RecoveryMarkdown, syncMessagePresentation, bubble, useSync, scrollDialogWheel, StorageOverview, SessionsDialog, SessionPreview, UsageDialog, HistoryDialog, BackupDialog, RemoteFilesDialog, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, SyncIssues, TransferLine, STYLE },',
     ),
     {
       window: {
@@ -62,6 +62,7 @@ function harness(
         __ModuleLoader__: {
           load(def) {
             bundle = def.factory(name => {
+              if (name === '@deepseek-ai/dsh-client-ui-primitives') return ui;
               assert.equal(name, 'react');
               return react;
             });
@@ -69,8 +70,10 @@ function harness(
         },
       },
       fetch: fetchImpl,
+      document,
       AbortSignal,
-      setTimeout,
+      getComputedStyle: node => node.style || {},
+      setTimeout: timeout,
       clearTimeout,
       /* 设置分节内的状态轮询是 3s setInterval:测试里不真起定时器,避免进程被挂住 */
       setInterval: interval || (timers ? setInterval : () => 0),
@@ -115,6 +118,95 @@ function harness(
 }
 const response = data => Promise.resolve({ ok: true, json: async () => data });
 const initial = { mode: 'manual', workspaceSync: true, enabled: true, intervalSeconds: 300 };
+
+test('persisted current-sync messages render DeepSeek blue even with a stale failure flag', async () => {
+  for (const lastOk of [false, true]) {
+    const h = harness(
+      url =>
+        response(
+          url.endsWith('/status')
+            ? {
+                ok: true,
+                remote: 'https://github.com/fixture/test.git',
+                lastOk,
+                lastMessage: '已是最新,无需变更',
+                lastDetail: { durationMs: 3 },
+              }
+            : { ok: true, config: initial },
+        ),
+      'Section',
+      { timers: false },
+    );
+    h.render();
+    await h.effects();
+    const tree = h.render();
+    const notice = all(tree).find(n => n.props.className === 'dss-current-status');
+    assert.equal(text(notice), '已是最新,无需变更');
+    assert.equal(notice.props.role, 'status');
+    assert.equal(notice.props.style.color, '#4d6bfe');
+    assert.doesNotMatch(text(tree), /同步异常/);
+    assert.equal(
+      all(tree).some(n => n.props.className === 'dss-err' && text(n) === '已是最新,无需变更'),
+      false,
+    );
+  }
+});
+
+test('no-change wording cannot hide a failed workspace or pending sync', () => {
+  const { syncMessagePresentation } = harness(() => response({ ok: true })).functions;
+  for (const message of ['当前已是最新无需同步', '当前已是最新，无需同步', '已是最新,无需变更']) {
+    assert.equal(syncMessagePresentation(message, false, null).current, true);
+  }
+  for (const detail of [
+    { error: 'network' },
+    { deferred: true },
+    { needsReview: true },
+    { downloadPending: true },
+    { workspaces: { total: 0, errors: [{ error: 'failed' }] } },
+  ]) {
+    const notice = syncMessagePresentation('已是最新,无需变更', false, detail);
+    assert.equal(notice.current, false);
+    assert.equal(notice.ok, false);
+  }
+});
+
+test('manual no-change sync feedback is blue while an API error retains its error style', async () => {
+  for (const failed of [false, true]) {
+    const appended = [];
+    const target = { querySelectorAll: () => [], appendChild: node => appended.push(node) };
+    const scope = { querySelector: () => target };
+    const document = {
+      activeElement: { closest: () => scope },
+      createElement: () => ({
+        style: {},
+        classList: {
+          add(name) {
+            this.added = name;
+          },
+        },
+        setAttribute(name, value) {
+          this[name] = value;
+        },
+      }),
+    };
+    const h = harness(
+      url =>
+        response(
+          url.endsWith('/run')
+            ? { ok: false, summary: '已是最新,无需变更', detail: {}, ...(failed ? { error: 'network' } : {}) }
+            : { ok: true },
+        ),
+      'useSync',
+      { timers: false, document, timeout: () => 0 },
+    );
+    await h.render().run(null);
+    assert.equal(appended.length, 1);
+    assert.equal(appended[0].classList.added, failed ? 'dss-bubble-err' : 'dss-bubble-ok');
+    assert.equal(appended[0].role, failed ? 'alert' : 'status');
+    assert.equal(appended[0].style.color, failed ? undefined : '#4d6bfe');
+    assert.equal(appended[0].textContent, failed ? '✗ network' : '✓ 已是最新,无需变更');
+  }
+});
 
 test('project locations load on expansion and save only the chosen local path', async () => {
   const calls = [];
@@ -324,12 +416,7 @@ test('daily summary shows effective automation and actionable state without conn
     assert.ok(!all(summary).some(n => n.props['aria-label'] === '同步后分组检查'));
     const settings = all(tree).find(n => n.props['data-sync-settings']);
     assert.equal(settings.type, 'div');
-    assert.ok(
-      all(h.render())
-        .find(n => n.props['data-sync-settings'])
-        .children.flatMap(all)
-        .some(n => n.props['aria-label'] === '同步后分组检查'),
-    );
+    assert.ok(all(h.render()).some(n => n.props['aria-label'] === '同步后分组检查'));
   }
   assert.doesNotMatch(source, /API\.restart|dsh-sync-restart-guide|取消会保留已完成/);
 });
@@ -471,7 +558,7 @@ test('the processing page shows grouped tasks directly, with no folded repair ar
   tree = h.render(props);
   assert.match(text(tree), /处理方案.*将此会话放入哪个本机项目/);
   assert.deepEqual(calls[1].body, { key: 'grouping:one', relocate: true });
-  assert.equal(all(tree).find(n => n.type === 'button' && text(n) === '确认项目并恢复会话').props.disabled, true);
+  assert.equal(all(tree).find(n => n.type === 'button' && text(n) === '在本机项目继续会话').props.disabled, true);
   assert.equal(
     calls.some(c => /\/import$|\/queue$/.test(c.url)),
     false,
@@ -822,7 +909,7 @@ test('default backup needs no address or checkbox and saves automatic repository
     all(tree).some(n => n.type === 'input'),
     false,
   );
-  assert.match(text(tree), /使用默认备份/);
+  assert.match(text(tree), /使用默认仓库/);
   await tree.props.onSubmit({ preventDefault() {} });
   assert.deepEqual(calls, [{ url: '/dsh-sync/api/connection', body: { remote: '', expectedRemote: '' } }]);
   assert.match(text(h.render()), /首次同步/);
@@ -844,7 +931,7 @@ test('configured backup hides its address until an explicit edit and cancel disc
   );
   assert.ok(all(tree).some(n => n.props.href === 'https://github.com/alice/dsh-sync2'));
   all(tree)
-    .find(n => n.type === 'button' && text(n) === '更换备份仓库')
+    .find(n => n.type === 'button' && text(n) === '更换同步仓库')
     .props.onClick();
   tree = h.render();
   all(tree)
@@ -862,7 +949,7 @@ test('configured backup hides its address until an explicit edit and cancel disc
   );
   assert.equal(posts, 0);
   all(h.render())
-    .find(n => n.type === 'button' && text(n) === '更换备份仓库')
+    .find(n => n.type === 'button' && text(n) === '更换同步仓库')
     .props.onClick();
   assert.equal(all(h.render()).find(n => n.type === 'input').props.value, remote);
 });
@@ -888,7 +975,7 @@ test('connection form submits a custom repository for server verification', asyn
   tree = h.render();
   await tree.props.onSubmit({ preventDefault() {} });
   assert.deepEqual(saved, { remote: 'https://github.com/alice/existing.git', expectedRemote: '' });
-  assert.match(text(h.render()), /已验证并保存备份仓库/);
+  assert.match(text(h.render()), /已验证并保存同步仓库/);
   assert.equal(
     all(h.render()).some(n => n.type === 'input'),
     false,
@@ -917,7 +1004,7 @@ test('connection form preserves user input on failure and blocks writes while sy
   await h.render({ busy: true }).props.onSubmit({ preventDefault() {} });
   assert.equal(posts, 0);
   all(h.render())
-    .find(n => n.type === 'button' && text(n) === '更换备份仓库')
+    .find(n => n.type === 'button' && text(n) === '更换同步仓库')
     .props.onClick();
   await h.render().props.onSubmit({ preventDefault() {} });
   assert.match(text(h.render()), /请完成同步后重试/);
@@ -1044,7 +1131,7 @@ test('unsupported old repository is shown without silently converting it', async
     false,
   );
   all(h.render())
-    .find(n => n.type === 'button' && text(n) === '更换备份仓库')
+    .find(n => n.type === 'button' && text(n) === '更换同步仓库')
     .props.onClick();
   assert.equal(all(h.render()).find(n => n.type === 'input').props.value, 'https://gitee.com/alice/data.git');
   assert.equal(
@@ -1295,6 +1382,170 @@ test('recovery preview opens a dedicated dialog, closes while busy and can reope
   assert.equal(reads, 2);
 });
 
+test('recovery comparison ignores JSON layout while preserving message whitespace and real events', () => {
+  const h = harness(() => response({}), 'RecoveryComparison');
+  const preview = { local: { text: '{"b":2,"a":"hello"}\n\n' }, remote: { text: '{\n  "a": "hello",\n  "b": 2\n}\n' } };
+  let tree = h.render({ preview });
+  assert.match(text(tree), /内容相同，仅排版不同/);
+  assert.ok(!all(tree).some(n => /dss-diff-(add|remove)/.test(n.props.className || '')));
+  all(tree)
+    .find(n => n.type === 'input')
+    .props.onChange({ target: { checked: false } });
+  assert.match(text(h.render({ preview })), /行差异/);
+  const separate = harness(() => response({}), 'RecoveryComparison');
+  tree = separate.render({
+    preview: { local: { text: '{"n":9007199254740992}' }, remote: { text: '{"n":9007199254740993}' } },
+  });
+  assert.match(text(tree), /行差异/);
+  tree = separate.render({ preview: { local: { text: '{"text":"hello "}' }, remote: { text: '{"text":"hello"}' } } });
+  assert.match(text(tree), /行差异/);
+  tree = separate.render({ preview: { local: { text: '{"seq":0}\n{"seq":1}\n' }, remote: { text: '{"seq":0}\n' } } });
+  assert.match(text(tree), /行差异/);
+});
+
+test('recovery opens a readable view first and keeps technical records behind an explicit action', () => {
+  const h = harness(() => response({}), 'RecoveryDialog');
+  const props = {
+    record: { path: 'sessions/project/session-a/session.v4.jsonl.zstd', sessionTitle: '问候' },
+    preview: { local: {}, remote: {} },
+  };
+  let tree = h.render(props);
+  assert.equal(all(tree).filter(n => n.type?.name === 'RecoveryReadableComparison').length, 1);
+  assert.equal(all(tree).filter(n => n.type?.name === 'RecoveryComparison').length, 0);
+  all(tree)
+    .find(n => n.type === 'button' && text(n) === '查看原始记录')
+    .props.onClick();
+  tree = h.render(props);
+  assert.equal(all(tree).filter(n => n.type?.name === 'RecoveryComparison').length, 1);
+});
+
+test('conversation preview uses user and assistant messages and the native Markdown primitive', () => {
+  const h = harness(() => response({}), 'RecoveryReadableVersion');
+  const tree = h.render({
+    value: {
+      presentation: {
+        kind: 'conversation',
+        total: 2,
+        messages: [
+          { id: 'u', role: 'user', content: [{ type: 'text', text: '你好' }] },
+          { id: 'a', role: 'assistant', content: [{ type: 'text', text: '你好！👋\n\n- 写代码\n- 查资料' }] },
+        ],
+      },
+    },
+  });
+  assert.equal(all(tree).filter(n => n.props['aria-label'] === '用户消息').length, 1);
+  assert.equal(all(tree).filter(n => n.props['aria-label'] === '助手回复').length, 1);
+  assert.match(text(tree), /你好/);
+  const markdown = all(tree).find(n => n.type?.name === 'RecoveryMarkdown');
+  assert.equal(markdown.props.text, '你好！👋\n\n- 写代码\n- 查资料');
+  const NativeMarkdown = () => null;
+  const native = harness(() => response({}), 'RecoveryMarkdown', { ui: { MarkdownText: NativeMarkdown } }).render({
+    text: '# 内容',
+  });
+  assert.equal(native.type, NativeMarkdown);
+  assert.equal(native.props.text, '# 内容');
+  assert.equal(native.props.streaming, false);
+});
+
+test('readable settings and image backups use fields and pictures rather than JSON serialization', () => {
+  const h = harness(() => response({}), 'RecoveryReadableVersion');
+  const fields = h.render({ value: { presentation: { kind: 'fields', fields: [{ name: '标题', value: '问候' }] } } });
+  assert.equal(all(fields).find(n => n.type === 'dt').children[0], '标题');
+  assert.equal(all(fields).find(n => n.type === 'dd').children[0], '问候');
+  const image = h.render({
+    value: { presentation: { kind: 'image', name: '示例.png', url: 'data:image/png;base64,aA==' } },
+  });
+  assert.equal(all(image).find(n => n.type === 'img').props.alt, '示例.png');
+});
+
+test('loading more transcript messages appends the selected side without rewriting either saved version', async () => {
+  const calls = [];
+  const message = text => ({ id: text, role: 'user', content: [{ type: 'text', text }] });
+  const h = harness((_url, options) => {
+    const body = JSON.parse(options.body);
+    calls.push(body);
+    return response({
+      ok: true,
+      local: {
+        sha256: 'same',
+        presentation: {
+          kind: 'conversation',
+          messages: [message(body.offsets ? 'second' : 'first')],
+          nextOffset: body.offsets ? 2 : 1,
+        },
+      },
+      remote: { sha256: 'same', presentation: { kind: 'conversation', messages: [message('remote')], nextOffset: 1 } },
+    });
+  }, 'RecoveryItem');
+  const props = {
+    record: {
+      id: 's',
+      path: 'sessions/project/session-a/session.v4.jsonl.zstd',
+      versions: { local: { sha256: 'same' }, remote: { sha256: 'same' } },
+    },
+  };
+  await all(h.render(props))
+    .find(n => n.type === 'button' && text(n) === '查看内容')
+    .props.onClick();
+  await all(h.render(props))
+    .find(n => n.type?.name === 'RecoveryDialog')
+    .props.onMore('local');
+  const preview = all(h.render(props)).find(n => n.type?.name === 'RecoveryDialog').props.preview;
+  assert.deepEqual(calls, [{ id: 's' }, { id: 's', offsets: { local: 1 } }]);
+  assert.deepEqual(
+    Array.from(preview.local.presentation.messages, m => m.id),
+    ['first', 'second'],
+  );
+  assert.deepEqual(
+    Array.from(preview.remote.presentation.messages, m => m.id),
+    ['remote'],
+  );
+});
+
+test('a saved migration original is shown once rather than as two conflicting sides', () => {
+  const h = harness(() => response({}), 'RecoveryComparison');
+  const tree = h.render({
+    record: { reason: 'local-project-unavailable' },
+    preview: { local: { text: 'original', sha256: 'same' }, remote: { text: 'original', sha256: 'same' } },
+  });
+  assert.equal(all(tree).filter(n => n.props.className === 'dss-diff-side').length, 1);
+  assert.match(text(tree), /保存的会话原件/);
+  assert.doesNotMatch(text(tree), /远端原件|本机独有|远端独有/);
+});
+
+test('recovery actions name the new session destination and distinguish hiding a record from deleting it', async () => {
+  const record = {
+    id: 'migration',
+    path: 'sessions/project/session-a/session.v4.jsonl.zstd',
+    status: 'merged',
+    category: 'attention',
+    reason: 'local-project-unavailable',
+    versions: { local: { sha256: 'same' }, remote: { sha256: 'same' } },
+    imports: { local: { status: 'verified' } },
+    relocation: { archivedSource: true },
+  };
+  const h = harness(
+    () =>
+      response({
+        ok: true,
+        local: { text: 'old', sha256: 'same' },
+        remote: { text: 'old', sha256: 'same' },
+        sessionImport: { available: true, workspaces: [{ id: 'ws', title: '本机项目' }] },
+      }),
+    'RecoveryItem',
+  );
+  let tree = h.render({ record });
+  assert.match(text(tree), /已迁移的会话原件/);
+  await all(tree)
+    .find(n => n.type === 'button' && text(n) === '查看内容')
+    .props.onClick();
+  tree = h.render({ record });
+  assert.match(text(tree), /新会话保存到/);
+  assert.match(text(tree), /从迁移前原件恢复新会话/);
+  assert.match(text(tree), /无需恢复，收起记录/);
+  assert.doesNotMatch(text(tree), /另存|移入历史|从远端原件恢复新会话/);
+});
+
 test('comparison aligns insertions, marks changed rows and links both scroll axes', () => {
   const h = harness(() => response({}), 'RecoveryComparison');
   const tree = h.render({
@@ -1377,7 +1628,7 @@ test('historical originals stay collapsed and do not count as pending conflicts'
   const h = harness(() => response({ ok: true, records: [{ id: 'archived', category: 'history' }] }), 'RecoveryCenter');
   h.render();
   await h.effects();
-  assert.match(text(h.render()), /没有需要核对的内容；已保存 1 份/);
+  assert.match(text(h.render()), /1 条记录 · 待查看 0 条 · 留存备份 1 条/);
   assert.equal(all(h.render()).filter(n => n.type?.name === 'RecoveryItem').length, 0, 'records open in a window');
   all(h.render())
     .find(n => n.type === 'button' && text(n) === '查看')
@@ -1388,7 +1639,7 @@ test('historical originals stay collapsed and do not count as pending conflicts'
   assert.equal(all(tree).filter(n => n.type === 'details').length, 0, 'nothing is folded');
 });
 
-test('handled records say how many are automatic backups and how many were conflicts', async () => {
+test('recovery counts distinguish records to view from retained copies without calling all of them conflicts', async () => {
   const records = [
     { id: 'b1', kind: 'scope-backup', category: 'history' },
     { id: 'b2', kind: 'scope-backup', category: 'history' },
@@ -1400,10 +1651,8 @@ test('handled records say how many are automatic backups and how many were confl
   h.render();
   await h.effects();
   const shown = text(h.render());
-  assert.match(shown, /1 条需要你核对/);
-  assert.match(shown, /已保存 4 份/);
-  assert.match(shown, /同步前自动备份 3 份/);
-  assert.match(shown, /已处理的冲突 1 份/);
+  assert.match(shown, /5 条记录 · 待查看 1 条 · 留存备份 4 条/);
+  assert.doesNotMatch(shown, /冲突/);
 });
 
 test('project restore sends the selected side and the preview hash, then refreshes records', async () => {
@@ -1593,12 +1842,12 @@ test('the storage section checks every kind on demand and opens one dialog at a 
   tree = h.render({ remote: true });
   const row = key => all(tree).find(n => n.props?.['data-storage-row'] === key);
   assert.match(text(row('sessions')), /3 个（已归档 1，DSH 中看不到 1）/);
-  assert.match(text(row('usage')), /约下载 3\.00 MiB，其中历史版本 2\.00 MiB/);
+  assert.match(text(row('usage')), /当前内容 .*同步分支历史 2\.00 MiB/);
   assert.match(text(row('backups')), /共 2\.0 KiB，可清理 1\.0 KiB/);
   assert.match(text(row('remoteFiles')), /请先同步一次/);
   assert.equal(all(row('remoteFiles')).filter(n => n.type === 'button').length, 0, 'a failed check offers no action');
   assert.equal(all(tree).filter(n => n.type?.name?.endsWith('Dialog')).length, 0, 'dialogs stay closed');
-  button(row('sessions'), '管理').props.onClick();
+  button(row('sessions'), '明细').props.onClick();
   tree = h.render({ remote: true });
   const dialogs = all(tree).filter(n => n.type?.name?.endsWith('Dialog'));
   assert.deepEqual(
@@ -1719,7 +1968,7 @@ test('local backups keep protected items unselectable and need a preview plus se
   tree = h.render(props);
   assert.equal(button(tree, '永久删除').props.disabled, true, 'old sync copies need their own confirmation');
   all(tree)
-    .find(n => n.type === 'input' && n.props['aria-label']?.startsWith('包含旧同步副本'))
+    .find(n => n.type === 'input' && n.props['aria-label']?.startsWith('我已核对所选原件和旧仓库'))
     .props.onChange({ target: { checked: true } });
   tree = h.render(props);
   assert.equal(
@@ -1856,7 +2105,14 @@ test('clearing history waits for every computer and takes a second confirmation'
     calls.push({ url, method: options?.method || 'GET', body: options?.body && JSON.parse(options.body) });
     return response(
       options?.method === 'POST'
-        ? { ok: true, removedCommits: 422, deletedBranches: ['backup/a', 'backup/b'], backup: 'x.bundle' }
+        ? {
+            ok: true,
+            commit: 'new-tip',
+            removedCommits: 422,
+            deletedBranches: ['backup/a', 'backup/b'],
+            backup: 'x.bundle',
+            localCleanupError: '远端历史已清除，但本机空间回收未完成，请重新检查。',
+          }
         : preview,
     );
   }, 'HistoryDialog');
@@ -1877,6 +2133,64 @@ test('clearing history waits for every computer and takes a second confirmation'
   assert.equal(calls.length, 1, 'nothing changes before the second confirmation');
   await button(tree, '清除').props.onClick();
   assert.deepEqual(calls[1].body, { previewId: 'h1', retiredDevices: ['d1'], deleteBackupBranches: true });
-  assert.match(messages[0], /已清除 422 次同步记录的历史/);
-  assert.match(messages[0], /本机备份 → 同步仓库旧历史/);
+  assert.match(messages[0], /同步分支已改为只含当前内容/);
+  assert.match(messages[0], /没有生成本机备份/);
+  assert.match(messages[0], /本机空间回收未完成/);
+});
+
+test('history inspection exits a failed loading state and exposes a working retry', async () => {
+  let calls = 0;
+  const h = harness((_url, options) => {
+    assert.ok(options.signal, 'inspection is cancellable and bounded');
+    calls++;
+    return calls === 1
+      ? Promise.reject(new Error('检查超时'))
+      : response({ ok: true, commits: 1, shallow: true, previewId: 's', blockers: [], backupBranches: [] });
+  }, 'HistoryDialog');
+  h.render();
+  await h.effects();
+  let tree = h.render();
+  assert.doesNotMatch(text(tree), /正在读取同步仓库与设备回执/);
+  assert.match(text(tree), /检查超时/);
+  await button(tree, '重新检查').props.onClick();
+  tree = h.render();
+  assert.equal(calls, 2);
+  assert.equal(
+    button(tree, '清除…').props.disabled,
+    false,
+    'a shallow current snapshot does not claim the server has no older history',
+  );
+});
+
+test('dialog wheel scrolls over text and hands off nested lists at their boundary', () => {
+  const h = harness(() => response({}));
+  const root = { style: { overflowY: 'auto' }, clientHeight: 200, scrollHeight: 800, scrollTop: 0, scrollLeft: 0 };
+  const inner = {
+    parentElement: root,
+    style: { overflowY: 'auto' },
+    clientHeight: 100,
+    scrollHeight: 200,
+    scrollTop: 100,
+    scrollLeft: 0,
+  };
+  const textNode = { nodeType: 3, parentElement: inner };
+  let prevented = 0;
+  const event = {
+    target: textNode,
+    deltaX: 0,
+    deltaY: 3,
+    deltaMode: 1,
+    preventDefault: () => prevented++,
+    stopPropagation: () => {},
+  };
+  h.functions.scrollDialogWheel(event, root);
+  assert.equal(root.scrollTop, 72);
+  assert.equal(inner.scrollTop, 100);
+  event.deltaY = -2;
+  h.functions.scrollDialogWheel(event, root);
+  assert.equal(inner.scrollTop, 52);
+  assert.equal(root.scrollTop, 72);
+  assert.equal(prevented, 2);
+  h.functions.scrollDialogWheel({ ...event, ctrlKey: true }, root);
+  assert.equal(prevented, 2, 'browser zoom remains available');
 });

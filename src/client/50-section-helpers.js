@@ -35,7 +35,7 @@ function lastDetailText(lastDetail) {
       .reduce((sum, t) => sum + (t.size || 0), 0);
     if (bytes) lines.push(label + ': ' + fmtBytes(bytes));
   }
-  if (lastDetail.repoSize != null) lines.push('仓库体积: ' + fmtBytes(lastDetail.repoSize));
+  if (lastDetail.repoSize != null) lines.push('本机同步副本（含历史）: ' + fmtBytes(lastDetail.repoSize));
   if (lastDetail.skipped) lines.push('跳过: ' + lastDetail.skipped);
   for (const w of lastDetail.sessionWarnings || [])
     lines.push(
@@ -109,4 +109,39 @@ function stepHeading(number, title) {
     e('span', { className: 'dss-step-number', 'aria-hidden': true }, number),
     e('div', { className: 'dss-h' }, title),
   );
+}
+// The host's modal scroll lock can cancel native-dialog wheel defaults. Handle
+// scrolling inside our dialog, including text descendants and nested lists.
+function scrollDialogWheel(event, root) {
+  if (event.ctrlKey) return; // Keep browser zoom available.
+  const unit = event.deltaMode === 1 ? 24 : event.deltaMode === 2 ? root.clientHeight : 1;
+  const dx = event.deltaX * unit,
+    dy = event.deltaY * unit;
+  for (
+    let node = event.target?.nodeType === 3 ? event.target.parentElement : event.target;
+    node;
+    node = node.parentElement
+  ) {
+    const style = getComputedStyle(node);
+    const x = /(auto|scroll)/.test(style.overflowX) && node.scrollWidth > node.clientWidth;
+    const y = /(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight;
+    const canX = x && dx && (dx < 0 ? node.scrollLeft > 0 : node.scrollLeft < node.scrollWidth - node.clientWidth);
+    const canY = y && dy && (dy < 0 ? node.scrollTop > 0 : node.scrollTop < node.scrollHeight - node.clientHeight);
+    if (canX || canY) {
+      if (canX) node.scrollLeft += dx;
+      if (canY) node.scrollTop += dy;
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    if (node === root) break;
+  }
+}
+function useDialogWheel(ref) {
+  useEffect(() => {
+    const root = ref.current;
+    const wheel = event => scrollDialogWheel(event, root);
+    root?.addEventListener?.('wheel', wheel, { passive: false });
+    return () => root?.removeEventListener?.('wheel', wheel);
+  }, []);
 }

@@ -1,11 +1,17 @@
-function RecoveryComparison({ preview }) {
+function RecoveryComparison({ preview, record }) {
+  const single =
+    record?.reason === 'local-project-unavailable' &&
+    preview.local.sha256 &&
+    preview.local.sha256 === preview.remote.sha256;
   const panes = useRef([]),
-    [active, setActive] = useState(-1);
-  const display = value => (value.missing ? '' : value.text || '');
+    [active, setActive] = useState(-1),
+    [ignoreFormatting, setIgnoreFormatting] = useState(true);
+  const original = value => (value.missing ? '' : value.text || '');
+  const display = value => (ignoreFormatting ? recoveryContentText(original(value)) : original(value));
   const textual = !preview.local.binary && !preview.remote.binary;
   const comparison = useMemo(
     () => (textual ? recoveryRows(display(preview.local), display(preview.remote)) : { rows: [], limited: false }),
-    [preview],
+    [preview, ignoreFormatting],
   );
   const changes = comparison.limited ? [] : comparison.rows.flatMap((r, i) => (r[0] !== r[1] ? [i] : []));
   const jump = direction => {
@@ -47,8 +53,27 @@ function RecoveryComparison({ preview }) {
                 ? '一侧不存在文件；请结合原件状态查看'
                 : partial
                   ? '已加载部分相同；完整原件尚未比较'
-                  : '双方文本相同',
+                  : original(preview.local) !== original(preview.remote)
+                    ? '内容相同，仅排版不同'
+                    : single
+                      ? '保存的会话原件'
+                      : '两边内容相同',
       ),
+      textual
+        ? e(
+            'label',
+            { className: 'dss-check' },
+            e('input', {
+              type: 'checkbox',
+              checked: ignoreFormatting,
+              onChange: ev => {
+                setIgnoreFormatting(ev.target.checked);
+                setActive(-1);
+              },
+            }),
+            '忽略 JSON 排版差异',
+          )
+        : null,
       changes.length
         ? e(
             'div',
@@ -58,18 +83,24 @@ function RecoveryComparison({ preview }) {
           )
         : null,
     ),
-    e(
-      'div',
-      { className: 'dss-diff-legend', 'aria-label': '差异颜色说明' },
-      e('strong', { className: 'dss-diff-local' }, '− 本机独有'),
-      e('strong', { className: 'dss-diff-remote' }, '＋ 远端独有'),
-    ),
+    single || !changes.length
+      ? null
+      : e(
+          'div',
+          { className: 'dss-diff-legend', 'aria-label': '差异颜色说明' },
+          e('strong', { className: 'dss-diff-local' }, '− 本机独有'),
+          e('strong', { className: 'dss-diff-remote' }, '＋ 远端独有'),
+        ),
     comparison.limited ? e('div', { className: 'dss-tip', role: 'status' }, '大文件仅按行号展示，未计算差异。') : null,
     partial ? e('div', { className: 'dss-tip', role: 'status' }, '预览已截断，仅显示部分内容。') : null,
     e(
       'div',
-      { className: 'dss-diff-grid', 'aria-label': '双方原件同步滚动比较' },
-      [0, 1].map(side => {
+      {
+        className: 'dss-diff-grid',
+        'aria-label': single ? '迁移前的会话原件' : '双方原件同步滚动比较',
+        style: single ? { gridTemplateColumns: 'minmax(0,1fr)' } : undefined,
+      },
+      (single ? [0] : [0, 1]).map(side => {
         const value = side ? preview.remote : preview.local;
         return e(
           'section',
@@ -77,8 +108,8 @@ function RecoveryComparison({ preview }) {
           e(
             'div',
             { className: 'dss-diff-title' },
-            side ? '远端原件' : '当时本机原件',
-            value.missing ? ' · 此版本没有文件' : value.sha256 ? ' · ' + value.sha256.slice(0, 12) : '',
+            single ? '迁移前的会话' : side ? '远端原件' : '当时本机原件',
+            value.missing ? ' · 此版本没有文件' : '',
           ),
           e(
             'div',
@@ -132,8 +163,10 @@ function RecoveryComparison({ preview }) {
   );
 }
 
-function RecoveryDialog({ record, preview, onClose, children }) {
+function RecoveryDialog({ record, preview, onClose, onMore, loading, children }) {
   const dialog = useRef(null);
+  const [raw, setRaw] = useState(false);
+  useDialogWheel(dialog);
   const close = () => {
     if (dialog.current?.open) dialog.current.close();
     onClose();
@@ -151,7 +184,7 @@ function RecoveryDialog({ record, preview, onClose, children }) {
       ref: dialog,
       className: 'dss-recovery-dialog',
       'aria-modal': true,
-      'aria-label': '比较备份内容',
+      'aria-label': '备份内容预览',
       onCancel: event => {
         event.preventDefault();
         close();
@@ -186,13 +219,23 @@ function RecoveryDialog({ record, preview, onClose, children }) {
       e(
         'div',
         null,
-        e('h2', null, '比较备份内容'),
-        e('div', { className: 'dss-h' }, recoveryFileInfo(record).name),
+        e('h2', null, recoveryFileInfo(record).name),
         e('div', { className: 'dss-desc' }, recoveryFileInfo(record).location),
       ),
-      e('button', { type: 'button', className: 'dss-pill', onClick: close }, '关闭'),
+      e(
+        'div',
+        { className: 'dss-diff-actions' },
+        e(
+          'button',
+          { type: 'button', className: 'dss-pill', onClick: () => setRaw(value => !value) },
+          raw ? '返回预览' : '查看原始记录',
+        ),
+        e('button', { type: 'button', className: 'dss-pill', onClick: close }, '关闭'),
+      ),
     ),
-    e(RecoveryComparison, { preview }),
+    raw
+      ? e(RecoveryComparison, { preview, record })
+      : e(RecoveryReadableComparison, { preview, record, onMore, loading }),
     e('footer', { className: 'dss-diff-footer' }, children),
   );
 }
@@ -203,6 +246,27 @@ function RecoveryItem({ record, busy, onRestored }) {
   const [workspaceId, setWorkspaceId] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const more = async side => {
+    if (!preview || loading) return;
+    setLoading(true);
+    try {
+      const previous = preview[side].presentation;
+      const result = await API.recoveryPreview(record.id, { [side]: previous.nextOffset });
+      if (!result.ok) throw new Error(result.error);
+      if (result[side].sha256 && preview[side].sha256 && result[side].sha256 !== preview[side].sha256)
+        throw new Error('原件已变化，请重新打开');
+      const next = result[side].presentation;
+      if (next?.kind !== 'conversation') throw new Error('暂时无法继续读取对话');
+      setPreview({
+        ...preview,
+        [side]: { ...result[side], presentation: { ...next, messages: [...previous.messages, ...next.messages] } },
+      });
+    } catch (err) {
+      setMessage(err.message || String(err));
+    } finally {
+      setLoading(false);
+    }
+  };
   const show = async () => {
     if (preview) {
       setPreview(null);
@@ -277,7 +341,7 @@ function RecoveryItem({ record, busy, onRestored }) {
                 try {
                   const d = await API.recoveryImport(record.id, side, record.versions[side].sha256, workspaceId);
                   if (!d.ok) throw new Error(d.error);
-                  setMessage(d.hint + ' 新身份：' + d.sessionId);
+                  setMessage(d.hint);
                   onRestored?.();
                 } catch (err) {
                   setMessage(err.message || String(err));
@@ -286,7 +350,7 @@ function RecoveryItem({ record, busy, onRestored }) {
                 }
               },
             },
-            '另存' + title + '为会话',
+            '从' + title + '恢复新会话',
           )
         : null,
     );
@@ -306,21 +370,26 @@ function RecoveryItem({ record, busy, onRestored }) {
         { className: 'dss-desc' },
         new Date(record.createdAt).toLocaleString() +
           ' · ' +
-          (record.kind === 'restore-backup'
-            ? '恢复前备份'
-            : record.kind === 'scope-backup'
-              ? '同步前备份'
-              : record.kind === 'data-repair'
-                ? record.status === 'repaired'
-                  ? '已完成修复的备份'
-                  : '修复预览原件'
-                : record.status !== 'merged'
-                  ? '合并未完成'
-                  : record.kept === 'local'
-                    ? '已保留本机版本'
-                    : record.kept === 'remote'
-                      ? '已采用远端版本'
-                      : '已合并'),
+          (record.reason === 'local-project-unavailable'
+            ? record.relocation?.archivedSource &&
+              Object.values(record.imports || {}).every(attempt => attempt.status === 'verified')
+              ? '已迁移的会话原件'
+              : '迁移前的会话原件'
+            : record.kind === 'restore-backup'
+              ? '恢复前备份'
+              : record.kind === 'scope-backup'
+                ? '同步前备份'
+                : record.kind === 'data-repair'
+                  ? record.status === 'repaired'
+                    ? '已完成修复的备份'
+                    : '修复预览原件'
+                  : record.status !== 'merged'
+                    ? '合并未完成'
+                    : record.kept === 'local'
+                      ? '已保留本机版本'
+                      : record.kept === 'remote'
+                        ? '已采用远端版本'
+                        : '已合并'),
       ),
     ),
     e(
@@ -341,29 +410,35 @@ function RecoveryItem({ record, busy, onRestored }) {
           {
             record,
             preview,
+            onMore: more,
+            loading,
             onClose: () => {
               setPreview(null);
               opener.current?.focus();
             },
           },
-          record.guide?.nextStep ? e('div', { className: 'dss-desc' }, record.guide.nextStep) : null,
-          e(
-            'div',
-            { className: 'dss-tip' },
-            '当前文件：' +
-              (preview.currentHash === null
-                ? '本机当前不存在此文件'
-                : preview.currentHash === preview.local?.sha256
-                  ? '与当时本机版本一致'
-                  : preview.currentHash === preview.remote?.sha256
-                    ? '与远端原件一致'
-                    : '已有后续更改'),
-          ),
+          preview.sessionImport?.available
+            ? e('div', { className: 'dss-desc' }, '恢复会创建新会话，现有会话保持原样。')
+            : null,
+          !preview.canRestore
+            ? null
+            : e(
+                'div',
+                { className: 'dss-tip' },
+                '当前文件：' +
+                  (preview.currentHash === null
+                    ? '本机当前不存在此文件'
+                    : preview.currentHash === preview.local?.sha256
+                      ? '与当时本机版本一致'
+                      : preview.currentHash === preview.remote?.sha256
+                        ? '与远端原件一致'
+                        : '已有后续更改'),
+              ),
           preview.sessionImport?.available
             ? e(
                 'label',
                 { className: 'dss-field' },
-                '独立会话所属的本机项目',
+                '新会话保存到',
                 e(
                   'select',
                   {
@@ -417,11 +492,18 @@ function RecoveryItem({ record, busy, onRestored }) {
                     }
                   },
                 },
-                '保留两端会话并继续',
+                '分别恢复两边的会话',
               )
             : null,
           preview.canRestore || preview.sessionImport?.available
-            ? e('div', { className: 'dss-diff-actions' }, sideView('local', '本机原件'), sideView('remote', '远端原件'))
+            ? e(
+                'div',
+                { className: 'dss-diff-actions' },
+                sideView('local', record.reason === 'local-project-unavailable' ? '迁移前原件' : '本机原件'),
+                preview.local.sha256 && preview.local.sha256 === preview.remote.sha256
+                  ? null
+                  : sideView('remote', '远端原件'),
+              )
             : null,
           ['merged', 'applied', 'repaired', 'restored'].includes(record.status) &&
             !Object.values(record.imports || {}).some(attempt => attempt.status !== 'verified')
@@ -446,7 +528,7 @@ function RecoveryItem({ record, busy, onRestored }) {
                     }
                   },
                 },
-                record.category === 'history' ? '重新放入待核对' : '移入历史记录',
+                record.category === 'history' ? '放回待查看' : '无需恢复，收起记录',
               )
             : null,
           message ? e('div', { role: 'status' }, message) : null,

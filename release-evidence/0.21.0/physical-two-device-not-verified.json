@@ -1,0 +1,12 @@
+{
+  "version": "0.21.0",
+  "build": "2026-10-29-release-0.21.0",
+  "sourceSha256": "877b8d0728a69c4ceb870f56ba346db801d9358f89fa83ec8551ae957408c009",
+  "packageSha256": "19e30ddc7d47aeb1cc56a70fb2144365a3a8b335dc9f4ccbad179c2e5cf1877a",
+  "shortPackageSha256": "8b5de5eab233bc7dd18134f6c79b9556cec7f944707d12ad140a62e38a300a22",
+  "status": "not-verified",
+  "reason": "本版没有两台物理电脑经专用 GitHub 私有仓库往返（A 上传 → B 取回 → B 新增 → A 取回并重启读回）的证据。",
+  "maintainerDecision": "维护者在目视验收本机桌面端候选后，于 2026-10-29 决定以未验证状态发布，并在更新日志与验证记录中公开说明。",
+  "localVisualAcceptance": "维护者在本机 DSH 桌面端（0.2.1-rc.3）目视验收同步页「同步仓库与本机存储」，含「本机另存旧历史」「回收本机空间」。该候选与发布源码运行文件相同，只有构建标识与短包名打包脚本不同。",
+  "recordedAt": "2026-10-29T05:12:27.015Z"
+}

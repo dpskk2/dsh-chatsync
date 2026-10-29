@@ -1,13 +1,13 @@
 {
-  "sourceCommit": "4d41cb2",
-  "sourceSha256": "6065fe47a35f85d31d4112970fb5a18852c343472b3aa923aeea02477f619335",
+  "sourceCommit": "4737df016b4770c423414214b7aee91f7cfdccc3",
+  "sourceSha256": "877b8d0728a69c4ceb870f56ba346db801d9358f89fa83ec8551ae957408c009",
   "command": "node scripts/check-runtime-regression.mjs (standalone, DSH_GUI_TEST_EXE=<Desktop exe>) and node scripts/check-runtime-regression.mjs --desktop",
   "standalone": {
     "ok": true,
-    "completedAt": "2026-10-26T12:09:30.786Z",
-    "elapsedSeconds": 462.481,
+    "completedAt": "2026-10-29T05:01:22.403Z",
+    "elapsedSeconds": 498.066,
     "productVersion": "0.21.0",
-    "productBuild": "2026-10-26-release-0.21.0",
+    "productBuild": "2026-10-29-release-0.21.0",
     "testFileConcurrency": 2,
     "runtime": {
       "node": "24.19.0",
@@ -15,20 +15,19 @@
     },
     "suite": {
       "code": 0,
-      "tests": 465,
-      "passed": 465,
+      "tests": 536,
+      "passed": 536,
       "failed": 0,
       "cancelled": 0,
-      "skipped": 0,
-      "logFile": "<repo>\\outputs\\regression-2026-10-26T12-01-48-303Z-standalone\\suite.log"
+      "skipped": 0
     }
   },
   "desktop": {
     "ok": true,
-    "completedAt": "2026-10-26T12:18:12.040Z",
-    "elapsedSeconds": 521.153,
+    "completedAt": "2026-10-29T05:11:02.011Z",
+    "elapsedSeconds": 579.482,
     "productVersion": "0.21.0",
-    "productBuild": "2026-10-26-release-0.21.0",
+    "productBuild": "2026-10-29-release-0.21.0",
     "testFileConcurrency": 2,
     "runtime": {
       "node": "24.21.0",
@@ -37,13 +36,11 @@
     },
     "suite": {
       "code": 0,
-      "tests": 465,
-      "passed": 465,
+      "tests": 536,
+      "passed": 536,
       "failed": 0,
       "cancelled": 0,
-      "skipped": 0,
-      "logFile": "<repo>\\outputs\\regression-2026-10-26T12-09-30-885Z-desktop\\suite.log"
+      "skipped": 0
     }
-  },
-  "note": "Second freeze. The first freeze (7439ace) was superseded by the install-script fix in 4d41cb2; its runs are not used as evidence here."
+  }
 }

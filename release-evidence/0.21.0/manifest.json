@@ -1,54 +1,59 @@
 {
   "schemaVersion": 2,
   "version": "0.21.0",
-  "build": "2026-10-26-release-0.21.0",
+  "build": "2026-10-29-release-0.21.0",
   "tier": "minor",
-  "sourceSha256": "6065fe47a35f85d31d4112970fb5a18852c343472b3aa923aeea02477f619335",
-  "packageSha256": "cc894a9db56bde25c89dcdab9a010c421d8a335bd3e7f33ed13a0256e583a17e",
+  "sourceSha256": "877b8d0728a69c4ceb870f56ba346db801d9358f89fa83ec8551ae957408c009",
+  "packageSha256": "19e30ddc7d47aeb1cc56a70fb2144365a3a8b335dc9f4ccbad179c2e5cf1877a",
   "checks": [
     {
       "id": "full-regression",
       "status": "passed",
-      "completedAt": "2026-10-26T12:18:12.040Z",
-      "environment": "Windows 11 Home 10.0.26300; standalone Node.js 24.19.0; DSH Desktop built-in Electron 44.7.0 / Node.js 24.21.0",
-      "procedure": "Frozen source 4d41cb2. node scripts/check-runtime-regression.mjs with DSH_GUI_TEST_EXE set to the installed Desktop executable; node scripts/check-runtime-regression.mjs --desktop",
-      "observed": "Standalone Node: 465 tests, 465 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. Desktop runtime: 465 tests, 465 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. npm test also ran ESLint, Prettier and tsc without findings.",
-      "reviewer": "Claude (agent run); maintainer review pending",
+      "completedAt": "2026-10-29T05:11:02.011Z",
+      "environment": "Windows 11 Home 10.0.26300; standalone Node.js 24.19.0; DSH Desktop 0.2.1-rc.3 built-in Electron 44.7.0 / Node.js 24.21.0",
+      "procedure": "Frozen source 4737df0. node scripts/check-runtime-regression.mjs with DSH_GUI_TEST_EXE set to the installed Desktop executable; node scripts/check-runtime-regression.mjs --desktop",
+      "observed": "Standalone Node: 536 tests, 536 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. Desktop runtime: 536 tests, 536 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. npm test on the same source also ran ESLint, Prettier and tsc without findings.",
+      "reviewer": "Claude (agent run); maintainer authorized release 2026-10-29",
       "artifacts": [
         {
           "path": "release-evidence/0.21.0/regression.json",
-          "sha256": "f2643742bad9afb536eee2044af77c2dfc4737394a6999f7a35651931b109dea"
+          "sha256": "3f07b49a2ffa3fa04a74ff0ac28729b16639d6f155c80bcec01610efc71adb39"
         }
       ]
     },
     {
       "id": "candidate-install",
       "status": "passed",
-      "completedAt": "2026-10-26T12:18:31.596Z",
+      "completedAt": "2026-10-29T05:12:27.015Z",
       "environment": "Isolated DSH Desktop host from the installed Desktop runtime (Electron 44.7.0, Node.js 24.21.0, DSH 0.2.1-rc.3); synthetic isolated home, no personal data",
-      "procedure": "node scripts/check-local-package-desktop.mjs <candidate.tgz> <new outputs directory>, once for each package name",
-      "observed": "Both packages (@dpskk2/dsh-chatsync cc894a9db56bde25c89dcdab9a010c421d8a335bd3e7f33ed13a0256e583a17e, chatsync 252128c2c8aae29ca1b96a30df25da3666b4929692cb3695527d1f879bfaddba) loaded through Desktop IPC with version 0.21.0 / build 2026-10-26-release-0.21.0; 67 runtime files byte-identical to the committed source; public storage API read/write and cold restart read-back passed (4 checks each).",
-      "reviewer": "Claude (agent run); maintainer review pending",
+      "procedure": "Packed from a clean core.autocrlf=false checkout of 4737df0 with npm 11.17.0 (npm pack; node scripts/pack-short-name.mjs). node scripts/check-local-package-desktop.mjs <candidate.tgz> <new outputs directory>, once for each package name, run from PowerShell",
+      "observed": "Both packages (@dpskk2/dsh-chatsync 19e30ddc7d47aeb1cc56a70fb2144365a3a8b335dc9f4ccbad179c2e5cf1877a, chatsync 8b5de5eab233bc7dd18134f6c79b9556cec7f944707d12ad140a62e38a300a22) loaded through Desktop IPC with version 0.21.0 / build 2026-10-29-release-0.21.0; 73 runtime files and 2 locale files byte-identical to the committed source; public storage API read/write and cold restart read-back passed (4 checks each). An earlier short-name package missing locale files was caught by this check and fixed in 4737df0.",
+      "reviewer": "Claude (agent run); maintainer authorized release 2026-10-29",
       "artifacts": [
         {
           "path": "release-evidence/0.21.0/candidate-install-scoped.json",
-          "sha256": "d8bf1876772155215b9a2dc10af2497eae0a845bb9611792bee7b840f2320fe4"
+          "sha256": "bcb34ac58cb9bcc1022bffec9e48b18f88b51384f8ae2c10f16bfa6c9204c421"
         },
         {
           "path": "release-evidence/0.21.0/candidate-install-short.json",
-          "sha256": "04837a9a4d2a436211c926d3ee52a08cfebdd9af9e50f055379068c0a2b90803"
+          "sha256": "10e41c5a92e67769402b190d2a54afc51cfd6db7d11045b327523aa7c7c67c15"
         }
       ]
     },
     {
       "id": "physical-two-device-github",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "not-verified",
+      "completedAt": "2026-10-29T05:12:27.015Z",
+      "environment": "Not performed: no two-physical-computer GitHub round trip for this candidate",
+      "procedure": "Owner decision bound to this source fingerprint and package hash; see ownerDecision",
+      "observed": "No physical two-device evidence. Released as not-verified by maintainer decision and disclosed in CHANGELOG and docs/release-0.21.0-validation.md.",
+      "reviewer": "dpskk2 (maintainer decision); recorded by Claude",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.21.0/physical-two-device-not-verified.json",
+          "sha256": "3426343eb43a80ac3c39d6ad308bafeefb2698fe62fd29ff0098b112242ec1b0"
+        }
+      ]
     }
   ],
   "advisory": [
@@ -263,5 +268,17 @@
       "artifacts": []
     }
   ],
-  "shortPackageSha256": "252128c2c8aae29ca1b96a30df25da3666b4929692cb3695527d1f879bfaddba"
+  "shortPackageSha256": "8b5de5eab233bc7dd18134f6c79b9556cec7f944707d12ad140a62e38a300a22",
+  "ownerDecision": {
+    "version": "0.21.0",
+    "build": "2026-10-29-release-0.21.0",
+    "sourceSha256": "877b8d0728a69c4ceb870f56ba346db801d9358f89fa83ec8551ae957408c009",
+    "packageSha256": "19e30ddc7d47aeb1cc56a70fb2144365a3a8b335dc9f4ccbad179c2e5cf1877a",
+    "mode": "release-with-unverified-scenarios",
+    "instruction": "OK, mark unverified（目视验收通过；物理双机未做，用 ownerDecision 记为 not-verified 并公开说明，继续发布 0.21.0）",
+    "reason": "本版没有两台物理设备的 GitHub 往返证据；维护者决定以未验证状态发布并公开说明。",
+    "requestedBy": "dpskk2 (maintainer)",
+    "requestedAt": "2026-10-29T05:12:27.015Z",
+    "acceptedChecks": ["physical-two-device-github"]
+  }
 }

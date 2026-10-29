@@ -18,9 +18,21 @@ fs.mkdirSync(stage, { recursive: true });
 const pkg = JSON.parse(execFileSync('git', ['show', 'HEAD:package.json'], { cwd: root, encoding: 'utf8' }));
 if (pkg.name !== '@dpskk2/dsh-chatsync') throw Error('Unexpected source identity');
 const names = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean);
+// `files` entries are paths, directories or single-segment globs such as locale/*.json.
+const included = item =>
+  item.includes('*')
+    ? name =>
+        new RegExp(
+          '^' +
+            item
+              .split('*')
+              .map(part => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
+              .join('[^/]*') +
+            '$',
+        ).test(name)
+    : name => name === item || name.startsWith(item + '/');
 const selected = names.filter(
-  name =>
-    pkg.files.some(item => name === item || name.startsWith(item + '/')) || ['package.json', 'LICENSE'].includes(name),
+  name => pkg.files.some(item => included(item)(name)) || ['package.json', 'LICENSE'].includes(name),
 );
 for (const name of selected) {
   let bytes = execFileSync('git', ['show', 'HEAD:' + name], { cwd: root, maxBuffer: 8 * 1024 * 1024 });
@@ -49,6 +61,15 @@ const pack = JSON.parse(
     encoding: 'utf8',
   }),
 )[0];
+// Both names must ship the same files; only the identity changes above differ.
+const scoped = JSON.parse(
+  execFileSync(process.execPath, [npm, 'pack', '--dry-run', '--ignore-scripts', '--json'], {
+    cwd: root,
+    encoding: 'utf8',
+  }),
+)[0];
+const listOf = p => JSON.stringify(p.files.map(f => f.path).sort());
+if (listOf(pack) !== listOf(scoped)) throw Error('Short-name package files differ from the scoped package');
 const file = path.join(output, pack.filename),
   sha256 = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 fs.writeFileSync(path.join(output, 'pack.json'), JSON.stringify(pack, null, 2) + '\n');

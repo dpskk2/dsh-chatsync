@@ -1,0 +1,51 @@
+{
+  "sourceCommit": "df5192b1744c98a6f127e547734a99ae4402b980",
+  "sourceSha256": "b3c4b4f25b12c75123372a8ce75a1e4fc830a09e5e2f3deec6a507f9c25f59e1",
+  "command": "node scripts/check-runtime-regression.mjs (standalone, DSH_GUI_TEST_EXE=<Desktop exe>) and node scripts/check-runtime-regression.mjs --desktop; then npm run lint, npm run format:check, npm run typecheck",
+  "standalone": {
+    "ok": true,
+    "completedAt": "2026-10-30T05:49:14.359Z",
+    "elapsedSeconds": 529.743,
+    "productVersion": "0.21.1",
+    "productBuild": "2026-10-30-release-0.21.1",
+    "testFileConcurrency": 2,
+    "runtime": {
+      "node": "24.19.0",
+      "platform": "win32"
+    },
+    "suite": {
+      "code": 0,
+      "tests": 547,
+      "passed": 547,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  },
+  "desktop": {
+    "ok": true,
+    "completedAt": "2026-10-30T05:59:17.039Z",
+    "elapsedSeconds": 602.552,
+    "productVersion": "0.21.1",
+    "productBuild": "2026-10-30-release-0.21.1",
+    "testFileConcurrency": 2,
+    "runtime": {
+      "node": "24.21.0",
+      "electron": "44.7.0",
+      "platform": "win32"
+    },
+    "suite": {
+      "code": 0,
+      "tests": 547,
+      "passed": 547,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  },
+  "staticChecks": {
+    "eslint": "pass",
+    "prettier": "pass",
+    "tsc": "pass"
+  }
+}

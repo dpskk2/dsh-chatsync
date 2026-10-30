@@ -343,12 +343,14 @@ function UsageDialog({ data, busy, onClose, onRefresh, onOpen }) {
           e(
             'small',
             { className: 'dss-desc' },
-            '这些是 chatsync 每次同步产生的 Git 提交，不是 DSH 自带数据。新电脑只取当前快照；GitHub 可能保留更多旧历史，可打开仓库查看。',
+            '这些是 chatsync 每次同步产生的 Git 提交，不是 DSH 自带数据。新电脑只取当前快照；同步仓库可能保留更多旧历史，可打开仓库查看。',
           ),
         ),
         pill('清除历史版本…', () => onOpen('history'), { disabled: busy || (data.commits <= 1 && !data.shallow) }),
         data.repositoryUrl
-          ? helpLink('在 GitHub 查看历史', data.repositoryUrl + '/commits/' + encodeURIComponent(data.branch))
+          ? data.repositoryLabel === 'GitHub'
+            ? helpLink('在 GitHub 查看历史', data.repositoryUrl + '/commits/' + encodeURIComponent(data.branch))
+            : helpLink('在 ' + (data.repositoryLabel || '网页') + ' 查看仓库', data.repositoryUrl)
           : null,
       ),
       data.localOtherBytes
@@ -372,7 +374,7 @@ function UsageDialog({ data, busy, onClose, onRefresh, onOpen }) {
         'p',
         { className: 'dss-desc' },
         data.branches
-          ? 'GitHub 上另有项目分支 ' +
+          ? '同步仓库另有项目分支 ' +
               data.branches.project +
               ' 个、同步前备份分支 ' +
               data.branches.backup +
@@ -381,7 +383,7 @@ function UsageDialog({ data, busy, onClose, onRefresh, onOpen }) {
               ' 个' +
               (data.branches.other ? '、其他分支 ' + data.branches.other + ' 个' : '') +
               '。新电脑只下载同步分支和仍在用的项目分支。'
-          : '连不上 GitHub，没有统计其他分支。',
+          : '连不上同步仓库，没有统计其他分支。',
       ),
     ),
     dialogActions('大小按压缩后的存储计算', pill('重新统计', onRefresh, { disabled: busy }), pill('关闭', onClose)),
@@ -429,7 +431,7 @@ function HistoryDialog({ busy, onClose, onDone }) {
           (d.deletedBranches?.length ? '已删除 ' + d.deletedBranches.length + ' 个同步前备份分支。' : '') +
           (d.branchError || '') +
           (d.localCleanupError || '') +
-          (d.backup ? '旧历史保留在 GitHub 的 ' + d.backup + ' 分支，没有生成本机备份。' : ''),
+          (d.backup ? '旧历史保留在同步仓库的 ' + d.backup + ' 分支，没有生成本机备份。' : ''),
       );
     } catch (err) {
       setError(err.message || String(err));
@@ -442,15 +444,15 @@ function HistoryDialog({ busy, onClose, onDone }) {
   if (confirming)
     return e(
       Modal,
-      { title: '清除历史版本', note: '同步分支将只保留当前内容；旧历史保留在 GitHub 归档分支。', onClose },
+      { title: '清除历史版本', note: '同步分支将只保留当前内容；旧历史保留在同步仓库的归档分支。', onClose },
       dialogBody(
         errorLine,
         e(
           'ul',
           { className: 'dss-steps' },
-          e('li', null, '旧历史留在 GitHub 的归档分支，不下载、不生成本机备份。'),
-          e('li', null, '把 GitHub 上的同步分支换成只含当前内容的一次记录。'),
-          e('li', null, '回收这台电脑同步副本中的旧历史；GitHub 仓库总占用不会因此清零。'),
+          e('li', null, '旧历史留在同步仓库的归档分支，不下载、不生成本机备份。'),
+          e('li', null, '把同步仓库中的同步分支换成只含当前内容的一次记录。'),
+          e('li', null, '回收这台电脑同步副本中的旧历史；同步仓库总占用不会因此清零。'),
           deleteBranches ? e('li', null, '删除 ' + preview.backupBranches.length + ' 个同步前备份分支。') : null,
           e('li', null, '其他电脑下次同步时自动改用新的历史，各电脑上的数据不变。'),
         ),
@@ -465,7 +467,7 @@ function HistoryDialog({ busy, onClose, onDone }) {
     Modal,
     {
       title: '清除历史版本',
-      note: '清除后，同步分支只保留当前内容，并回收本机旧历史。旧历史仍保留在 GitHub 归档分支。',
+      note: '清除后，同步分支只保留当前内容，并回收本机旧历史。旧历史仍保留在同步仓库的归档分支。',
       onClose,
     },
     dialogBody(
@@ -483,8 +485,8 @@ function HistoryDialog({ busy, onClose, onDone }) {
               '本机已取回 ' +
                 preview.commits +
                 ' 次同步记录' +
-                (preview.shallow ? '（仅当前快照，GitHub 可能有更多历史）' : '') +
-                '。旧历史只保留在 GitHub，不生成完整本机备份。',
+                (preview.shallow ? '（仅当前快照，同步仓库可能有更多历史）' : '') +
+                '。旧历史只保留在同步仓库，不生成完整本机备份。',
             ),
             preview.blockers.length
               ? e(
@@ -513,8 +515,8 @@ function HistoryDialog({ busy, onClose, onDone }) {
             preview.backupBranches.length
               ? pickRow({
                   key: 'branches',
-                  label: '同时删除 GitHub 上 ' + preview.backupBranches.length + ' 个同步前备份分支',
-                  detail: '同步遇到冲突时保存的远端版本。不删除的话，它们仍占用 GitHub 的空间。',
+                  label: '同时删除同步仓库中 ' + preview.backupBranches.length + ' 个同步前备份分支',
+                  detail: '同步遇到冲突时保存的远端版本。不删除的话，它们仍占用同步仓库的空间。',
                   checked: deleteBranches,
                   disabled: blocked,
                   onChange: setDeleteBranches,
@@ -582,13 +584,13 @@ function LocalHistoryDialog({ busy, onClose, onDone }) {
     Modal,
     {
       title: '回收本机空间',
-      note: '只删除 GitHub 上仍保留着的旧备份在这台电脑的副本；GitHub、其他电脑和 DSH 数据都不变。',
+      note: '只删除同步仓库仍保留着的旧备份在这台电脑的副本；同步仓库、其他电脑和 DSH 数据都不变。',
       onClose,
     },
     dialogBody(
       error ? e('div', { className: 'dss-err', role: 'alert' }, error) : null,
       pending && !preview
-        ? e('p', { className: 'dss-desc', role: 'status' }, '正在核对本机副本与 GitHub 上的历史…')
+        ? e('p', { className: 'dss-desc', role: 'status' }, '正在核对本机副本与同步仓库中的历史…')
         : null,
       preview
         ? e(
@@ -614,7 +616,7 @@ function LocalHistoryDialog({ busy, onClose, onDone }) {
                       r.ref.replace(/^refs\/(?:heads|remotes)\//, '') +
                         ' · 另占 ' +
                         fmtBytes(r.bytes) +
-                        (r.removable ? ' · GitHub 已保留，可删除' : ' · ' + r.reason),
+                        (r.removable ? ' · 同步仓库已保留，可删除' : ' · ' + r.reason),
                     ),
                   ),
                 )

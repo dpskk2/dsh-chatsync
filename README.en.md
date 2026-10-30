@@ -4,7 +4,7 @@
 ### Switch computers. Keep working.
 
 Bring your DeepSeek Harness (DSH) sessions, attachments, settings and project files to another computer.<br>
-Your data stays in your own **private GitHub repository**.
+Your data stays in your own **private Git repository**: GitHub by default, or Gitee, GitLab and other Git hosts.
 
 [![npm](https://img.shields.io/npm/v/chatsync?color=2563eb)](https://www.npmjs.com/package/chatsync)
 [![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.2.0--rc.1-0f766e)](#compatibility)
@@ -26,7 +26,7 @@ Your data stays in your own **private GitHub repository**.
 
 ## Installation
 
-First, make sure DSH opens normally. Install [Git](https://git-scm.com/downloads/) and [GitHub CLI](https://cli.github.com/), and use a network connection that can reach GitHub.
+First, make sure DSH opens normally. Install [Git](https://git-scm.com/downloads/) and [GitHub CLI](https://cli.github.com/), and use a network connection that can reach GitHub. Other Git hosts such as Gitee or GitLab do not need GitHub CLI; see [Other Git hosts](docs/configuration.md#其他-git-托管站).
 
 Without a manually specified proxy, sync uses proxy environment variables first, then the current Windows system proxy. Changing the Windows proxy port requires no restart. Set a previously saved fixed proxy to an empty string or `auto` to enable automatic selection; see [proxy configuration](docs/configuration.md).
 
@@ -82,7 +82,7 @@ Run this in PowerShell and follow the prompts to authorize access in your browse
 gh auth login --hostname github.com --git-protocol https --web
 ```
 
-**② Sync repository** — Click **Use default repository and continue**. The first sync automatically creates or reuses the private `dsh-sync` repository. To use an existing repository, click **Use another repository**.
+**② Sync repository** — Click **Use default repository and continue**. The first sync automatically creates or reuses the private `dsh-sync` repository. To use an existing repository, click **Use another repository** and enter the HTTPS or SSH address of a private repository on GitHub, Gitee, GitLab or another Git host.
 
 **③ Choose content** — Select what you need; changes save immediately. Start manually when first connecting, then enable automatic sync if you want it. [Full sync scope and exclusion rules](docs/sync-content.md)
 
@@ -118,9 +118,9 @@ You are responsible for handling keys and other sensitive information written in
 
 Divergent conversations are retained as separate versions. Remote deletion does not directly delete local sessions. Keep separate backups of important material. [Sync and recovery boundaries](docs/configuration.md)
 
-**Sync repository and local storage (experimental):** Each row opens Details. First sync downloads only the current snapshot. Older Git history stays on GitHub; clearing history archives it there without creating a full local backup. Local storage separates active transport data, recovery originals, and legacy material. [Sync scope](docs/sync-content.md#同步仓库与本机存储) · [Local storage](docs/local-storage.md)
+**Sync repository and local storage (experimental):** Each row opens Details. First sync downloads only the current snapshot. Older Git history stays in the sync repository; clearing history archives it there without creating a full local backup. Local storage separates active transport data, recovery originals, and legacy material. [Sync scope](docs/sync-content.md#同步仓库与本机存储) · [Local storage](docs/local-storage.md)
 
-“Local sync copy (including history)” in the last sync details measures local Git objects, including loose objects. It is not the transfer size or the download size for a new computer. Clearing history reclaims archived history from the active local copy while preserving local-only branches. Pre-sync backups that an earlier version left in the local copy after clearing appear as “old history kept locally”; when GitHub still holds them, use “Reclaim local space” in the repository details. History checks reuse cached device receipts, wait up to two minutes, and identify the stage that failed.
+“Local sync copy (including history)” in the last sync details measures local Git objects, including loose objects. It is not the transfer size or the download size for a new computer. Clearing history reclaims archived history from the active local copy while preserving local-only branches. Pre-sync backups that an earlier version left in the local copy after clearing appear as “old history kept locally”; when the sync repository still holds them, use “Reclaim local space” in the repository details. History checks reuse cached device receipts, wait up to two minutes, and identify the stage that failed.
 
 Migration originals can be cleaned manually after verification and archiving of the old session. Old repositories remain protected when they contain commits, including reflog history, that the current copy does not cover.
 
@@ -128,7 +128,7 @@ Migration originals can be cleaned manually after verification and archiving of 
 
 Supports DSH Web and Windows Desktop, with a minimum version of **0.2.0-rc.1**. **Desktop 0.2.1-rc.3 or newer is recommended**. Standalone use requires **Node.js 24 or newer**; Desktop uses its bundled runtime.
 
-See the [version validation record](docs/release-0.21.0-validation.md) for the environments actually tested and the remaining gaps.
+See the [version validation record](docs/release-0.21.1-validation.md) for the environments actually tested and the remaining gaps.
 
 ## Help and development
 

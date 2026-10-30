@@ -45,19 +45,17 @@ test('host overrides remain effective and reading settings never rewrites their 
   assert.equal(new SyncEngine(home, { enabled: false, autoPullOnStart: true }).loadConfig().enabled, false);
   assert.deepEqual(fs.readFileSync(file), bytes);
 });
-test('GitHub-only parsing rejects other backends and credential-bearing addresses', () => {
+test('remote parsing accepts other Git hosts but never GitHub look-alikes or credential-bearing addresses', () => {
   for (const address of [
     'https://github.com/alice/data.git',
     'git@github.com:alice/data.git',
     'ssh://git@github.com/alice/data.git',
   ])
     assert.equal(parseSyncRemote(address)?.fullName, 'alice/data');
-  for (const address of [
-    'https://gitcode.com/alice/data',
-    'https://gitee.com/alice/data',
-    'https://token@github.com/alice/data',
-    'https://github.com.evil/a/b',
-    'https://github.com/a/../b',
-  ])
+  for (const address of ['https://gitcode.com/alice/data', 'https://gitee.com/alice/data'])
+    assert.equal(parseSyncRemote(address)?.provider, 'git');
+  // A look-alike host is just another host: it gets the anonymous check, not the GitHub API.
+  assert.equal(parseSyncRemote('https://github.com.evil/a/b')?.provider, 'git');
+  for (const address of ['https://token@github.com/alice/data', 'https://github.com/a/../b'])
     assert.equal(parseSyncRemote(address), null);
 });

@@ -139,7 +139,7 @@ test('legacy mode changes do not control lifecycle automation; master switch doe
   assert.equal((await request('config', { enabled: false })).auto, false);
 });
 
-test('only GitHub connections are saved; invalid addresses preserve the old config', async t => {
+test('credential-free Git connections on any host are saved; invalid addresses preserve the old config', async t => {
   const request = host(t);
   const saved = await request('config', {
     remote: 'https://github.com/alice/data.git',
@@ -147,15 +147,20 @@ test('only GitHub connections are saved; invalid addresses preserve the old conf
     autoRepo: false,
   });
   assert.equal(saved.ok, true);
+  assert.deepEqual(saved.config.remoteWeb, { url: 'https://github.com/alice/data', label: 'GitHub' });
   for (const remote of [
-    'https://gitcode.com/alice/data',
-    'https://gitee.com/alice/data',
     'https://token@github.com/alice/data',
-    'https://github.com.evil/alice/data',
+    'https://user:secret@gitee.com/alice/data',
+    'http://gitee.com/alice/data',
+    'https://github.com/alice/data/extra',
+    'git@gitee.com:/alice/data',
   ]) {
-    assert.equal((await request('config', { remote })).ok, false);
+    assert.equal((await request('config', { remote })).ok, false, remote);
     assert.equal((await request('config')).config.remote, saved.config.remote);
   }
+  const gitee = await request('config', { remote: 'git@gitee.com:alice/data.git' });
+  assert.equal(gitee.ok, true);
+  assert.deepEqual(gitee.config.remoteWeb, { url: 'https://gitee.com/alice/data', label: 'Gitee' });
 });
 
 test('one automatic API field saves both legacy flags and reports host overrides', async t => {
@@ -290,7 +295,8 @@ test('invalid connections are rejected without changing existing configuration',
   const before = (await request('config')).config;
   for (const patch of [
     { remote: 'https://token@github.com/alice/data' },
-    { remote: 'https://example.org/a/b' },
+    { remote: 'http://example.org/a/b' },
+    { remote: 'https://user:secret@example.org/a/b' },
     { branch: '../bad' },
     { branch: '-bad' },
     { branch: '' },

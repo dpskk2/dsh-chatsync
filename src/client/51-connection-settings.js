@@ -83,9 +83,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
     }
   };
   const showForm = config && editing;
-  const parsedLink = config?.remote?.match(
-    /^(?:https:\/\/github\.com\/|git@github\.com:|ssh:\/\/git@github\.com\/)([\w.-]+\/[\w.-]+?)(?:\.git)?\/?$/i,
-  );
+  const parsedLink = config?.remoteWeb || null;
   return e(
     'form',
     { className: 'dss-sec dss-setting-card', id: 'dss-connect', tabIndex: -1, onSubmit: save },
@@ -108,7 +106,11 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
             ? e('div', { className: 'dss-desc' }, '首次同步时，自动创建或复用当前 GitHub 账号下的 dsh-sync 私有仓库。')
             : parsedLink
               ? null
-              : e('div', { className: 'dss-err', role: 'alert' }, '现有地址不受支持，请更换为 GitHub 私有仓库。'),
+              : e(
+                  'div',
+                  { className: 'dss-err', role: 'alert' },
+                  '现有地址不受支持，请更换为私有 Git 仓库的 HTTPS 或 SSH 地址。',
+                ),
           e(
             'div',
             { className: 'dss-actions dss-connection-actions' },
@@ -136,7 +138,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
             ? e(
                 'nav',
                 { className: 'dss-links', 'aria-label': '同步仓库' },
-                helpLink('在 GitHub 查看仓库', 'https://github.com/' + parsedLink[1]),
+                helpLink('在 ' + parsedLink.label + ' 查看仓库', parsedLink.url),
               )
             : null,
         )
@@ -172,7 +174,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
           e(
             'div',
             { className: 'dss-desc' },
-            '使用其他仓库时，请先在 GitHub 创建私有仓库，再填写地址。保存时检查仓库及写入权限。',
+            '使用其他仓库时，请先创建私有仓库，再填写地址。支持 GitHub、Gitee、GitLab 等 Git 托管站的 HTTPS 或 SSH 地址；保存时检查仓库是否私有及能否访问。',
           ),
           editing ? e('div', { className: 'dss-desc' }, '留空并保存可改用默认仓库。原仓库中的内容会保留。') : null,
           e(
@@ -191,7 +193,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
     e(
       'details',
       { className: 'dss-tip', open: config ? !config.remote : false },
-      e('summary', null, 'GitHub 登录帮助'),
+      e('summary', null, '登录帮助'),
       e(
         'ol',
         null,
@@ -211,6 +213,11 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
           e('code', { className: 'dss-command' }, 'gh auth login --hostname github.com --git-protocol https --web'),
         ),
         e('li', null, '两台电脑登录同一 GitHub 账号，即可使用同一个默认同步仓库。'),
+        e(
+          'li',
+          null,
+          '使用 Gitee、GitLab 等其他托管站：先在网页创建私有仓库；HTTPS 地址在终端运行 git ls-remote 仓库地址，按提示登录一次，SSH 地址先配置 SSH 密钥。两台电脑都要登录。',
+        ),
       ),
       e(
         'nav',

@@ -313,7 +313,7 @@ function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, group
                 e('input', {
                   className: 'dss-input',
                   value: repairRemote,
-                  placeholder: 'GitHub 仓库地址；留空表示暂不连接',
+                  placeholder: '私有 Git 仓库地址；留空表示暂不连接',
                   onChange: ev => setRepairRemote(ev.target.value),
                 }),
                 e(

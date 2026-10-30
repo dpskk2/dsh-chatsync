@@ -917,10 +917,11 @@ test('default backup needs no address or checkbox and saves automatic repository
 
 test('configured backup hides its address until an explicit edit and cancel discards the draft without saving', async () => {
   let posts = 0;
-  const remote = 'git@github.com:alice/dsh-sync2.git';
+  const remote = 'git@gitee.com:alice/dsh-sync2.git';
+  const remoteWeb = { url: 'https://gitee.com/alice/dsh-sync2', label: 'Gitee' };
   const h = harness((_url, options) => {
     if (options) posts++;
-    return response({ ok: true, config: { remote, autoRepo: false } });
+    return response({ ok: true, config: { remote, remoteWeb, autoRepo: false } });
   }, 'ConnectionSettings');
   h.render();
   await h.effects();
@@ -929,7 +930,10 @@ test('configured backup hides its address until an explicit edit and cancel disc
     all(tree).some(n => n.type === 'input'),
     false,
   );
-  assert.ok(all(tree).some(n => n.props.href === 'https://github.com/alice/dsh-sync2'));
+  const link = all(tree).find(n => n.props.href === 'https://gitee.com/alice/dsh-sync2');
+  assert.equal(text(link), '在 Gitee 查看仓库');
+  assert.match(text(tree), /已连接同步仓库/);
+  assert.doesNotMatch(text(tree), /不受支持/);
   all(tree)
     .find(n => n.type === 'button' && text(n) === '更换同步仓库')
     .props.onClick();
@@ -2125,7 +2129,7 @@ test('clearing history waits for every computer and takes a second confirmation'
   assert.match(text(tree), /最后同步/);
   assert.equal(button(tree, '清除…').props.disabled, true, 'an older computer blocks the clearing');
   checkbox(tree, '设备 d1 已不再使用').props.onChange({ target: { checked: true } });
-  checkbox(tree, '同时删除 GitHub 上 2 个同步前备份分支').props.onChange({ target: { checked: true } });
+  checkbox(tree, '同时删除同步仓库中 2 个同步前备份分支').props.onChange({ target: { checked: true } });
   tree = h.render(props);
   button(tree, '清除…').props.onClick();
   tree = h.render(props);

@@ -47,7 +47,7 @@ test('manual remote verification fails closed and accepts private HTTPS or SSH',
   assert.ok((await engine.verifyPrivateRemote('git@github.com:alice/data.git')).error);
   engine.gh = async () => ({ code: 0, out: '{"visibility":"PRIVATE"}', err: '' });
   assert.deepEqual(await engine.verifyPrivateRemote('git@github.com:alice/data.git'), { ok: true });
-  assert.ok((await engine.verifyPrivateRemote('https://example.com/alice/data')).error);
+  assert.ok((await engine.verifyPrivateRemote('http://example.com/alice/data')).error);
 });
 
 test('sync aborts before initializing git if configured remote is not private', async t => {

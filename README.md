@@ -4,7 +4,7 @@
 ### 换台电脑，继续做。
 
 把 DeepSeek Harness（DSH）的会话、附件、设置和项目文件带到另一台电脑。<br>
-数据存放在你自己的 **GitHub 私有仓库**中。
+数据存放在你自己的 **私有 Git 仓库**中：默认 GitHub，也可以用 Gitee、GitLab 等。
 
 [![npm](https://img.shields.io/npm/v/chatsync?color=2563eb)](https://www.npmjs.com/package/chatsync)
 [![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.2.0--rc.1-0f766e)](#兼容性)
@@ -26,7 +26,7 @@
 
 ## 安装方式
 
-先准备能正常打开的 DSH、[Git](https://git-scm.com/downloads/) 和 [GitHub CLI](https://cli.github.com/)，以及可访问 GitHub 的网络。
+先准备能正常打开的 DSH、[Git](https://git-scm.com/downloads/) 和 [GitHub CLI](https://cli.github.com/)，以及可访问 GitHub 的网络。使用 Gitee、GitLab 等其他托管站时不需要 GitHub CLI，见[其他 Git 托管站](docs/configuration.md#其他-git-托管站)。
 
 未手动指定代理时，同步优先使用环境变量，否则跟随当前 Windows 系统代理；更换系统代理端口无需重启。已保存的固定代理可以改为空或 `auto`，详见[代理配置](docs/configuration.md)。
 
@@ -82,7 +82,7 @@ dsh plugin --profile web update chatsync
 gh auth login --hostname github.com --git-protocol https --web
 ```
 
-**② 同步仓库** — 点击「使用默认仓库并继续」。首次同步时自动创建或复用 `dsh-sync` 私有仓库；使用已有仓库则点击「使用其他仓库」。
+**② 同步仓库** — 点击「使用默认仓库并继续」。首次同步时自动创建或复用 `dsh-sync` 私有仓库；使用已有仓库则点击「使用其他仓库」，可以填写 GitHub、Gitee、GitLab 等托管站的私有仓库地址（HTTPS 或 SSH）。
 
 **③ 选择内容** — 按需勾选，修改即时保存。首次连接先手动使用，之后可开启自动同步。[完整同步范围与排除规则](docs/sync-content.md)
 
@@ -118,9 +118,9 @@ gh auth login --hostname github.com --git-protocol https --web
 
 会话分叉会保留为独立版本。远端删除不会直接删除本机会话。重要资料请另留备份。[同步与恢复边界](docs/configuration.md)
 
-**同步仓库与本机存储（实验性）：** 点「检查」后，每行以「明细」打开详情。首次同步只取当前快照；旧 Git 历史保留在 GitHub，不再自动下载整段历史。本机把当前同步副本、必要的恢复原件、旧版本遗留分开显示；清除历史时旧内容留在 GitHub 归档分支，不生成完整本机备份。[同步范围](docs/sync-content.md#同步仓库与本机存储) · [本机存储](docs/local-storage.md)
+**同步仓库与本机存储（实验性）：** 点「检查」后，每行以「明细」打开详情。首次同步只取当前快照；旧 Git 历史保留在同步仓库，不再自动下载整段历史。本机把当前同步副本、必要的恢复原件、旧版本遗留分开显示；清除历史时旧内容留在同步仓库的归档分支，不生成完整本机备份。[同步范围](docs/sync-content.md#同步仓库与本机存储) · [本机存储](docs/local-storage.md)
 
-上次同步详情中的「本机同步副本（含历史）」统计本机 Git 对象的占用，不代表本次传输量或新电脑下载量。清除历史会回收当前同步副本中已归档的旧历史；本机独有分支继续保留。早先版本清除历史后留在本机的同步前备份会显示为「本机另存旧历史」，GitHub 仍保有时可在同步仓库明细中「回收本机空间」。历史检查复用已缓存的设备回执，最多等待 2 分钟，失败时说明具体阶段。
+上次同步详情中的「本机同步副本（含历史）」统计本机 Git 对象的占用，不代表本次传输量或新电脑下载量。清除历史会回收当前同步副本中已归档的旧历史；本机独有分支继续保留。早先版本清除历史后留在本机的同步前备份会显示为「本机另存旧历史」，同步仓库仍保有时可在同步仓库明细中「回收本机空间」。历史检查复用已缓存的设备回执，最多等待 2 分钟，失败时说明具体阶段。
 
 已核对且旧会话已归档的迁移原件可手动清理；旧仓库中尚未被当前副本覆盖的提交（含 reflog 历史）仍受保护。
 
@@ -128,7 +128,7 @@ gh auth login --hostname github.com --git-protocol https --web
 
 支持 DSH 的 Web 和 Windows 桌面端，最低 **0.2.0-rc.1**；桌面端推荐 **0.2.1-rc.3 或更新版**。独立运行要求 **Node.js 24 或更新版**，桌面端使用应用自带运行时。
 
-具体已验证与未覆盖范围见[本版验证记录](docs/release-0.21.0-validation.md)。
+具体已验证与未覆盖范围见[本版验证记录](docs/release-0.21.1-validation.md)。
 
 ## 帮助与开发
 

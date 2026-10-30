@@ -26,7 +26,7 @@ Your data stays in your own **private Git repository**: GitHub by default, or Gi
 
 ## Installation
 
-First, make sure DSH opens normally. Install [Git](https://git-scm.com/downloads/) and [GitHub CLI](https://cli.github.com/), and use a network connection that can reach GitHub. Other Git hosts such as Gitee or GitLab do not need GitHub CLI; see [Other Git hosts](docs/configuration.md#其他-git-托管站).
+First, make sure DSH opens normally. Install [Git](https://git-scm.com/downloads/). When the sync repository is on GitHub (the default), also install [GitHub CLI](https://cli.github.com/) and use a network connection that can reach GitHub. Other Git hosts such as Gitee or GitLab do not need GitHub CLI; see [Other Git hosts](docs/configuration.md#其他-git-托管站).
 
 Without a manually specified proxy, sync uses proxy environment variables first, then the current Windows system proxy. Changing the Windows proxy port requires no restart. Set a previously saved fixed proxy to an empty string or `auto` to enable automatic selection; see [proxy configuration](docs/configuration.md).
 
@@ -74,12 +74,18 @@ This command uses the default installation location. Adjust the path if you inst
 
 Restart DSH after installation. Click **Sync** in the sidebar, or open **Settings → Sync**.
 
-**① Sign in to GitHub**
+**① Sign in to your Git host**
 
-Run this in PowerShell and follow the prompts to authorize access in your browser:
+For the default repository (GitHub), run this in PowerShell and follow the prompts to authorize access in your browser:
 
 ```powershell
 gh auth login --hostname github.com --git-protocol https --web
+```
+
+For Gitee, GitLab or another host, first create an empty private repository on its website (do not initialize it with a README). Then run the command below once with your repository address and sign in with that site's account and password or access token in the Git sign-in window. For an SSH address, set up an SSH key instead.
+
+```powershell
+git ls-remote https://gitee.com/username/dsh-sync.git
 ```
 
 **② Sync repository** — Click **Use default repository and continue**. The first sync automatically creates or reuses the private `dsh-sync` repository. To use an existing repository, click **Use another repository** and enter the HTTPS or SSH address of a private repository on GitHub, Gitee, GitLab or another Git host.
@@ -90,7 +96,7 @@ gh auth login --hostname github.com --git-protocol https --web
 
 ## Moving to another computer
 
-1. After a successful sync on the original computer, install the plugin on the new computer and sign in to the same GitHub account.
+1. After a successful sync on the original computer, install the plugin on the new computer and sign in to the same account on your Git host, as in First setup.
 2. Open **Sync** and use the default repository. For a custom repository, use the same repository and branch on both computers.
 3. After syncing to retrieve your data, check your sessions, attachments and project files, and configure this computer's model API keys. If prompted to restart, fully exit DSH and open it again.
 

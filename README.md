@@ -26,7 +26,7 @@
 
 ## 安装方式
 
-先准备能正常打开的 DSH、[Git](https://git-scm.com/downloads/) 和 [GitHub CLI](https://cli.github.com/)，以及可访问 GitHub 的网络。使用 Gitee、GitLab 等其他托管站时不需要 GitHub CLI，见[其他 Git 托管站](docs/configuration.md#其他-git-托管站)。
+先准备能正常打开的 DSH 和 [Git](https://git-scm.com/downloads/)。同步仓库放在 GitHub（默认）时，还需要 [GitHub CLI](https://cli.github.com/) 和可访问 GitHub 的网络；放在 Gitee、GitLab 等其他托管站时不需要 GitHub CLI，见[其他 Git 托管站](docs/configuration.md#其他-git-托管站)。
 
 未手动指定代理时，同步优先使用环境变量，否则跟随当前 Windows 系统代理；更换系统代理端口无需重启。已保存的固定代理可以改为空或 `auto`，详见[代理配置](docs/configuration.md)。
 
@@ -74,15 +74,21 @@ dsh plugin --profile web update chatsync
 
 安装后重启 DSH，点击侧边栏「同步」，也可从「设置 → 同步」进入。
 
-**① 登录 GitHub**
+**① 登录托管站**
 
-在 PowerShell 中执行，按提示在浏览器完成授权：
+使用默认仓库（GitHub）时，在 PowerShell 中执行，按提示在浏览器完成授权：
 
 ```powershell
 gh auth login --hostname github.com --git-protocol https --web
 ```
 
-**② 同步仓库** — 点击「使用默认仓库并继续」。首次同步时自动创建或复用 `dsh-sync` 私有仓库；使用已有仓库则点击「使用其他仓库」，可以填写 GitHub、Gitee、GitLab 等托管站的私有仓库地址（HTTPS 或 SSH）。
+使用 Gitee、GitLab 等其他托管站时，先在网页创建空的私有仓库（不要勾选用 README 初始化），再运行一次下面的命令（换成你的仓库地址），在弹出的 Git 登录窗口输入该站的账号和密码或访问令牌；SSH 地址则先配置 SSH 密钥。
+
+```powershell
+git ls-remote https://gitee.com/用户名/dsh-sync.git
+```
+
+**② 同步仓库** — 点击「使用默认仓库并继续」。首次同步时自动创建或复用 `dsh-sync` 私有仓库；使用已有仓库则点击「使用其他仓库」，填写 GitHub、Gitee、GitLab 等托管站的私有仓库地址（HTTPS 或 SSH）。
 
 **③ 选择内容** — 按需勾选，修改即时保存。首次连接先手动使用，之后可开启自动同步。[完整同步范围与排除规则](docs/sync-content.md)
 
@@ -90,7 +96,7 @@ gh auth login --hostname github.com --git-protocol https --web
 
 ## 换台电脑接着使用
 
-1. 原电脑同步成功后，在新电脑安装插件并登录同一 GitHub 账号。
+1. 原电脑同步成功后，在新电脑安装插件，并按「第一次设置」登录同一托管站账号。
 2. 打开「同步」，使用默认仓库；自定义仓库时，两台电脑使用相同仓库与分支。
 3. 同步取回后，检查会话、附件和项目文件，配置本机模型 API 密钥。界面提示需要重启时，完全退出后重新打开。
 

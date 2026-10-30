@@ -46,7 +46,7 @@
 | `preview-settings-desktop.mjs` | 用当前源码和首次安装默认值预览设置页 |
 | `native-fixture.mjs` | 上面几项共用的真实宿主夹具（不单独运行） |
 
-## 需要真实 GitHub 的检查
+## 需要真实 GitHub 或其他托管站的检查
 
 只使用**专用的私有测试仓库**，不要填个人同步仓库。
 
@@ -54,6 +54,7 @@
 | --- | --- |
 | `check-github-workspace.mjs <测试仓库地址>` | 真实 GitHub 传输项目文件（单台 Windows） |
 | `prove-auto-repo-desktop.mjs` | 两个隔离桌面宿主的自动建仓与往返 |
+| `check-remote-switch-real.mjs --github <测试仓库> --target <空仓库> --mirror-target <空仓库> [--public <公开仓库>]` | 两个隔离桌面宿主经真实 GitHub 往返后，通过同步页的连接接口换到其他托管站（如 Gitee）：只带当前内容、复制全部分支两条路线，以及公开仓库被拒绝；仓库名须为 `chatsync-acceptance-*` 且初始为空，其他托管站需先在终端登录一次 |
 
 ## 演示与历史调查
 

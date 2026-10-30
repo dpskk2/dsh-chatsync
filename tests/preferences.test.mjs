@@ -934,6 +934,10 @@ test('configured backup hides its address until an explicit edit and cancel disc
   assert.equal(text(link), '在 Gitee 查看仓库');
   assert.match(text(tree), /已连接同步仓库/);
   assert.doesNotMatch(text(tree), /不受支持/);
+  // GitHub CLI belongs to the GitHub group only; other hosts get their own sign-in command.
+  assert.match(text(tree), /所有托管站都要：安装\s+Git\s+。\s+默认仓库，或其他 GitHub 仓库\s+再安装\s+GitHub CLI/);
+  assert.match(text(tree), /Gitee、GitLab 等其他托管站（不需要 GitHub CLI）/);
+  assert.ok(text(tree).includes('git ls-remote https://gitee.com/用户名/dsh-sync.git'));
   all(tree)
     .find(n => n.type === 'button' && text(n) === '更换同步仓库')
     .props.onClick();

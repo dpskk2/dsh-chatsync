@@ -103,7 +103,11 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
             config.remote ? (parsedLink ? '已连接同步仓库' : '请更换同步仓库') : '使用默认仓库',
           ),
           !config.remote
-            ? e('div', { className: 'dss-desc' }, '首次同步时，自动创建或复用当前 GitHub 账号下的 dsh-sync 私有仓库。')
+            ? e(
+                'div',
+                { className: 'dss-desc' },
+                '首次同步时，自动创建或复用当前 GitHub 账号下的 dsh-sync 私有仓库。想放在 Gitee、GitLab 等其他托管站，点「使用其他仓库」。',
+              )
             : parsedLink
               ? null
               : e(
@@ -160,7 +164,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
               className: 'dss-input',
               type: 'text',
               value: draft,
-              placeholder: '留空使用默认仓库；或填写已有私有仓库地址',
+              placeholder: '例如 https://gitee.com/用户名/dsh-sync.git 或 git@gitee.com:用户名/dsh-sync.git',
               autoComplete: 'off',
               spellCheck: false,
               onChange: ev => {
@@ -174,7 +178,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
           e(
             'div',
             { className: 'dss-desc' },
-            '使用其他仓库时，请先创建私有仓库，再填写地址。支持 GitHub、Gitee、GitLab 等 Git 托管站的 HTTPS 或 SSH 地址；保存时检查仓库是否私有及能否访问。',
+            '先在托管站网页创建空的私有仓库（不要勾选用 README 初始化），再填写地址。支持 GitHub、Gitee、GitLab 等的 HTTPS 或 SSH 地址；保存时检查仓库是否私有，以及这台电脑能否读取。',
           ),
           editing ? e('div', { className: 'dss-desc' }, '留空并保存可改用默认仓库。原仓库中的内容会保留。') : null,
           e(
@@ -195,34 +199,47 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
       { className: 'dss-tip', open: config ? !config.remote : false },
       e('summary', null, '登录帮助'),
       e(
+        'div',
+        { className: 'dss-help-group' },
+        '所有托管站都要：安装 ',
+        helpLink('Git', 'https://git-scm.com/downloads'),
+        '。',
+      ),
+      e('div', { className: 'dss-help-group' }, '默认仓库，或其他 GitHub 仓库'),
+      e(
+        'ol',
+        null,
+        e('li', null, '再安装 ', helpLink('GitHub CLI', 'https://cli.github.com/'), '。'),
+        e(
+          'li',
+          null,
+          '打开 Windows 终端运行下面的命令，按提示在浏览器授权：',
+          e('code', { className: 'dss-command' }, 'gh auth login --hostname github.com --git-protocol https --web'),
+        ),
+        e('li', null, '两台电脑登录同一 GitHub 账号，即可使用同一个默认仓库。'),
+      ),
+      e('div', { className: 'dss-help-group' }, 'Gitee、GitLab 等其他托管站（不需要 GitHub CLI）'),
+      e(
         'ol',
         null,
         e(
           'li',
           null,
-          '安装 ',
-          helpLink('Git', 'https://git-scm.com/downloads'),
-          ' 和 ',
-          helpLink('GitHub CLI', 'https://cli.github.com/'),
-          '。',
+          'HTTPS 地址：在终端运行一次下面的命令（换成你的仓库地址），在弹出的 Git 登录窗口输入该站的账号和密码或访问令牌，登录会保存在本机。',
+          e('code', { className: 'dss-command' }, 'git ls-remote https://gitee.com/用户名/dsh-sync.git'),
         ),
         e(
           'li',
           null,
-          '打开 Windows 终端，运行下面的命令，按提示在浏览器完成授权。',
-          e('code', { className: 'dss-command' }, 'gh auth login --hostname github.com --git-protocol https --web'),
+          'SSH 地址：为这台电脑生成 SSH 密钥，把公钥添加到托管站的「SSH 公钥」设置，再运行 git ls-remote 加仓库地址，确认能读取。',
         ),
-        e('li', null, '两台电脑登录同一 GitHub 账号，即可使用同一个默认同步仓库。'),
-        e(
-          'li',
-          null,
-          '使用 Gitee、GitLab 等其他托管站：先在网页创建私有仓库；HTTPS 地址在终端运行 git ls-remote 仓库地址，按提示登录一次，SSH 地址先配置 SSH 密钥。两台电脑都要登录。',
-        ),
+        e('li', null, '每台要同步的电脑都做一次。'),
       ),
       e(
         'nav',
         { className: 'dss-links', 'aria-label': '仓库连接帮助' },
         helpLink('GitHub 登录说明', 'https://cli.github.com/manual/gh_auth_login'),
+        helpLink('其他托管站说明', DOCS + 'configuration.md#其他-git-托管站'),
         helpLink('代理与高级配置', DOCS + 'configuration.md'),
       ),
     ),

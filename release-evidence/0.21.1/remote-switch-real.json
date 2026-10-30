@@ -1,0 +1,46 @@
+{
+  "startedAt": "2026-10-30T07:12:59.148Z",
+  "physicalMachines": 1,
+  "hostKind": "desktop",
+  "electronVersion": "44.7.0",
+  "nodeVersion": "24.21.0",
+  "dshVersion": "0.2.1-rc.3",
+  "pluginVersion": "0.21.1",
+  "remotes": {
+    "github": "https://github.com/dpskk2/chatsync-acceptance-switch-20261030.git",
+    "target": "https://gitee.com/dpskk2/chatsync-acceptance-switch.git",
+    "mirrorTarget": "https://gitee.com/dpskk2/chatsync-acceptance-mirror.git",
+    "public": "https://gitee.com/mindspore/mindspore.git"
+  },
+  "privateValidatorSubstituted": false,
+  "checks": [
+    "Dedicated GitHub and target repositories are empty and pass the production private-repository check",
+    "A and B exchange two sessions with attachments through the real GitHub repository",
+    "Sync page refuses the public repository on the target host and keeps the configuration: Gitee 上的这个仓库无需登录即可读取，是公开仓库。请改为私有或换用私有仓库；原同步仓库未更改。",
+    "A saves the target address through the sync page endpoint: 已确认 Gitee 上的仓库需要登录才能读取，且这台电脑可以读取；写入权限在首次上传时确认。",
+    "Route one: A then B switch to the empty target; all four sessions and attachments match on both; the target holds the checked commit; GitHub unchanged",
+    "Every GitHub branch copied into the second empty target with git clone --bare and push refs/heads/*",
+    "Route two: both computers switch to the copied target and keep syncing; all five sessions match; every copied branch is still present"
+  ],
+  "publicRefusal": "Gitee 上的这个仓库无需登录即可读取，是公开仓库。请改为私有或换用私有仓库；原同步仓库未更改。",
+  "targetHint": "已确认 Gitee 上的仓库需要登录才能读取，且这台电脑可以读取；写入权限在首次上传时确认。",
+  "targetBranches": [
+    "refs/heads/chatsync-device/78118434-4fc5-4954-932b-ceaaf51111d3",
+    "refs/heads/chatsync-device/a00b6c41-87b7-4f19-bc41-ecefec449f43",
+    "refs/heads/main"
+  ],
+  "mirrorBranches": [
+    "refs/heads/chatsync-device/78118434-4fc5-4954-932b-ceaaf51111d3",
+    "refs/heads/chatsync-device/a00b6c41-87b7-4f19-bc41-ecefec449f43",
+    "refs/heads/main"
+  ],
+  "sessions": {
+    "a1": "session-b78162bf-a005-4db0-886e-4de135082850",
+    "b1": "session-9fc3b05b-4a81-482f-bb2d-1749f2b1966f",
+    "a2": "session-6971098e-8b4f-43d9-a9c9-a5336dec9d52",
+    "b2": "session-e9bdcef1-657b-420f-a42e-6972c837e794",
+    "a3": "session-2fc9d7c9-1deb-4ece-8129-0ae910daef19"
+  },
+  "completedAt": "2026-10-30T07:16:18.412Z",
+  "ok": true
+}

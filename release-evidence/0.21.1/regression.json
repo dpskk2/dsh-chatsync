@@ -1,11 +1,11 @@
 {
-  "sourceCommit": "df5192b1744c98a6f127e547734a99ae4402b980",
-  "sourceSha256": "b3c4b4f25b12c75123372a8ce75a1e4fc830a09e5e2f3deec6a507f9c25f59e1",
+  "sourceCommit": "8fffb5f43838763f162dc723cab15569c6e10933",
+  "sourceSha256": "4751376f1fa4d336e2f40e3984f30b5c1992e27a679ffc374bef43fd25ed499f",
   "command": "node scripts/check-runtime-regression.mjs (standalone, DSH_GUI_TEST_EXE=<Desktop exe>) and node scripts/check-runtime-regression.mjs --desktop; then npm run lint, npm run format:check, npm run typecheck",
   "standalone": {
     "ok": true,
-    "completedAt": "2026-10-30T05:49:14.359Z",
-    "elapsedSeconds": 529.743,
+    "completedAt": "2026-10-30T07:31:36.247Z",
+    "elapsedSeconds": 530.283,
     "productVersion": "0.21.1",
     "productBuild": "2026-10-30-release-0.21.1",
     "testFileConcurrency": 2,
@@ -24,8 +24,8 @@
   },
   "desktop": {
     "ok": true,
-    "completedAt": "2026-10-30T05:59:17.039Z",
-    "elapsedSeconds": 602.552,
+    "completedAt": "2026-10-30T07:42:21.844Z",
+    "elapsedSeconds": 645.448,
     "productVersion": "0.21.1",
     "productBuild": "2026-10-30-release-0.21.1",
     "testFileConcurrency": 2,

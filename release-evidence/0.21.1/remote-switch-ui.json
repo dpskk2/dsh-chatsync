@@ -1,0 +1,12 @@
+{
+  "host": "isolated Desktop Host from the end-to-end run (profile a), DSH 0.2.1-rc.3, plugin served from the maintenance source, opened in the Claude desktop built-in browser",
+  "date": "2026-10-30",
+  "steps": [
+    {"action": "Open sync page; status shows 已连接同步仓库 and link 在 Gitee 查看仓库", "observed": "link https://gitee.com/dpskk2/chatsync-acceptance-mirror"},
+    {"action": "Click 立即同步 (web-button) against https://gitee.com/dpskk2/chatsync-acceptance-mirror.git", "observed": "✓ 已是最新,无需变更; stages include verify (private check) and fetch"},
+    {"action": "Note", "observed": "聊天附件 was switched off by an operator mis-click: the ✕ of the 开始使用 dialog landed on that checkbox, which was already underneath (config saved 15:17:26, before the sync click). Re-enabled deliberately; a later 立即同步 left dsh-sync.json byte-identical (sha256 60f8058f…)."},
+    {"action": "更换同步仓库 → git@gitee.com:dpskk2/chatsync-acceptance-switch.git → 保存仓库设置 (no SSH key on this computer)", "observed": "这台电脑还不能用 SSH 登录 Gitee。请先为这台电脑配置 SSH 密钥，并在终端运行 git ls-remote git@gitee.com:dpskk2/chatsync-acceptance-switch.git 确认可以读取；原同步仓库未更改。"},
+    {"action": "更换同步仓库 → https://gitee.com/dpskk2/chatsync-acceptance-switch.git → 保存仓库设置", "observed": "已确认 Gitee 上的仓库需要登录才能读取，且这台电脑可以读取；写入权限在首次上传时确认。 Status 已连接同步仓库, link 在 Gitee 查看仓库 → https://gitee.com/dpskk2/chatsync-acceptance-switch"},
+    {"action": "Click 立即同步", "observed": "committed true, pushed true; stages start,verify,analyze,fetch,commit,analyze,push,privacy,push,handoff,apply; Gitee main → 85f5ca441a18b7cb6720303090c1097b4a3b2b2b"}
+  ]
+}

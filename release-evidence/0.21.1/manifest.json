@@ -3,40 +3,40 @@
   "version": "0.21.1",
   "build": "2026-10-30-release-0.21.1",
   "tier": "patch",
-  "sourceSha256": "b3c4b4f25b12c75123372a8ce75a1e4fc830a09e5e2f3deec6a507f9c25f59e1",
-  "packageSha256": "de353e2aa4419285d5b183aa784bbd19db4e766a92c0d702ad1fcd96a4547120",
+  "sourceSha256": "4751376f1fa4d336e2f40e3984f30b5c1992e27a679ffc374bef43fd25ed499f",
+  "packageSha256": "149fadd0096b5a2f704bf3a84df56378c0f5dbfae8ea367ec2ade30a33fadee7",
   "checks": [
     {
       "id": "full-regression",
       "status": "passed",
-      "completedAt": "2026-10-30T05:59:17.039Z",
+      "completedAt": "2026-10-30T07:42:21.844Z",
       "environment": "Windows 11 Home 10.0.26300; standalone Node.js 24.19.0; DSH Desktop 0.2.1-rc.3 built-in Electron 44.7.0 / Node.js 24.21.0",
-      "procedure": "Frozen source df5192b. node scripts/check-runtime-regression.mjs with DSH_GUI_TEST_EXE set to the installed Desktop executable; node scripts/check-runtime-regression.mjs --desktop; npm run lint, format:check and typecheck on the same source",
+      "procedure": "Frozen source 8fffb5f. node scripts/check-runtime-regression.mjs with DSH_GUI_TEST_EXE set to the installed Desktop executable; node scripts/check-runtime-regression.mjs --desktop; npm run lint, format:check and typecheck on the same source",
       "observed": "Standalone Node: 547 tests, 547 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. Desktop runtime: 547 tests, 547 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. ESLint, Prettier and tsc reported no findings.",
       "reviewer": "Claude (agent run); release requested by maintainer 2026-10-30",
       "artifacts": [
         {
           "path": "release-evidence/0.21.1/regression.json",
-          "sha256": "47f83bce736650b6115db876b99fcfa7bf6445b62925f5e36692872027c8c539"
+          "sha256": "9bd9a4404db48039734dd1ca2d42d98480fb08750c42bf38a0f2eebbb085f0b9"
         }
       ]
     },
     {
       "id": "candidate-install",
       "status": "passed",
-      "completedAt": "2026-10-30T06:00:17.006Z",
+      "completedAt": "2026-10-30T07:43:13.015Z",
       "environment": "Isolated DSH Desktop host from the installed Desktop runtime (Electron 44.7.0, Node.js 24.21.0, DSH 0.2.1-rc.3); synthetic isolated home, no personal data",
-      "procedure": "Packed from a clean core.autocrlf=false clone of df5192b with npm 11.17.0 (npm pack --ignore-scripts; node scripts/pack-short-name.mjs). node scripts/check-local-package-desktop.mjs <candidate.tgz> <new outputs directory>, once for each package name, run from PowerShell",
-      "observed": "Both packages (@dpskk2/dsh-chatsync de353e2aa4419285d5b183aa784bbd19db4e766a92c0d702ad1fcd96a4547120, chatsync 6cb005aed051aafb30e79164eaf07e14e424bda6d12814d73de23ec03f4bc758) loaded through Desktop IPC with version 0.21.1 / build 2026-10-30-release-0.21.1; 73 runtime files and 2 locale files byte-identical to the committed source; public storage API read/write and cold restart read-back passed (4 checks each). A first attempt from Git Bash failed before loading because its tar cannot read C: paths; rerun from PowerShell into new directories.",
+      "procedure": "Packed from a clean core.autocrlf=false clone of 8fffb5f with npm 11.17.0 (npm pack --ignore-scripts; node scripts/pack-short-name.mjs). node scripts/check-local-package-desktop.mjs <candidate.tgz> <new outputs directory>, once for each package name, run from PowerShell",
+      "observed": "Both packages (@dpskk2/dsh-chatsync 149fadd0096b5a2f704bf3a84df56378c0f5dbfae8ea367ec2ade30a33fadee7, chatsync a9471916897dceb892c3efc6a2bd988fa321b37bf7e8f3f36d5e7186aa9be1ac) loaded through Desktop IPC with version 0.21.1 / build 2026-10-30-release-0.21.1; 73 runtime files and 2 locale files byte-identical to the committed source; public storage API read/write and cold restart read-back passed (4 checks each).",
       "reviewer": "Claude (agent run); release requested by maintainer 2026-10-30",
       "artifacts": [
         {
           "path": "release-evidence/0.21.1/candidate-install-scoped.json",
-          "sha256": "59a8af1be40a786e4c612d9a4cfc5fadd0c077a300a49acfcc33c1d4ce3fdcd0"
+          "sha256": "840180d966d312f5cfd20370b23c48b02c49e4c21ea365857145c467e5e57cd1"
         },
         {
           "path": "release-evidence/0.21.1/candidate-install-short.json",
-          "sha256": "ad876a7869a5be8c8cc17f41c8acd65e179cca8dc993f1b92b0b896542b0b8c4"
+          "sha256": "5fead962a19fb3a830aac955fbe9d7ce687c3f8f890c99ca00383e193d683e30"
         }
       ]
     }
@@ -154,13 +154,22 @@
     },
     {
       "id": "privacy/native-runtime",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-10-30T07:16:18.412Z",
+      "environment": "One Windows 11 computer; two isolated installed Desktop Hosts (DSH 0.2.1-rc.3, Electron 44.7.0, Node.js 24.21.0); dedicated private test repositories github.com/dpskk2/chatsync-acceptance-switch-20261030, gitee.com/dpskk2/chatsync-acceptance-switch and gitee.com/dpskk2/chatsync-acceptance-mirror; synthetic sessions and attachments; Gitee HTTPS login stored once by the maintainer through Git Credential Manager",
+      "procedure": "node scripts/check-remote-switch-real.mjs --github <test repo> --target <empty Gitee repo> --mirror-target <empty Gitee repo> --public https://gitee.com/mindspore/mindspore.git, then a manual walkthrough of the isolated host sync page in the Claude desktop built-in browser. Run on the working tree that became 8fffb5f; the only later source change removed one duplicated sentence from the address hint.",
+      "observed": "All script stages passed with the production private-repository check (no substitution): GitHub round trip between A and B; public Gitee repository refused through the connection endpoint with the configuration unchanged; route one (switch to an empty Gitee repository) with four sessions and attachments identical on both hosts and GitHub unchanged; route two (clone --bare and push refs/heads/* into a second empty Gitee repository) with five sessions identical and every copied branch kept. UI: 已连接同步仓库 and 在 Gitee 查看仓库 shown; 立即同步 succeeded; SSH address without a key rejected with the SSH-key message and the old address kept; HTTPS address saved with the confirmation message and 立即同步 committed and pushed to Gitee. One checkbox toggle during the walkthrough was an operator mis-click, recorded in remote-switch-ui.json. Not covered: two physical computers, GitLab, self-hosted hosts, Gitee over SSH.",
+      "reviewer": "Claude (agent run); release requested by maintainer 2026-10-30",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.21.1/remote-switch-real.json",
+          "sha256": "933d982e50a8f8d4152c8ac6c53f131ca1907d983bace1fb2f0f9722db9bba92"
+        },
+        {
+          "path": "release-evidence/0.21.1/remote-switch-ui.json",
+          "sha256": "b61250493d40c50efaf03e6f23244f3c2b314442b712216d90350b46c1647ed1"
+        }
+      ]
     },
     {
       "id": "upgrade-environments/source-review",

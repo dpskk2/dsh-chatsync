@@ -54,7 +54,7 @@ function harness(
   vm.runInNewContext(
     source.replace(
       'module.exports = {',
-      'module.exports = { testComponents: { RecoveryReadableVersion, RecoveryReadableComparison, RecoveryMarkdown, syncMessagePresentation, bubble, useSync, scrollDialogWheel, StorageOverview, SessionsDialog, SessionPreview, UsageDialog, HistoryDialog, BackupDialog, RemoteFilesDialog, WorkspaceHistoryRepair, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, SyncIssues, TransferLine, STYLE },',
+      'module.exports = { testComponents: { RecoveryReadableVersion, RecoveryReadableComparison, RecoveryMarkdown, syncMessagePresentation, bubble, useSync, scrollDialogWheel, StorageOverview, SessionsDialog, SessionPreview, UsageDialog, HistoryDialog, BackupDialog, RemoteFilesDialog, WorkspaceLocations, SidebarVisibilityProvider, SidebarVisibilityToggle, RepairPage, openRepairPage, GroupingRepairOverlay, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, SyncIssues, TransferLine, STYLE },',
     ),
     {
       window: {
@@ -1780,34 +1780,6 @@ test('daily and first setup headers always offer the sidebar visibility switch',
     await h.effects();
     assert.equal(all(h.render()).filter(n => n.type?.name === 'SidebarVisibilityToggle').length, 1);
   }
-});
-
-test('old project history offers a bound preview before any confirmed rebuild', async () => {
-  const calls = [];
-  const h = harness((url, options) => {
-    calls.push({ url, body: JSON.parse(options.body) });
-    return response(
-      url.endsWith('/preview')
-        ? { ok: true, previewId: 'bound-preview', message: '旧提交保留，项目和远端不变' }
-        : { ok: true, message: '请再次点击立即同步' },
-    );
-  }, 'WorkspaceHistoryRepair');
-  const props = { workspaceId: 'project-a' };
-  let tree = h.render(props);
-  assert.equal(calls.length, 0);
-  await all(tree)
-    .find(n => n.type === 'button')
-    .props.onClick();
-  tree = h.render(props);
-  assert.equal(calls.length, 1);
-  assert.deepEqual(calls[0].body, { workspaceId: 'project-a' });
-  assert.match(text(tree), /保留备份并重建待上传历史/);
-  await all(tree)
-    .find(n => n.type === 'button')
-    .props.onClick();
-  tree = h.render(props);
-  assert.deepEqual(calls[1].body, { previewId: 'bound-preview' });
-  assert.match(text(tree), /再次点击立即同步/);
 });
 
 const button = (tree, label) => all(tree).find(n => n.type === 'button' && text(n) === label);

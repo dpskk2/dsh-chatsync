@@ -34,7 +34,9 @@ DSH 宿主 ──apply(ctx)──► lib/index.js（组装）
 | `lib/merge.js` | 纯函数合并层：`classifyFile`、会话日志校验、字段级 LWW 合并、Cordis 补丁按条目合并 |
 | `lib/session-*.js`、`branch-history.js` | 会话格式校验、经宿主写入、分叉保留、恢复与停机修复、活动探测、删除回执 |
 | `lib/recovery.js` | 恢复记录：覆盖前保存原件，原子替换文件 |
-| `lib/privacy*.js`、`review.js` | 上传前的大小与敏感内容检查、脱敏副本、需要确认的传输预览 |
+| `lib/privacy*.js`、`review.js` | 上传前的疑似密钥提醒、脱敏副本、需要确认的传输预览 |
+| `lib/git-failure.js`、`network-check.js` | Git 网络错误分类（类别、原因、下一步、是否重试）；同步页的网络连接检测与代理命令 |
+| `lib/history-trim.js`、`host-limits.js` | 传输副本本机历史的截短与按需补回；托管站单文件上限（目前只有 GitHub 100 MB） |
 | `lib/data-health.js`、`local-storage.js`、`remote-cleanup.js` | 历史数据检查与修复、本地备份清理、远端残留文件清理 |
 | `src/client/` | 浏览器端界面源码：`00-`/`99-` 是模块加载器外壳，其余按文件名顺序拼接，经 `scripts/build-client.mjs` 生成 `lib/client.js` |
 | `types/`、`tsconfig.json` | 只用于 `tsc --checkJs` 类型检查，不进安装包 |

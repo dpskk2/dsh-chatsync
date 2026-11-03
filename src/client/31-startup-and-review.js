@@ -113,39 +113,6 @@ function StartupProgress({ progress, phase }) {
       : null,
   );
 }
-function WorkspaceHistoryRepair({ workspaceId }) {
-  const [preview, setPreview] = useState(null),
-    [message, setMessage] = useState(''),
-    [busy, setBusy] = useState(false);
-  const run = async () => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const result = await API.workspaceHistory(
-        preview ? 'apply' : 'preview',
-        preview ? { previewId: preview.previewId } : { workspaceId },
-      );
-      if (!result.ok) throw new Error(result.error);
-      setMessage(result.message);
-      setPreview(preview ? null : result);
-    } catch (error) {
-      setMessage(error.message);
-      setPreview(null);
-    } finally {
-      setBusy(false);
-    }
-  };
-  return e(
-    'div',
-    { className: 'dss-issue' },
-    e(
-      'button',
-      { type: 'button', className: 'dss-pill', disabled: busy, onClick: run },
-      busy ? '正在核对…' : preview ? '保留备份并重建待上传历史' : '处理项目旧历史中的大文件',
-    ),
-    message ? e('p', { role: 'status', className: 'dss-desc' }, message) : null,
-  );
-}
 function SyncIssues({ issues, detail }) {
   const [copied, setCopied] = useState('');
   if (!issues?.length) return null;
@@ -165,12 +132,24 @@ function SyncIssues({ issues, detail }) {
       e(
         'div',
         { className: 'dss-issue', key: index },
-        e('b', null, issue.scope || '同步'),
+        e('b', null, (issue.scope || '同步') + (issue.category ? ' · ' + issue.category : '')),
         e('div', null, issue.reason),
         issue.file
           ? e('code', null, issue.file + (issue.lines?.length ? ' · 第 ' + issue.lines.join('、') + ' 行' : ''))
           : null,
         e('div', { className: 'dss-startup-meta' }, issue.action),
+        issue.detail?.length
+          ? e(
+              'details',
+              null,
+              e('summary', null, 'Git 原文' + (issue.code ? ' · ' + issue.code : '')),
+              e(
+                'code',
+                { style: { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' } },
+                issue.detail.join(String.fromCharCode(10)),
+              ),
+            )
+          : null,
         issue.location
           ? e(
               'details',
@@ -186,13 +165,6 @@ function SyncIssues({ issues, detail }) {
           : null,
       ),
     ),
-    ...[
-      ...new Set(
-        (detail?.privacyReports || (detail?.privacy ? [detail.privacy] : []))
-          .filter(r => r.workspaceId && r.findings?.some(f => f.reasons?.includes('内容超过单文件扫描上限')))
-          .map(r => r.workspaceId),
-      ),
-    ].map(id => e(WorkspaceHistoryRepair, { key: id, workspaceId: id })),
     copied.startsWith('复制失败') ? e('div', { role: 'status' }, copied) : null,
     detail
       ? e(

@@ -120,33 +120,27 @@ test(
   },
 );
 
-test(
-  'a secret removed after a later large batch still blocks the whole unpublished history',
-  { timeout: 90000 },
-  async t => {
-    const { home, engine, remote } = gitFixture(t);
-    assert.equal(await engine.ensureRepo(engine.loadConfig()), true);
-    for (let i = 0; i < 6; i++)
-      fs.writeFileSync(path.join(home, 'large-' + i + '.txt'), Buffer.alloc(7 * 1024 * 1024, 65 + i));
-    fs.writeFileSync(path.join(home, 'history-secret.txt'), 'ghp_' + 'Z'.repeat(40));
-    assert.equal(engine.ok(await engine.git(['add', '.'])), true);
-    assert.equal(engine.ok(await engine.git(['commit', '-m', 'unpublished fixture'])), true);
-    fs.unlinkSync(path.join(home, 'history-secret.txt'));
-    assert.equal(engine.ok(await engine.git(['add', '.'])), true);
-    assert.equal(engine.ok(await engine.git(['commit', '-m', 'remove from working tree'])), true);
-    const report = await scanOutgoing(engine, 'main');
-    assert.ok(report.bytes > 32 * 1024 * 1024);
-    assert.ok(report.batches >= 6);
-    assert.ok(report.findings.some(f => f.file === 'history-secret.txt' && f.reasons.includes('GitHub 令牌格式')));
-    assert.ok(!JSON.stringify(report).includes('ZZZZ'));
-    const result = await engine.syncOnce('batch-secret', { forceCommit: true });
-    assert.match(result.error, /上传已暂停/);
-    assert.notEqual(
-      spawnSync('git', ['--git-dir', remote, 'rev-parse', '--verify', 'main'], { stdio: 'ignore' }).status,
-      0,
-    );
-  },
-);
+test('a secret in unpublished history is reported without holding back the upload', { timeout: 90000 }, async t => {
+  const { home, engine, remote } = gitFixture(t);
+  assert.equal(await engine.ensureRepo(engine.loadConfig()), true);
+  for (let i = 0; i < 6; i++)
+    fs.writeFileSync(path.join(home, 'large-' + i + '.txt'), Buffer.alloc(7 * 1024 * 1024, 65 + i));
+  fs.writeFileSync(path.join(home, 'history-secret.txt'), 'ghp_' + 'Z'.repeat(40));
+  assert.equal(engine.ok(await engine.git(['add', '.'])), true);
+  assert.equal(engine.ok(await engine.git(['commit', '-m', 'unpublished fixture'])), true);
+  fs.unlinkSync(path.join(home, 'history-secret.txt'));
+  assert.equal(engine.ok(await engine.git(['add', '.'])), true);
+  assert.equal(engine.ok(await engine.git(['commit', '-m', 'remove from working tree'])), true);
+  const report = await scanOutgoing(engine, 'main');
+  assert.ok(report.bytes > 32 * 1024 * 1024);
+  assert.ok(report.batches >= 6);
+  assert.ok(report.findings.some(f => f.file === 'history-secret.txt' && f.reasons.includes('GitHub 令牌格式')));
+  assert.ok(!JSON.stringify(report).includes('ZZZZ'));
+  const result = await engine.syncOnce('batch-secret', { forceCommit: true });
+  assert.equal(result.error, undefined, JSON.stringify(result));
+  assert.ok(result.privacy.findings.some(f => f.file === 'history-secret.txt'));
+  assert.equal(spawnSync('git', ['--git-dir', remote, 'rev-parse', '--verify', 'main'], { stdio: 'ignore' }).status, 0);
+});
 
 test(
   'more than 5000 objects are inspected and malformed or oversized batch output fails closed',
@@ -240,75 +234,42 @@ test('scanner reports categories only and distinguishes templates, private keys 
   assert.equal(inspectContent('.env.public', Buffer.from('ONLY_PUBLIC=true')).length, 1);
 });
 
-test(
-  'new sensitive history blocks the first upload even after the current file is removed',
-  { timeout: 60000 },
-  async t => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-privacy-'));
-    t.after(() => removeFixture(root));
-    const home = path.join(root, 'home'),
-      remote = path.join(root, 'remote.git');
-    fs.mkdirSync(home);
-    execFileSync('git', ['init', '--bare', remote], { stdio: 'ignore' });
-    const engine = new SyncEngine(home, { remote, autoRepo: false, workspaceSync: false });
-    engine.verifyPrivateRemote = async () => ({ ok: true });
-    fs.mkdirSync(path.join(home, 'attachments'));
-    fs.writeFileSync(path.join(home, 'attachments/.env'), 'PUBLIC=value');
-    fs.writeFileSync(path.join(home, 'attachments/note.txt'), 'PUBLIC=value');
-    const first = await engine.syncOnce('test', { forceCommit: true });
-    assert.match(first.error, /上传已暂停/);
-    assert.equal(
-      first.privacy.findings.some(f => f.file === 'attachments/.env'),
-      true,
-    );
-    assert.notEqual(
-      spawnSync('git', ['--git-dir', remote, 'rev-parse', '--verify', 'main'], { stdio: 'ignore' }).status,
-      0,
-    );
-    fs.unlinkSync(path.join(home, 'attachments/.env'));
-    const second = await engine.syncOnce('test', { forceCommit: true });
-    assert.match(second.error, /上传已暂停/);
-    assert.equal(
-      second.privacy.findings.some(f => f.file === 'attachments/.env'),
-      true,
-    );
-    assert.notEqual(
-      spawnSync('git', ['--git-dir', remote, 'rev-parse', '--verify', 'main'], { stdio: 'ignore' }).status,
-      0,
-    );
-    let uploads = 0;
-    const original = engine.gitSync.bind(engine);
-    engine.gitSync = args => {
-      if (args.includes('push')) uploads++;
-      return original(args);
-    };
-    engine.flushSync();
-    assert.equal(uploads, 0);
-  },
-);
+test('a sensitive file name is reported as a notice while the upload goes ahead', { timeout: 60000 }, async t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-privacy-'));
+  t.after(() => removeFixture(root));
+  const home = path.join(root, 'home'),
+    remote = path.join(root, 'remote.git');
+  fs.mkdirSync(home);
+  execFileSync('git', ['init', '--bare', remote], { stdio: 'ignore' });
+  const engine = new SyncEngine(home, { remote, autoRepo: false, workspaceSync: false });
+  engine.verifyPrivateRemote = async () => ({ ok: true });
+  fs.mkdirSync(path.join(home, 'attachments'));
+  fs.writeFileSync(path.join(home, 'attachments/.env'), 'PUBLIC=value');
+  fs.writeFileSync(path.join(home, 'attachments/note.txt'), 'PUBLIC=value');
+  const result = await engine.syncOnce('test', { forceCommit: true });
+  assert.equal(result.error, undefined, JSON.stringify(result));
+  assert.ok(result.privacy.findings.some(f => f.file === 'attachments/.env'));
+  assert.equal(spawnSync('git', ['--git-dir', remote, 'rev-parse', '--verify', 'main'], { stdio: 'ignore' }).status, 0);
+});
 
-test(
-  'oversized and undecodable blobs pause upload instead of silently skipping inspection',
-  { timeout: 60000 },
-  async t => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-privacy-size-'));
-    t.after(() => removeFixture(root));
-    const home = path.join(root, 'home'),
-      remote = path.join(root, 'remote.git');
-    fs.mkdirSync(home);
-    execFileSync('git', ['init', '--bare', remote], { stdio: 'ignore' });
-    const engine = new SyncEngine(home, { remote, autoRepo: false, workspaceSync: false });
-    engine.verifyPrivateRemote = async () => ({ ok: true });
-    fs.mkdirSync(path.join(home, 'attachments'));
-    fs.writeFileSync(path.join(home, 'attachments/large-note.txt'), Buffer.alloc(9 * 1024 * 1024, 65));
-    const result = await engine.syncOnce('test', { forceCommit: true });
-    assert.match(result.error, /上传已暂停/);
-    assert.ok(result.privacy.findings.some(finding => finding.file === 'attachments/large-note.txt'));
-    assert.notEqual(
-      spawnSync('git', ['--git-dir', remote, 'rev-parse', '--verify', 'main'], { stdio: 'ignore' }).status,
-      0,
-    );
-    assert.ok(inspectContent('session.jsonl.zstd', zstdCompressSync(Buffer.alloc(9 * 1024 * 1024, 65))).length > 0);
-    assert.ok(inspectContent('session.jsonl.zstd', Buffer.from([0x28, 0xb5, 0x2f, 0xfd, 0])).length > 0);
-  },
-);
+test('content too large to read is uploaded unchecked instead of pausing', { timeout: 60000 }, async t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-privacy-size-'));
+  t.after(() => removeFixture(root));
+  const home = path.join(root, 'home'),
+    remote = path.join(root, 'remote.git');
+  fs.mkdirSync(home);
+  execFileSync('git', ['init', '--bare', remote], { stdio: 'ignore' });
+  const engine = new SyncEngine(home, { remote, autoRepo: false, workspaceSync: false });
+  engine.verifyPrivateRemote = async () => ({ ok: true });
+  fs.mkdirSync(path.join(home, 'attachments'));
+  fs.writeFileSync(path.join(home, 'attachments/large-note.txt'), Buffer.alloc(9 * 1024 * 1024, 65));
+  const result = await engine.syncOnce('test', { forceCommit: true });
+  assert.equal(result.error, undefined, JSON.stringify(result));
+  assert.equal(result.privacy, undefined);
+  const size = execFileSync('git', ['--git-dir', remote, 'cat-file', '-s', 'main:attachments/large-note.txt'], {
+    encoding: 'utf8',
+  }).trim();
+  assert.equal(size, String(9 * 1024 * 1024));
+  assert.ok(inspectContent('session.jsonl.zstd', zstdCompressSync(Buffer.alloc(9 * 1024 * 1024, 65))).length > 0);
+  assert.ok(inspectContent('session.jsonl.zstd', Buffer.from([0x28, 0xb5, 0x2f, 0xfd, 0])).length > 0);
+});

@@ -101,7 +101,11 @@ test('retention, active repository, cross-process lock and explicit confirmation
   const active = path.dirname(scopeMirrorPath(h.home, h.engine.loadConfig()));
   fs.mkdirSync(active, { recursive: true });
   scan = await scanLocalStorage(h.engine);
-  assert.match(scan.items.find(row => row.path === active).reason, /当前/);
+  const activeRow = scan.items.find(row => row.path === active);
+  assert.equal(activeRow.reason, '同步使用中');
+  // The row names what the copy is for, not the folder's hash.
+  assert.match(activeRow.name, /^会话与设置 → /);
+  assert.ok(!activeRow.name.includes(path.basename(active)));
   const preview = await previewFile(h, file);
   await assert.rejects(applyStorageCleanup(h.engine, { token: preview.token }), /确认/);
   const release = h.engine.acquireProcessLock();

@@ -293,6 +293,7 @@ function Section(props) {
           !busy && status?.lastOk === false
             ? e(SyncIssues, { issues: status.lastDetail?.issues, detail: status.lastDetail })
             : null,
+          e(NetworkStatus, { busy, remote: status?.remote }),
           /* 上次结果明细:错误保留很久便于排障 */
           detail
             ? e(

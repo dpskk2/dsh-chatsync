@@ -12,12 +12,15 @@ function fmtBytes(b) {
 function lastDetailText(lastDetail) {
   if (!lastDetail) return '';
   const lines = [];
-  if (lastDetail.privacy?.findings?.length) {
-    lines.push('上传前检查已暂停：');
-    for (const finding of lastDetail.privacy.findings)
-      lines.push('  ' + finding.file + '：' + finding.reasons.join('、'));
-    lines.push('检查包含尚未上传的历史快照；仅删除当前文件或新增忽略规则不能移除已经提交的敏感内容。');
-  }
+  for (const report of lastDetail.privacyReports?.length
+    ? lastDetail.privacyReports
+    : lastDetail.privacy
+      ? [lastDetail.privacy]
+      : [])
+    for (const finding of report.findings || [])
+      lines.push('可能含密钥（已上传）: ' + finding.file + ' · ' + finding.reasons.join('、'));
+  for (const item of lastDetail.skippedLarge || [])
+    lines.push('未同步（超过 ' + item.limit + '）: ' + item.file + ' · ' + fmtBytes(item.size));
   const act = [];
   if (lastDetail.committed) act.push('提交');
   if (lastDetail.pushed) act.push('推送');
@@ -57,9 +60,12 @@ function lastDetailText(lastDetail) {
         lastDetail.backupBranch +
         (lastDetail.backupPushed === true ? '（已上传）' : '（仅在本机，上传失败）'),
     );
-  if (lastDetail.error)
+  if (lastDetail.failure) {
+    lines.push('会话与设置同步失败（' + lastDetail.failure.title + '）: ' + lastDetail.failure.reason);
+    for (const line of lastDetail.failure.detail || []) lines.push('  Git: ' + line);
+  } else if (lastDetail.error)
     lines.push(
-      (lastDetail.dataVerificationPending || lastDetail.dataRepairQueued ? '待处理: ' : '主数据错误: ') +
+      (lastDetail.dataVerificationPending || lastDetail.dataRepairQueued ? '待处理: ' : '会话与设置同步失败: ') +
         lastDetail.error,
     );
   if (lastDetail.workspaces) {

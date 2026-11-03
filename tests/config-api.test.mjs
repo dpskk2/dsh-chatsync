@@ -480,15 +480,6 @@ test('sidebar-only writes remain available during synchronization without allowi
   }
 });
 
-test('workspace history repair API requires an explicit POST preview and rejects arbitrary confirmation IDs', async t => {
-  const request = host(t);
-  assert.equal((await request('workspace-history/preview')).ok, false);
-  assert.equal((await request('workspace-history/apply', { previewId: '../../arbitrary' })).ok, false);
-  const result = await request('workspace-history/preview', { workspaceId: 'missing' });
-  assert.equal(result.ok, false);
-  assert.match(result.error, /连接仓库|项目/);
-});
-
 test('local storage API scans, saves retention and requires a concrete confirmed preview', async t => {
   let file;
   const request = host(t, {}, home => {

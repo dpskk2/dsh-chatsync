@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { SyncEngine } from '../lib/sync.js';
 import { checkWorkspaceSnapshotSizes, checkWorkspaceSnapshotSizesSync } from '../lib/privacy.js';
 import { removeFixture } from './helpers/fixture-cleanup.mjs';
@@ -83,14 +83,13 @@ test(
   },
 );
 
-test('compatibility: exit still prevents oversized snapshots before remote visibility has been verified', async t => {
+test('compatibility: exit snapshots keep large project files when the site sets no size limit', async t => {
   const f = fixture(t);
   await f.setup();
   f.engine._verifiedPrivateRemote = null;
   fs.writeFileSync(path.join(f.project, 'installer.bin'), large());
   f.engine.flushSync();
-  assert.equal(await f.engine.rev('HEAD', f.gitdir, f.project), null);
-  assert.equal(fs.statSync(path.join(f.project, 'installer.bin')).size, large().length);
+  assert.equal(f.local(['cat-file', '-s', 'HEAD:installer.bin']), String(large().length));
 });
 
 test('compatibility: project ignore and nested Git exclusions still take precedence over large-file checks', async t => {
@@ -116,31 +115,23 @@ test('compatibility: workspace disabled creates no mirror or snapshot even at ex
   assert.equal(fs.existsSync(f.gitdir), false);
 });
 
-test(
-  'compatibility: one blocked workspace does not block main data or another workspace',
-  { timeout: 30000 },
-  async t => {
-    const f = fixture(t),
-      healthy = path.join(f.root, 'healthy');
-    fs.mkdirSync(healthy);
-    const other = { id: 'healthy', title: 'Healthy project', path: healthy };
-    f.engine.workspaces = () => [f.ws, other];
-    fs.mkdirSync(path.join(f.home, 'attachments'));
-    fs.writeFileSync(path.join(f.home, 'attachments/note.txt'), 'main data\n');
-    fs.writeFileSync(path.join(healthy, 'note.txt'), 'healthy project\n');
-    fs.writeFileSync(path.join(f.project, 'installer.bin'), large());
-    const result = await f.engine.syncOnce('compatibility', { forceCommit: true });
-    assert.match(result.error, /上传已暂停/);
-    assert.equal(result.workspaces.synced, 1);
-    assert.equal(result.workspaces.errors.length, 1);
-    assert.equal(f.git(['--git-dir=' + f.remote, 'show', 'main:attachments/note.txt']), 'main data');
-    assert.equal(f.git(['--git-dir=' + f.remote, 'show', 'ws/healthy:note.txt']), 'healthy project');
-    assert.notEqual(
-      spawnSync('git', ['--git-dir=' + f.remote, 'rev-parse', '--verify', f.branch], { stdio: 'ignore' }).status,
-      0,
-    );
-  },
-);
+test('compatibility: a large project file syncs with main data and other projects', { timeout: 30000 }, async t => {
+  const f = fixture(t),
+    healthy = path.join(f.root, 'healthy');
+  fs.mkdirSync(healthy);
+  const other = { id: 'healthy', title: 'Healthy project', path: healthy };
+  f.engine.workspaces = () => [f.ws, other];
+  fs.mkdirSync(path.join(f.home, 'attachments'));
+  fs.writeFileSync(path.join(f.home, 'attachments/note.txt'), 'main data\n');
+  fs.writeFileSync(path.join(healthy, 'note.txt'), 'healthy project\n');
+  fs.writeFileSync(path.join(f.project, 'installer.bin'), large());
+  const result = await f.engine.syncOnce('compatibility', { forceCommit: true });
+  assert.equal(result.error, undefined, JSON.stringify(result));
+  assert.equal(result.workspaces.synced, 2);
+  assert.equal(f.git(['--git-dir=' + f.remote, 'show', 'main:attachments/note.txt']), 'main data');
+  assert.equal(f.git(['--git-dir=' + f.remote, 'show', 'ws/healthy:note.txt']), 'healthy project');
+  assert.equal(f.git(['--git-dir=' + f.remote, 'cat-file', '-s', f.branch + ':installer.bin']), String(large().length));
+});
 
 test('compatibility: raw Git failures explain the error without exposing credential values', async t => {
   const f = fixture(t),
@@ -168,7 +159,7 @@ test('compatibility: staged object metadata is checked in bounded batches, inclu
   assert.equal(f.local(['ls-files', '-z']).split('\0').filter(Boolean).length, 601);
 });
 
-test('compatibility: copying a previously uploaded large blob adds no new object, while editing its content is blocked', async t => {
+test('compatibility: copied and edited large files sync like any other file', async t => {
   const f = fixture(t);
   await f.setup();
   const original = path.join(f.project, 'legacy.bin');
@@ -179,11 +170,9 @@ test('compatibility: copying a previously uploaded large blob adds no new object
   fs.copyFileSync(original, path.join(f.project, 'copy.bin'));
   fs.renameSync(original, path.join(f.project, 'renamed.bin'));
   assert.deepEqual((await f.sync()).errors, []);
-  const head = f.local(['rev-parse', 'HEAD']);
   fs.writeFileSync(path.join(f.project, 'copy.bin'), Buffer.alloc(9 * 1024 * 1024, 1));
-  assert.match((await f.sync()).errors[0].error, /单文件检查上限/);
-  assert.equal(f.local(['rev-parse', 'HEAD']), head);
-  assert.equal(f.git(['--git-dir=' + f.remote, 'rev-parse', f.branch]), head);
+  assert.deepEqual((await f.sync()).errors, []);
+  assert.equal(f.git(['--git-dir=' + f.remote, 'rev-parse', f.branch]), f.local(['rev-parse', 'HEAD']));
 });
 
 test('compatibility: saved automation-off and explicit Git identity survive restart and manual sync', async t => {

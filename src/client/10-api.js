@@ -30,12 +30,6 @@ const API = {
   status: () => fetch('/dsh-sync/api/status').then(r => r.json()),
   grouping: () => fetch('/dsh-sync/api/grouping', { signal: AbortSignal.timeout(10000) }).then(r => r.json()),
   preview: () => fetch('/dsh-sync/api/preview').then(r => r.json()),
-  workspaceHistory: (action, body) =>
-    fetch('/dsh-sync/api/workspace-history/' + action, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    }).then(r => r.json()),
   recovery: () => fetch('/dsh-sync/api/recovery').then(r => r.json()),
   recoveryPreview: (id, offsets) =>
     fetch('/dsh-sync/api/recovery/preview', {
@@ -97,6 +91,7 @@ const API = {
       body: JSON.stringify(patch),
     }).then(r => r.json()),
   checkConnection: () => fetch('/dsh-sync/api/connection/check').then(r => r.json()),
+  network: () => fetch('/dsh-sync/api/network', { signal: AbortSignal.timeout(40000) }).then(r => r.json()),
   remoteCleanup: () => fetch('/dsh-sync/api/remote-cleanup').then(r => r.json()),
   repoUsage: () => fetch('/dsh-sync/api/repo-usage', { signal: AbortSignal.timeout(300000) }).then(r => r.json()),
   sessions: () => fetch('/dsh-sync/api/sessions').then(r => r.json()),
@@ -326,6 +321,7 @@ const STYLE = [
   '.dss-startup-kicker{font-size:12px;color:var(--dsw-alias-label-secondary,var(--dsw-alias-text-secondary,#687386));margin-bottom:8px}.dss-startup-dialog h2{margin-bottom:8px}.dss-startup-dialog .dss-startup-desc{margin-bottom:20px;color:var(--dsw-alias-label-secondary,var(--dsw-alias-text-secondary,#687386))}',
   '.dss-startup-panel{box-sizing:border-box;min-width:0;max-width:100%;padding:18px;border:1px solid var(--dsw-alias-border-l2,#d9dde3);border-radius:12px;margin-bottom:18px}.dss-startup-panel strong{display:block;margin-bottom:8px}.dss-startup-panel .dss-tx{font-size:14px;line-height:1.65;color:inherit;white-space:normal;overflow-wrap:anywhere;min-width:0;max-width:100%}.dss-startup-panel .dss-bar{height:8px;margin-top:12px;min-width:0;max-width:100%}.dss-startup-meta{margin-top:12px;font-size:12px;color:var(--dsw-alias-label-secondary,var(--dsw-alias-text-secondary,#687386))}',
   '.dss-startup-dialog details{margin:12px 0;font-size:12px}.dss-startup-dialog summary{cursor:pointer}.dss-startup-dialog details p{margin:10px 0 0}.dss-startup-actions{flex-direction:column}.dss-startup-actions button{width:100%;justify-content:center}',
+  '.dss-net{margin:0 0 16px;font-size:13px;line-height:1.65}.dss-net summary{cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}.dss-net summary .dss-link{margin-left:auto}.dss-net-dot{width:8px;height:8px;border-radius:50%;background:var(--dsw-alias-border-l2,#c4c9d4)}.dss-net-dot[data-route=proxy]{background:#16a34a}.dss-net-dot[data-route=direct]{background:#d97706}.dss-net-command{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;margin:8px 0 0}.dss-net-label{font-size:12px;color:var(--dsw-alias-label-secondary,#687386)}.dss-net-command code{min-width:0;font-size:12px;padding:6px 8px;border-radius:6px;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--dsw-alias-bg-l2,rgba(127,127,127,.12))}',
   '.dss-issue{padding:12px 0;border-top:1px solid var(--dsw-alias-border-l2,#d9dde3)}.dss-issue code{display:block;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:6px}.dss-issue .dss-pill{margin-top:8px}',
   '.dss-bar[aria-valuenow]{overflow:hidden}.dss-bar-pending{overflow:hidden;height:8px;background:var(--dsw-alias-border-l2,#d9dde3);border-radius:8px;margin:12px 0}.dss-bar-pending:after{content:"";display:block;width:35%;height:100%;background:#3979df;border-radius:8px;animation:dss-progress-pulse 1.5s ease-in-out infinite alternate}@keyframes dss-progress-pulse{from{transform:translateX(0)}to{transform:translateX(185%)}}@media(prefers-reduced-motion:reduce){.dss-bar-pending:after{animation:none}.dss-bar-in{transition:none}}',
   '.dss-startup-dialog .dss-pill:focus-visible{outline:2px solid #2563eb;outline-offset:3px}.dss-startup-dialog .dss-pill:disabled{background:#e5e7eb;border-color:#d1d5db;color:#4b5563;opacity:1;cursor:wait}',

@@ -751,7 +751,6 @@ function BackupDialog({ scan, busy, onClose, onRescan }) {
     Modal,
     {
       title: '本机存储明细',
-      note: '当前同步副本、恢复原件和旧版遗留分别列出。这里只管理本插件产生的材料；不会把应用运行时和其他插件算作备份。',
       wide: true,
       onClose,
     },

@@ -25,7 +25,15 @@ test(
     t.after(() => removeFixture(root));
     const remote = path.join(root, 'remote.git');
     execFileSync('git', ['init', '--bare', '--initial-branch=main', remote], { stdio: 'ignore' });
-    const bare = (...args) => execFileSync('git', ['--git-dir', remote, ...args], { encoding: 'utf8' }).trim();
+    // A fixed identity: CI runners have no global Git user for the hand-made commit below.
+    const bare = (...args) =>
+      execFileSync(
+        'git',
+        ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', '--git-dir', remote, ...args],
+        {
+          encoding: 'utf8',
+        },
+      ).trim();
     const home = path.join(root, 'a');
     fs.mkdirSync(home);
     const engine = acceptFixturePreviews(

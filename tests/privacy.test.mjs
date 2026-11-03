@@ -144,7 +144,7 @@ test('a secret in unpublished history is reported without holding back the uploa
 
 test(
   'more than 5000 objects are inspected and malformed or oversized batch output fails closed',
-  { timeout: process.platform === 'win32' ? 180000 : 90000 },
+  { timeout: process.platform === 'win32' ? 600000 : 90000 },
   async t => {
     // Windows runner filesystem setup exceeded 90s once. Keep all 5100 objects
     // and all negative assertions; product Git command timeouts remain unchanged.
@@ -155,9 +155,11 @@ test(
     const folder = path.join(home, 'many');
     fs.mkdirSync(folder);
     for (let i = 0; i < 5100; i++) fs.writeFileSync(path.join(folder, i + '.txt'), 'unique-' + i);
-    assert.equal(engine.ok(await engine.git(['add', '.'])), true);
+    // Fixture setup only: staging 5100 files took over the default 120 s on a slow Windows runner.
+    const setupMs = 300000;
+    assert.equal(engine.ok(await engine.git(['add', '.'], setupMs)), true);
     phase('created 5100 fixture files');
-    assert.equal(engine.ok(await engine.git(['commit', '-m', 'many fixture objects'])), true);
+    assert.equal(engine.ok(await engine.git(['commit', '-m', 'many fixture objects'], setupMs)), true);
     phase('committed fixture');
     engine.progress = { running: true, label: '准备上传测试内容…' };
     const report = await scanOutgoing(engine, 'main');

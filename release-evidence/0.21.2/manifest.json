@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 2,
+  "version": "0.21.2",
+  "build": "2026-11-04-release-0.21.2",
+  "tier": "patch",
+  "sourceSha256": "66eebcfa58e09435d0a4495f72ffa335aa2cc8e546e78ce8e9910c44393bb186",
+  "packageSha256": "d1c2aa2eeed895a9f7957e33a43127f59652913193d35bd958057700262974ab",
+  "checks": [
+    {
+      "id": "full-regression",
+      "status": "passed",
+      "completedAt": "2026-11-03T17:37:08.530Z",
+      "environment": "Windows 11 Home 10.0.26300; standalone Node.js 24.19.0; DSH Desktop 0.2.1-rc.5 built-in Electron 44.7.0 / Node.js 24.21.0",
+      "procedure": "Frozen source b8b0593. node scripts/check-runtime-regression.mjs with DSH_GUI_TEST_EXE set to the installed Desktop executable; node scripts/check-runtime-regression.mjs --desktop; npm run lint, format:check and typecheck on the same source",
+      "observed": "Standalone Node: 563 tests, 563 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. Desktop runtime: 563 tests, 563 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. ESLint, Prettier and tsc reported no findings.",
+      "reviewer": "Claude (agent run); release requested by maintainer 2026-11-04",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.21.2/regression.json",
+          "sha256": "c6b93bf0edd73cdf132876345a95847e02423aab249db62c37ada189400ef09d"
+        }
+      ]
+    },
+    {
+      "id": "candidate-install",
+      "status": "passed",
+      "completedAt": "2026-11-03T17:38:08.947Z",
+      "environment": "Isolated DSH Desktop host from the installed Desktop runtime (Electron 44.7.0, Node.js 24.21.0, DSH 0.2.1-rc.5); synthetic isolated home, no personal data",
+      "procedure": "Packed from a clean core.autocrlf=false clone of b8b0593 with npm 11.17.0 (npm pack --ignore-scripts; node scripts/pack-short-name.mjs). node scripts/check-local-package-desktop.mjs <candidate.tgz> <new outputs directory>, once for each package name, run from PowerShell",
+      "observed": "Both packages (@dpskk2/dsh-chatsync d1c2aa2eeed895a9f7957e33a43127f59652913193d35bd958057700262974ab, chatsync 9a6f837002a2a8798555e342b0c4b2ee7ec98df9d0975b6ff1a3e2013af20072) loaded through Desktop IPC with version 0.21.2 / build 2026-11-04-release-0.21.2; 76 runtime files and 2 locale files byte-identical to the committed source; public storage API read/write and cold restart read-back passed (4 checks each).",
+      "reviewer": "Claude (agent run); release requested by maintainer 2026-11-04",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.21.2/candidate-install-scoped.json",
+          "sha256": "d526c32000c07fc5540205d3ca16f9d439ba78d54e206de886b3580aa4539c58"
+        },
+        {
+          "path": "release-evidence/0.21.2/candidate-install-short.json",
+          "sha256": "e8993bad1f85dcfcc3c0ac905f7a9c30d9bec307f4ffceed9da9d9c9b8a24845"
+        }
+      ]
+    }
+  ],
+  "advisory": [
+    {
+      "id": "data-loss/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "data-loss/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "data-loss/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "data-loss/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "corruption-spread/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "corruption-spread/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "corruption-spread/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "corruption-spread/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "privacy/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "privacy/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "privacy/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "privacy/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "upgrade-environments/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "upgrade-environments/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "upgrade-environments/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "upgrade-environments/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "recovery/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "recovery/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "recovery/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "recovery/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "restore-drill",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    }
+  ]
+}

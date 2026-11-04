@@ -120,3 +120,99 @@ test('a Windows session on the remote no longer stops a macOS sync', { timeout: 
   assert.equal((await sync(windows)).error, undefined);
   assert.ok(fs.existsSync(path.join(windows.home, winFile)));
 });
+
+test('a macOS round keeps a Windows session in its project, archive and pins', { timeout: 180000 }, async t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-issue17-registry-'));
+  t.after(() => removeFixture(root));
+  const remote = path.join(root, 'remote.git');
+  execFileSync('git', ['init', '--bare', remote], { stdio: 'ignore' });
+  const posixCatalog = {
+    createRestore(header) {
+      if (typeof header.cwd === 'string' && !path.posix.isAbsolute(header.cwd))
+        throw new Error('format v4 header cwd must be absolute');
+      return { decodeRow() {}, finish: () => ({ header, events: [] }) };
+    },
+  };
+  const make = (name, hostPath, catalog) => {
+    const home = path.join(root, name);
+    fs.mkdirSync(home);
+    const engine = acceptFixturePreviews(
+      attachFixturePersistence(
+        new SyncEngine(home, {
+          remote,
+          autoRepo: false,
+          workspaceSync: false,
+          patches: false,
+          autoRestartAfterRepair: false,
+        }),
+      ),
+    );
+    engine.hostPath = hostPath;
+    if (catalog) engine.loadTransferCatalog = async () => catalog;
+    engine.verifyPrivateRemote = async () => ({ ok: true });
+    return engine;
+  };
+  const windows = make('windows', path.win32),
+    second = make('second-windows', path.win32),
+    mac = make('mac', path.posix, posixCatalog);
+  const put = (engine, id, cwd) => {
+    const rel = `sessions/default-workspace/${id}/session.v4.jsonl`;
+    fs.mkdirSync(path.dirname(path.join(engine.home, rel)), { recursive: true });
+    fs.writeFileSync(path.join(engine.home, rel), encode(sessionRows(id, cwd)));
+  };
+  const registryFile = engine => path.join(engine.home, 'storages', 'workspace.json');
+  const writeRegistry = (engine, data) => {
+    fs.mkdirSync(path.dirname(registryFile(engine)), { recursive: true });
+    fs.writeFileSync(registryFile(engine), JSON.stringify(data, null, 2));
+  };
+  const readRegistry = engine => JSON.parse(fs.readFileSync(registryFile(engine), 'utf8'));
+  const sharedRegistry = () =>
+    JSON.parse(
+      execFileSync('git', ['--git-dir=' + remote, 'show', 'main:storages/workspace.json'], { encoding: 'utf8' }),
+    );
+  const sync = async engine => {
+    const result = await engine.syncOnce('issue17-registry', { forceCommit: true });
+    assert.equal(result.error, undefined, JSON.stringify(result));
+    return result;
+  };
+  const grouped = 'session-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+    archived = 'session-dddddddd-dddd-dddd-dddd-dddddddddddd',
+    fromMac = 'session-cccccccc-cccc-cccc-cccc-cccccccccccc';
+
+  put(windows, grouped, winCwd);
+  put(windows, archived, winCwd);
+  writeRegistry(windows, {
+    global: { workspaceIds: ['ws-default'], archivedSessionIds: [archived], pinnedSessionIds: [archived] },
+    tables: { workspaces: { 'ws-default': { path: winCwd, title: 'default', sessionIds: [grouped, archived] } } },
+  });
+  await sync(windows);
+
+  // macOS imports neither Windows session and lists neither in its own registry.
+  const down = await sync(mac);
+  assert.deepEqual(down.sessionsForeign.map(s => s.id).sort(), [grouped, archived]);
+  assert.deepEqual(readRegistry(mac).tables.workspaces['ws-default'].sessionIds, []);
+  assert.deepEqual(readRegistry(mac).global.archivedSessionIds, []);
+
+  // The macOS host then records a session of its own and uploads its registry.
+  put(mac, fromMac, macCwd);
+  const local = readRegistry(mac);
+  local.tables.workspaces['ws-default'].sessionIds.push(fromMac);
+  writeRegistry(mac, local);
+  await sync(mac);
+  const shared = sharedRegistry();
+  assert.deepEqual(shared.tables.workspaces['ws-default'].sessionIds.sort(), [grouped, archived, fromMac].sort());
+  assert.deepEqual(shared.global.archivedSessionIds, [archived]);
+  assert.deepEqual(shared.global.pinnedSessionIds, [archived]);
+  assert.deepEqual(readRegistry(mac).tables.workspaces['ws-default'].sessionIds, [fromMac], 'macOS stays as it was');
+
+  // The Windows computer keeps its archive and pin; a second one sees the same grouping.
+  await sync(windows);
+  const own = readRegistry(windows);
+  assert.deepEqual(own.global.archivedSessionIds, [archived]);
+  assert.deepEqual(own.global.pinnedSessionIds, [archived]);
+  assert.deepEqual(own.tables.workspaces['ws-default'].sessionIds.sort(), [grouped, archived, fromMac].sort());
+  await sync(second);
+  const other = readRegistry(second);
+  assert.deepEqual(other.tables.workspaces['ws-default'].sessionIds.sort(), [grouped, archived, fromMac].sort());
+  assert.deepEqual(other.global.archivedSessionIds, [archived]);
+});

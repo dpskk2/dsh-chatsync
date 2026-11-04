@@ -20,7 +20,7 @@ const logOf = id => 'sessions/project/' + id + '/session.v4.jsonl';
 const cacheOf = id => 'storages/session_projcache/sessions/' + id + '.json';
 const log = id =>
   [
-    { type: 'session', version: 4, id, cwd: 'C:/project' },
+    { type: 'session', version: 4, id, cwd: path.resolve('/project') },
     { type: 'turn/start', seq: 0, time: 1, data: { turn: 1 } },
     { type: 'turn/end', seq: 1, time: 2, data: { turn: 1 } },
   ]

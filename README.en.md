@@ -100,7 +100,7 @@ git ls-remote https://gitee.com/username/dsh-sync.git
 2. Open **Sync** and use the default repository. For a custom repository, use the same repository and branch on both computers.
 3. After syncing to retrieve your data, check your sessions, attachments and project files, and configure this computer's model API keys. If prompted to restart, fully exit DSH and open it again.
 
-Other plugins and project dependencies need to be installed separately. If project folders are in different locations, adjust their local save locations in Sync settings. [Detailed guide](docs/getting-started.md#4-换台电脑接着使用)
+Other plugins and project dependencies need to be installed separately. If project folders are in different locations, adjust their local save locations in Sync settings. When Windows and macOS share a repository, macOS cannot open sessions created on Windows (their working folder is a Windows path); those sessions are not imported there and stay on the remote, and everything else keeps syncing. [Detailed guide](docs/getting-started.md#4-换台电脑接着使用)
 
 ## Everyday use
 

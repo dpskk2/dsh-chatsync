@@ -8,7 +8,7 @@ Your data stays in your own **private Git repository**: GitHub by default, or Gi
 
 [![npm](https://img.shields.io/npm/v/chatsync?color=2563eb)](https://www.npmjs.com/package/chatsync)
 [![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.2.0--rc.1-0f766e)](#compatibility)
-[![Desktop](https://img.shields.io/badge/Desktop-0.2.1--rc.3%20recommended-2563eb)](#compatibility)
+[![Desktop](https://img.shields.io/badge/Desktop-0.2.1--rc.5%20recommended-2563eb)](#compatibility)
 [![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A524-43853d)](#compatibility)
 [![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
 

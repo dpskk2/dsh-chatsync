@@ -122,8 +122,6 @@ function agentsCtx(sessions) {
 /** 没有 agents 服务的 ctx */
 const noAgentsCtx = { get: () => undefined };
 
-const IS_WIN = process.platform === 'win32';
-
 /**
  * 把进程伪装成 DSH Web 宿主(与 tests/restart-host.test.mjs 同法)。
  * 为什么需要:实现里守卫位于宿主判定**之后**,只有走到 Web 宿主路径才可能命中
@@ -231,10 +229,6 @@ test('无 agents 服务时用会话日志 mtime 判定活跃(窗口内活跃/窗
 });
 
 test('有活跃会话时 Web 宿主的 scheduleRestart 被守卫拦下(不创建 schtasks)', t => {
-  if (!IS_WIN) {
-    t.skip('isWebHostProcess 仅在 win32 生效');
-    return;
-  }
   const home = tempHome(t);
   const engine = new SyncEngine(home);
   const probeResult = { available: true, activeCount: 1, activeIds: ['s1'], source: 'agents', checkedAt: Date.now() };
@@ -261,10 +255,6 @@ test('有活跃会话时 Web 宿主的 scheduleRestart 被守卫拦下(不创建
 });
 
 test('用户已确认的手动重启(force:true)不受活跃会话守卫拦截(仍不会真调度)', t => {
-  if (!IS_WIN) {
-    t.skip('isWebHostProcess 仅在 win32 生效');
-    return;
-  }
   const home = tempHome(t);
   const engine = new SyncEngine(home);
   engine.setActiveSessionProbe(() => ({
@@ -284,10 +274,6 @@ test('用户已确认的手动重启(force:true)不受活跃会话守卫拦截(�
 });
 
 test('无活跃会话时不触发守卫(保持既有宿主判定)', t => {
-  if (!IS_WIN) {
-    t.skip('isWebHostProcess 仅在 win32 生效');
-    return;
-  }
   const home = tempHome(t);
   const engine = new SyncEngine(home);
   engine.setActiveSessionProbe(() => ({

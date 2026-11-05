@@ -375,24 +375,20 @@ function UpdateNotice(props) {
     .replace(/^#+\s+.*$/gm, '')
     .replace(/\*\*/g, '')
     .trim();
+  const onWindows = data.platform === undefined || data.platform === 'win32';
+  const shellName = onWindows ? ' PowerShell ' : '“终端”';
+  const updateStep =
+    data.hostKind === 'desktop'
+      ? '执行前先完全退出桌面应用（' + (onWindows ? '含托盘' : '按 Command+Q') + '），更新后重新打开。'
+      : '更新后重新启动 DSH。';
   const copy = async () => {
     try {
       await window.navigator.clipboard.writeText(data.command);
       setCopyFailed(false);
-      setFeedback(
-        '已复制更新代码，请打开 PowerShell 粘贴并按回车。' +
-          (data.hostKind === 'desktop'
-            ? '执行前先完全退出桌面应用（含托盘），更新后重新打开。'
-            : '更新后重新启动 DSH。'),
-      );
+      setFeedback('已复制更新代码，请打开' + shellName + '粘贴并按回车。' + updateStep);
     } catch {
       setCopyFailed(true);
-      setFeedback(
-        '复制失败，请手动复制下方代码，到 PowerShell 粘贴执行。' +
-          (data.hostKind === 'desktop'
-            ? '执行前先完全退出桌面应用（含托盘），更新后重新打开。'
-            : '更新后重新启动 DSH。'),
-      );
+      setFeedback('复制失败，请手动复制下方代码，到' + shellName + '粘贴执行。' + updateStep);
     }
   };
   const content = e(

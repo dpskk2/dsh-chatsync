@@ -33,7 +33,10 @@ test('repository setup notices external edits and replaces duplicate transport s
   git(['config', 'unrelated.setting', 'preserve this']);
   assert.equal(await engine.ensureRepo(cfg), true);
   assert.equal(git(['config', '--get', 'user.name']).trim(), cfg.gitUserName);
-  assert.equal(git(['config', '--local', '--get-all', 'credential.helper']).trim(), 'manager');
+  assert.equal(
+    git(['config', '--local', '--get-all', 'credential.helper']).trim(),
+    process.platform === 'darwin' ? 'osxkeychain' : 'manager',
+  );
   assert.equal(
     git(['config', '--local', '--get-all', 'remote.origin.fetch']).trim(),
     '+refs/heads/main:refs/remotes/origin/main',

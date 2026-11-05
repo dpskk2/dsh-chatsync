@@ -20,6 +20,8 @@ jobs:
         include:
           - os: ubuntu-latest
             runtime: node
+          - os: macos-latest
+            runtime: node
           - os: windows-latest
             runtime: node
           - os: windows-latest

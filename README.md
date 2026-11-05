@@ -28,11 +28,11 @@
 
 先准备能正常打开的 DSH 和 [Git](https://git-scm.com/downloads/)。同步仓库放在 GitHub（默认）时，还需要 [GitHub CLI](https://cli.github.com/) 和可访问 GitHub 的网络；放在 Gitee、GitLab 等其他托管站时不需要 GitHub CLI，见[其他 Git 托管站](docs/configuration.md#其他-git-托管站)。
 
-未手动指定代理时，同步优先使用环境变量，否则跟随当前 Windows 系统代理；更换系统代理端口无需重启。已保存的固定代理可以改为空或 `auto`，详见[代理配置](docs/configuration.md)。
+未手动指定代理时，同步优先使用环境变量，否则跟随当前 Windows 或 macOS 系统代理；更换系统代理端口无需重启。已保存的固定代理可以改为空或 `auto`，详见[代理配置](docs/configuration.md)。
 
 **推荐：在 DSH 中安装。** 打开「插件」→「添加插件」，输入 `chatsync`。
 
-也可使用 PowerShell 安装：
+也可使用命令行安装（Windows 用 PowerShell，macOS 用“终端”）：
 
 **Web 端：**
 
@@ -46,6 +46,14 @@ dsh plugin --profile web add chatsync
 
 ```powershell
 & "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add chatsync
+```
+
+**macOS 桌面端：**
+
+以下命令适用于安装在「应用程序」文件夹的情况，其他位置请调整路径。
+
+```bash
+"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" plugin --profile desktop add chatsync
 ```
 
 旧包名 `@dpskk2/dsh-chatsync` 继续提供同版本，原有安装可沿用，无需重复安装两个包名。
@@ -68,6 +76,12 @@ dsh plugin --profile web update chatsync
 
 ```powershell
 & "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync
+```
+
+**macOS 桌面端：**
+
+```bash
+"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" plugin --profile desktop update chatsync
 ```
 
 ## 第一次设置
@@ -100,7 +114,7 @@ git ls-remote https://gitee.com/用户名/dsh-sync.git
 2. 打开「同步」，使用默认仓库；自定义仓库时，两台电脑使用相同仓库与分支。
 3. 同步取回后，检查会话、附件和项目文件，配置本机模型 API 密钥。界面提示需要重启时，完全退出后重新打开。
 
-其他插件和项目依赖需另装；项目目录不同可在同步设置中调整本机保存位置。在 Windows 与 macOS 之间共用仓库时，macOS 打不开 Windows 上建的会话（工作目录是 Windows 路径），这类会话不导入、远端保留，不影响其他内容同步。[详细指南](docs/getting-started.md#4-换台电脑接着使用)
+其他插件和项目依赖需另装；项目目录不同可在同步设置中调整本机保存位置。在 Windows 与 macOS 之间共用仓库时，macOS 打不开 Windows 上建的会话（工作目录是 Windows 路径），这类会话不导入、远端保留，不影响其他内容同步。macOS 上建的会话可以导入 Windows 查看，继续对话前需要按提示换到本机项目。macOS 桌面端不支持自动重启，需要刷新会话列表时会提示手动退出再打开。[详细指南](docs/getting-started.md#4-换台电脑接着使用)
 
 ## 日常使用
 
@@ -132,7 +146,7 @@ git ls-remote https://gitee.com/用户名/dsh-sync.git
 
 ## 兼容性
 
-支持 DSH 的 Web 和 Windows 桌面端，最低 **0.2.0-rc.1**；桌面端推荐 **0.2.1-rc.3 或更新版**。独立运行要求 **Node.js 24 或更新版**，桌面端使用应用自带运行时。
+支持 DSH 的 Web 和 Windows、macOS 桌面端，最低 **0.2.0-rc.1**（macOS 没有真机验收记录，会话日志格式和设置已按 DSH 0.2.2-rc.1 的官方源码核对，见[文件说明](docs/dsh-file-catalog.md)）；桌面端推荐 **0.2.1-rc.3 或更新版**。独立运行要求 **Node.js 24 或更新版**，桌面端使用应用自带运行时。
 
 具体已验证与未覆盖范围见[本版验证记录](docs/release-0.21.2-validation.md)。
 

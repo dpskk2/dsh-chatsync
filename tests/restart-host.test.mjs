@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { isWebHostProcess, isDesktopHostProcess, SyncEngine } from '../lib/sync.js';
+import { desktopRestartSupported, isWebHostProcess, isDesktopHostProcess, SyncEngine } from '../lib/sync.js';
 
 test('the Web restart path is limited to the DSH Web host', () => {
   const bin = 'C:\\Users\\tanos\\AppData\\Roaming\\npm\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js';
@@ -17,7 +17,7 @@ test('the Web restart path is limited to the DSH Web host', () => {
     false,
   );
   assert.equal(isWebHostProcess(['node.exe', 'lib\\cli.mjs', 'web'], 'win32'), false);
-  assert.equal(isWebHostProcess(['node', bin, 'web'], 'linux'), false);
+  assert.equal(isWebHostProcess(['node', '/usr/local/lib/node_modules/@deepseek-ai/dsh/lib/bin.js', 'web']), true);
   const desktop = [
     'DeepSeek Harness.exe',
     'C:\\Programs\\DeepSeek Harness\\resources\\app.asar\\dsh\\node_modules\\@deepseek-ai\\dsh-desktop-host\\lib\\index.js',
@@ -26,6 +26,16 @@ test('the Web restart path is limited to the DSH Web host', () => {
   ];
   assert.equal(isDesktopHostProcess(desktop, 'win32'), true);
   assert.equal(isDesktopHostProcess(['node.exe', bin, 'web'], 'win32'), false);
+  // The arguments apps/desktop/src/host-process.ts passes on macOS.
+  const mac = [
+    '/Applications/DeepSeek Harness.app/Contents/Frameworks/DeepSeek Harness Helper.app/Contents/MacOS/DeepSeek Harness Helper',
+    '/Applications/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/node_modules/@deepseek-ai/dsh-desktop-host/lib/index.js',
+    '/Applications/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime',
+    '/Users/someone/.dsh/profiles/desktop',
+  ];
+  assert.equal(isDesktopHostProcess(mac), true);
+  assert.equal(desktopRestartSupported(mac, 'darwin'), false, 'restart relies on schtasks and PowerShell');
+  assert.equal(desktopRestartSupported(desktop, 'win32'), true);
 });
 
 test('standalone sync cannot schedule the Web restart task', () => {

@@ -44,6 +44,23 @@
 
 同步适配与验证边界见 [rc.3 适配记录](dsh-0.2.1-rc.3-adaptation.md)。兼容范围仍只有最低版本要求，此目录不是版本白名单。
 
+## DSH 0.2.2-rc.1 补充核对
+
+2026-11-05 对比官方发布标签 [`dsh-v0.2.1-rc.3`](https://github.com/deepseek-ai/deepseek-harness/tree/dsh-v0.2.1-rc.3)、`dsh-v0.2.1-rc.5` 与 [`dsh-v0.2.2-rc.1`](https://github.com/deepseek-ai/deepseek-harness/tree/dsh-v0.2.2-rc.1)（固定提交 `66491b05e3f05ad35bcdd4f6cd7ed26041d9e3db`），并用两个版本的官方会话格式包读取同一份合成会话。此项证据为发布源码核对和格式包实测。
+
+| 内容 | 结果 |
+| --- | --- |
+| 会话日志 | 仍是 V4 代，文件名和目录不变；0.2.1-rc.5 与 0.2.2-rc.1 认识的事件类型相同（62 种）。`docs/persistence-changes` 新增的 action-card 来源和 `incomplete` 标记都声明为同一版本的可选元数据 |
+| 分叉会话 | 普通分叉不含父会话时，继承的投递记录 0.2.2-rc.1 接受、0.2.1-rc.5 拒绝（`current-generation delivery marker names the wrong Session`）。这类会话传到旧版宿主时同步按校验失败停止，保留原件并提示更新 DSH |
+| 项目登记、投影缓存 | `storages/workspace.json` 仍是 `workspace` 第 2 版，字段不变；`session_projcache` 规格不变 |
+| 设置位置 | 仍是 `profiles/<环境>/cordis.patch.yml` 和数据目录下的 `cordis.patch.yml`，结构仍是按 id 的补丁列表。Include 改用 journal 写盘并会为无 id 的行写回生成的 id，这些写入发生在加载器自己的 `cordis.yml` 层；profile 根 Include 的运行时变更不再写回 |
+| 新增设置 | 模型服务商的 `maxRequestImages`、`imageOffloadCountQuantum` 为可选字段，按普通设置原样同步；未发现新增的凭据或代理字段。`DEFAULT_CONTEXT_WINDOW`、`DEFAULT_MAX_TOKENS`、`fs-observation-policy` 等默认值变化不写入用户文件 |
+| 随版本移除的条目 | `tool-subagent-list-agents`、`ui-deepseek-model-label-1017`、`tools` 等捆绑条目已移除或替换，用户补丁中指向旧条目的行只产生一条宿主警告，不影响启动；两台电脑 DSH 版本不同时设置本来就暂停互传 |
+| 不同步的新内容 | `schedule` 领域升到第 2 版、`change-request-states`、Computer Use 授权都不在同步范围内，留在各台电脑 |
+| macOS 桌面端 | 宿主进程参数和 Windows 一致；`/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh` 是自带命令行；桌面端启动时读取登录 shell 环境，因此 Homebrew 安装的 Git 和 GitHub CLI 能被找到 |
+
+已知会跨系统带过去的值：设置里的 MCP 命令、权限预设等可能含有本机路径，只有 `workspaceBase`、`home` 等已列出的字段按本机保留。这些值到另一种系统上可能不可用，需要在那台电脑上单独调整。
+
 ## 对比与恢复边界
 
 “预览双方原件”直接打开独立大窗口，可关闭或按 Esc 返回。左右按相同行高对齐，插入与删除以空白行补齐；红色 `−` 和绿色 `＋` 标出差异，滚动位置同步，并提供上一处、下一处差异。关闭只收起预览，不删除记录或改变同步结果。

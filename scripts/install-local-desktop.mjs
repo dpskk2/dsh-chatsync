@@ -51,6 +51,10 @@ function main() {
     packed.chatsyncBuild !== source.chatsyncBuild
   )
     throw new Error('安装包的名称、版本或构建与维护源码不符。');
+  if (process.platform !== 'win32')
+    throw new Error(
+      '这个脚本只适用于 Windows 桌面端。其他系统请在 DSH 的「插件 → 添加插件」安装，或按快速开始中的命令安装。',
+    );
   const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
   const cli = path.join(localAppData, 'Programs', 'DeepSeek Harness', 'resources', 'runtime', 'cli', 'bin', 'dsh.cmd');
   if (!fs.existsSync(cli)) throw new Error('未找到桌面端内置 DSH 安装命令。');

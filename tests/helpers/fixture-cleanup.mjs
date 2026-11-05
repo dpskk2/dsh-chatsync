@@ -12,7 +12,11 @@ import path from 'node:path';
 // readonly objects. Only teardown changes their permissions; product I/O keeps
 // using the host's normal filesystem and every assertion still runs.
 export function removeFixture(root) {
-  const resolved = path.resolve(root),
+  // The temp directory itself may sit behind a link (macOS: /var -> /private/var).
+  // Canonicalize only the parent, so a link at the root is still refused below.
+  const requested = path.resolve(root),
+    parent = path.dirname(requested),
+    resolved = path.join(fs.existsSync(parent) ? fs.realpathSync(parent) : parent, path.basename(requested)),
     temp = fs.realpathSync(os.tmpdir());
   const inside = value => {
     const relative = path.relative(temp, value);

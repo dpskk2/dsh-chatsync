@@ -80,7 +80,8 @@ test('local grouping diagnosis is available without a configured sync remote', a
 });
 
 function host(t, overrides = {}, inspect = () => {}) {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-config-api-'));
+  // Local-storage cleanup refuses linked paths, and macOS reaches temp through /var -> /private/var.
+  const home = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-config-api-')));
   const routes = new Map(),
     cleanup = [];
   t.after(() => {

@@ -17,7 +17,8 @@ import { digest } from '../lib/recovery.js';
 import { removeFixture } from './helpers/fixture-cleanup.mjs';
 
 function fixture(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-storage-'));
+  // Cleanup refuses any linked path component, and macOS reaches temp through /var -> /private/var.
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-storage-')));
   t.after(() => removeFixture(root));
   const home = path.join(root, 'home');
   fs.mkdirSync(home);
@@ -38,6 +39,21 @@ async function previewFile(h, file) {
   assert.equal(row.protected, false, row.reason);
   return previewStorageCleanup(h.engine, { ids: [row.id] });
 }
+test('a linked ancestor of the DSH home keeps every item protected', async t => {
+  const h = fixture(t),
+    link = path.join(h.root, 'linked');
+  fs.symlinkSync(h.root, link, process.platform === 'win32' ? 'junction' : 'dir');
+  const home = path.join(link, 'home'),
+    file = path.join(home, '.chatsync-local/config-history/fixture.json');
+  const engine = new SyncEngine(home, { autoRepo: false, workspaceSync: false, enabled: false });
+  saveStoragePolicy(engine, { retentionDays: 0 });
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, 'backup');
+  const row = (await scanLocalStorage(engine)).items.find(item => item.path === file);
+  assert.equal(row.protected, true);
+  assert.match(row.reason, /符号链接/);
+});
+
 test('cleanup deletes only previewed completed backups and leaves live files and pending records byte-identical', async t => {
   const h = fixture(t),
     live = h.put('attachments/keep.txt', 'attachment bytes');

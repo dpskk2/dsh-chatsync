@@ -213,7 +213,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
         e(
           'li',
           null,
-          '打开 Windows 终端运行下面的命令，按提示在浏览器授权：',
+          '打开终端（Windows 终端或 macOS 的“终端”）运行下面的命令，按提示在浏览器授权：',
           e('code', { className: 'dss-command' }, 'gh auth login --hostname github.com --git-protocol https --web'),
         ),
         e('li', null, '两台电脑登录同一 GitHub 账号，即可使用同一个默认仓库。'),
@@ -225,7 +225,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
         e(
           'li',
           null,
-          'HTTPS 地址：在终端运行一次下面的命令（换成你的仓库地址），在弹出的 Git 登录窗口输入该站的账号和密码或访问令牌，登录会保存在本机。',
+          'HTTPS 地址：在终端运行一次下面的命令（换成你的仓库地址），按 Git 的提示（Windows 弹出登录窗口，macOS 可能在终端里询问）输入该站的账号和密码或访问令牌，登录会保存在本机。',
           e('code', { className: 'dss-command' }, 'git ls-remote https://gitee.com/用户名/dsh-sync.git'),
         ),
         e(

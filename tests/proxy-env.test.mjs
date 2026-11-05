@@ -1,6 +1,63 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseWindowsProxy, readWindowsProxy, resolveProxyEnvironment } from '../lib/proxy-env.js';
+import {
+  parseMacProxy,
+  parseWindowsProxy,
+  readMacProxy,
+  readSystemProxy,
+  readWindowsProxy,
+  resolveProxyEnvironment,
+} from '../lib/proxy-env.js';
+
+const scutil = lines => '<dictionary> {\n' + lines.map(line => '  ' + line + '\n').join('') + '}\n';
+test('macOS system proxy comes from scutil and PAC scripts are not executed', () => {
+  assert.deepEqual(
+    parseMacProxy(
+      scutil([
+        'HTTPEnable : 1',
+        'HTTPPort : 7890',
+        'HTTPProxy : 127.0.0.1',
+        'HTTPSEnable : 1',
+        'HTTPSPort : 7891',
+        'HTTPSProxy : 127.0.0.1',
+      ]),
+    ),
+    { http: 'http://127.0.0.1:7890', https: 'http://127.0.0.1:7891' },
+  );
+  assert.deepEqual(parseMacProxy(scutil(['SOCKSEnable : 1', 'SOCKSPort : 1080', 'SOCKSProxy : 127.0.0.1'])), {
+    http: 'socks5://127.0.0.1:1080',
+    https: 'socks5://127.0.0.1:1080',
+  });
+  assert.deepEqual(parseMacProxy(scutil(['HTTPEnable : 0', 'HTTPPort : 7890', 'HTTPProxy : 127.0.0.1'])), {
+    http: '',
+    https: '',
+  });
+  assert.deepEqual(parseMacProxy(scutil(['ProxyAutoConfigEnable : 1', 'ProxyAutoConfigURLString : http://x/p.pac'])), {
+    http: '',
+    https: '',
+  });
+  let calls = 0;
+  const run = (exe, args) => {
+    calls++;
+    assert.equal(exe, '/usr/sbin/scutil');
+    assert.deepEqual(args, ['--proxy']);
+    return { status: 0, stdout: scutil(['HTTPSEnable : 1', 'HTTPSPort : 7890', 'HTTPSProxy : localhost']) };
+  };
+  assert.deepEqual(readMacProxy({ platform: 'win32', run }), {});
+  assert.equal(calls, 0);
+  assert.equal(readSystemProxy({ platform: 'darwin', run }).https, 'http://localhost:7890');
+  assert.deepEqual(readMacProxy({ platform: 'darwin', run: () => ({ status: 1 }) }), {});
+  assert.deepEqual(
+    readMacProxy({
+      platform: 'darwin',
+      run: () => {
+        throw new Error('unavailable');
+      },
+    }),
+    {},
+  );
+  assert.deepEqual(readSystemProxy({ platform: 'linux', run }), {});
+});
 
 const registry = (server, enabled = 1) => `\n ProxyEnable REG_DWORD 0x${enabled}\n ProxyServer REG_SZ ${server}\n`;
 

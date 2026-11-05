@@ -4,6 +4,28 @@
 
 从 [GitHub Release](https://github.com/dpskk2/dsh-chatsync/releases/latest) 下载已发布版本的 tgz 安装包和完整源码 ZIP，验证范围以该版本日志为准。0.21.0 当前为本机候选，尚未对外发布；本地检查不能代替物理双机验收。Web 与 Desktop 分别安装并重新打开。
 
+## macOS 与 Windows 的差异
+
+下表按功能列出 macOS 桌面端的情况。Web 端除自动重启外与桌面端相同。macOS 没有真机验收记录，自动测试在 GitHub 的 macOS 环境运行。
+
+| 功能 | macOS 上 |
+| --- | --- |
+| 同步会话、附件、设置、指令与技能、项目文件；同步仓库与本机存储；找回同步前的内容 | 相同 |
+| 启动时取回、退出时上传 | 相同 |
+| 确认过的修复在退出 DSH 后执行 | 相同，也会等 DSH 完全退出 |
+| 命令行修复（`node lib/cli.mjs`） | 相同，用 `ps` 确认 DSH 已退出 |
+| 插件更新命令 | 指向当前运行的 `DeepSeek Harness.app` 内的命令行，在“终端”中执行，执行前按 Command+Q 退出 |
+| 自动使用系统代理 | 读取 macOS 系统代理（`scutil --proxy`）；和 Windows 一样不执行 PAC 脚本 |
+| Git 登录 | 使用 GitHub CLI 或“钥匙串”（`osxkeychain`），不使用 Git Credential Manager |
+| 桌面端自动重启、「关闭并修复」 | **不提供。** 需要刷新会话列表时提示手动退出再打开；「关闭并修复」按钮不显示，修复在退出后自动执行 |
+| 本地安装脚本 `install-local-desktop.mjs` | **不提供。** 用「添加插件」，或用 `app` 内的 `dsh` 命令安装 |
+| 打开 Windows 上建的会话 | **不能。** 宿主不接受另一种系统的工作目录，这类会话不导入、远端保留，同步不受影响 |
+
+macOS 与 Windows 共用仓库时还有两个边界：
+
+- `.DS_Store`、`._*`、`Thumbs.db`、`desktop.ini` 不同步。
+- macOS 允许但 Windows 不允许的文件名（含 `?`、`*`、`:` 等，或以点或空格结尾）：指令与技能里的这类新文件留在本机，并在上次同步详情中列出；项目文件中的这类文件会让 Windows 上这个项目的同步报错，需要改名。
+
 ## 1. 安装本地包
 
 先解压完整源码 ZIP，把同批提供的安装包（如 `dpskk2-dsh-chatsync-0.21.0.tgz`）放到源码目录的 `outputs/` 下。桌面端可在源码目录打开 PowerShell，运行随源码提供的备份安装脚本。已安装 Node.js 24 时：

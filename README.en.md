@@ -28,11 +28,11 @@ Your data stays in your own **private Git repository**: GitHub by default, or Gi
 
 First, make sure DSH opens normally. Install [Git](https://git-scm.com/downloads/). When the sync repository is on GitHub (the default), also install [GitHub CLI](https://cli.github.com/) and use a network connection that can reach GitHub. Other Git hosts such as Gitee or GitLab do not need GitHub CLI; see [Other Git hosts](docs/configuration.md#其他-git-托管站).
 
-Without a manually specified proxy, sync uses proxy environment variables first, then the current Windows system proxy. Changing the Windows proxy port requires no restart. Set a previously saved fixed proxy to an empty string or `auto` to enable automatic selection; see [proxy configuration](docs/configuration.md).
+Without a manually specified proxy, sync uses proxy environment variables first, then the current Windows or macOS system proxy. Changing the system proxy port requires no restart. Set a previously saved fixed proxy to an empty string or `auto` to enable automatic selection; see [proxy configuration](docs/configuration.md).
 
 **Recommended: install in DSH.** Open **Plugins → Add Plugin** and enter `chatsync`.
 
-You can also install from PowerShell:
+You can also install from the command line (PowerShell on Windows, Terminal on macOS):
 
 **Web:**
 
@@ -46,6 +46,14 @@ This command uses the default installation location. Adjust the path if you inst
 
 ```powershell
 & "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add chatsync
+```
+
+**macOS Desktop:**
+
+This command assumes DSH is in the Applications folder. Adjust the path if it is elsewhere.
+
+```bash
+"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" plugin --profile desktop add chatsync
 ```
 
 The previous package name, `@dpskk2/dsh-chatsync`, continues to receive the same versions. Existing installations can keep using it; there is no need to install both names.
@@ -68,6 +76,12 @@ This command uses the default installation location. Adjust the path if you inst
 
 ```powershell
 & "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync
+```
+
+**macOS Desktop:**
+
+```bash
+"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" plugin --profile desktop update chatsync
 ```
 
 ## First setup
@@ -100,7 +114,7 @@ git ls-remote https://gitee.com/username/dsh-sync.git
 2. Open **Sync** and use the default repository. For a custom repository, use the same repository and branch on both computers.
 3. After syncing to retrieve your data, check your sessions, attachments and project files, and configure this computer's model API keys. If prompted to restart, fully exit DSH and open it again.
 
-Other plugins and project dependencies need to be installed separately. If project folders are in different locations, adjust their local save locations in Sync settings. When Windows and macOS share a repository, macOS cannot open sessions created on Windows (their working folder is a Windows path); those sessions are not imported there and stay on the remote, and everything else keeps syncing. [Detailed guide](docs/getting-started.md#4-换台电脑接着使用)
+Other plugins and project dependencies need to be installed separately. If project folders are in different locations, adjust their local save locations in Sync settings. When Windows and macOS share a repository, macOS cannot open sessions created on Windows (their working folder is a Windows path); those sessions are not imported there and stay on the remote, and everything else keeps syncing. Sessions created on macOS can be imported into Windows for reading; continuing one requires moving it to a local project when prompted. macOS Desktop does not restart automatically: when the session list needs refreshing you are asked to quit and reopen it. [Detailed guide](docs/getting-started.md#4-换台电脑接着使用)
 
 ## Everyday use
 
@@ -132,7 +146,7 @@ Migration originals can be cleaned manually after verification and archiving of 
 
 ## Compatibility
 
-Supports DSH Web and Windows Desktop, with a minimum version of **0.2.0-rc.1**. **Desktop 0.2.1-rc.3 or newer is recommended**. Standalone use requires **Node.js 24 or newer**; Desktop uses its bundled runtime.
+Supports DSH Web and Windows and macOS Desktop, with a minimum version of **0.2.0-rc.1** (macOS has no real-device acceptance record; the session log format and settings were reviewed against the official DSH 0.2.2-rc.1 source, see [file notes](docs/dsh-file-catalog.md)). **Desktop 0.2.1-rc.3 or newer is recommended**. Standalone use requires **Node.js 24 or newer**; Desktop uses its bundled runtime.
 
 See the [version validation record](docs/release-0.21.2-validation.md) for the environments actually tested and the remaining gaps.
 

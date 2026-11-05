@@ -16,8 +16,20 @@ test('update commands pin the advertised version and official registry without d
     'dsh plugin --profile web update @dpskk2/dsh-chatsync@0.21.0 --registry=https://registry.npmjs.org/',
   );
   assert.equal(
-    updateCommand('desktop', '0.21.0'),
+    updateCommand('desktop', '0.21.0', { platform: 'win32' }),
     '& "$env:LOCALAPPDATA\\Programs\\DeepSeek Harness\\resources\\runtime\\cli\\bin\\dsh.cmd" plugin --profile desktop update @dpskk2/dsh-chatsync@0.21.0 --registry=https://registry.npmjs.org/',
+  );
+  assert.equal(
+    updateCommand('desktop', '0.21.0', {
+      platform: 'darwin',
+      execPath:
+        '/Volumes/Apps/DeepSeek Harness.app/Contents/Frameworks/DeepSeek Harness Helper.app/Contents/MacOS/DeepSeek Harness Helper',
+    }),
+    '"/Volumes/Apps/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" plugin --profile desktop update @dpskk2/dsh-chatsync@0.21.0 --registry=https://registry.npmjs.org/',
+  );
+  assert.match(
+    updateCommand('desktop', '0.21.0', { platform: 'darwin', execPath: '/usr/local/bin/node' }),
+    /^"\/Applications\/DeepSeek Harness\.app\/Contents\/Resources\/runtime\/cli\/bin\/dsh" plugin --profile desktop update /,
   );
   for (const version of [undefined, '', 'latest', '0.21.0-beta.1', '0.21.0;whoami', '0.21.0\n']) {
     assert.throws(() => updateCommand('desktop', version));
@@ -30,6 +42,7 @@ test('a newly advertised version is hidden until its own install tarball is avai
     heads = 0;
   const check = createUpdateChecker({
     version: '0.20.0',
+    platform: 'win32',
     now: () => time,
     fetchImpl: async (url, options) => {
       if (url.endsWith('.tgz')) {

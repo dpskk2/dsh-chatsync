@@ -20,7 +20,7 @@ function lastDetailText(lastDetail) {
     for (const finding of report.findings || [])
       lines.push('可能含密钥（已上传）: ' + finding.file + ' · ' + finding.reasons.join('、'));
   for (const item of lastDetail.skippedLarge || [])
-    lines.push('未同步（超过 ' + item.limit + '）: ' + item.file + ' · ' + fmtBytes(item.size));
+    lines.push('未同步（' + (item.reason || '超过 ' + item.limit) + '）: ' + item.file + ' · ' + fmtBytes(item.size));
   const act = [];
   if (lastDetail.committed) act.push('提交');
   if (lastDetail.pushed) act.push('推送');

@@ -90,7 +90,7 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-session-format-catalog": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-session-format-catalog": "0.2.2-rc.1",
     "@eslint/js": "10.0.1",
     "@types/node": "24.19.2",
     "eslint": "10.13.0",

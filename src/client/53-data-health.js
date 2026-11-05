@@ -400,20 +400,24 @@ function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, group
             },
             '取消修复安排',
           ),
-          e(
-            'button',
-            {
-              type: 'button',
-              className: 'dss-pill',
-              disabled: busy || pending,
-              onClick: async () => {
-                if (!window.confirm('现在关闭桌面应用，应用已确认的修复，再重新打开？请先结束当前对话。')) return;
-                const d = await perform(() => API.dataRepair('restart'));
-                if (d) setMessage(d.hint);
-              },
-            },
-            '关闭并修复（桌面端）',
-          ),
+          // Closing and reopening the app exists only on Windows Desktop. Everywhere else
+          // the queued repair runs by itself once the person quits DSH.
+          scan.closeAndRepair
+            ? e(
+                'button',
+                {
+                  type: 'button',
+                  className: 'dss-pill',
+                  disabled: busy || pending,
+                  onClick: async () => {
+                    if (!window.confirm('现在关闭桌面应用，应用已确认的修复，再重新打开？请先结束当前对话。')) return;
+                    const d = await perform(() => API.dataRepair('restart'));
+                    if (d) setMessage(d.hint);
+                  },
+                },
+                '关闭并修复（桌面端）',
+              )
+            : null,
         )
       : null,
     message ? e('p', { role: 'status' }, message) : null,

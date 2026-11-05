@@ -29,3 +29,27 @@ test('fixture teardown removes readonly Git objects, preserves junction targets 
   assert.equal(fs.existsSync(root), false);
   assert.equal(fs.readFileSync(path.join(outside, 'original.txt'), 'utf8'), 'outside stays unchanged');
 });
+
+test('fixture teardown works when the temp directory is reached through a link, as on macOS', t => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-cleanup-base-'));
+  t.after(() => removeFixture(base));
+  const target = path.join(base, 'target'),
+    link = path.join(base, 'link');
+  fs.mkdirSync(target);
+  fs.symlinkSync(target, link, process.platform === 'win32' ? 'junction' : 'dir');
+  const names = ['TMPDIR', 'TMP', 'TEMP'],
+    saved = names.map(name => process.env[name]);
+  for (const name of names) process.env[name] = link;
+  try {
+    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-cleanup-linked-'));
+    assert.ok(fixture.startsWith(link));
+    removeFixture(fixture);
+    assert.equal(fs.existsSync(fixture), false);
+    assert.throws(() => removeFixture(link), /non-fixture/);
+  } finally {
+    names.forEach((name, index) => {
+      if (saved[index] === undefined) delete process.env[name];
+      else process.env[name] = saved[index];
+    });
+  }
+});

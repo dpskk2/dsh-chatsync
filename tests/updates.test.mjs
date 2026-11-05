@@ -42,7 +42,6 @@ test('a newly advertised version is hidden until its own install tarball is avai
     heads = 0;
   const check = createUpdateChecker({
     version: '0.20.0',
-    platform: 'win32',
     now: () => time,
     fetchImpl: async (url, options) => {
       if (url.endsWith('.tgz')) {
@@ -110,6 +109,7 @@ test('checks npm latest and matching release, shares requests and caches for six
     time = 1000;
   const check = createUpdateChecker({
     version: '0.20.0',
+    platform: 'win32',
     now: () => time,
     fetchImpl: async (url, options) => {
       calls++;
@@ -129,6 +129,7 @@ test('checks npm latest and matching release, shares requests and caches for six
   assert.equal(web.notes, '更新内容');
   assert.equal(web.command, updateCommand('web', '0.21.0'));
   assert.match(desktop.command, /LOCALAPPDATA.*dsh.cmd.*--profile desktop/);
+  assert.equal(desktop.platform, 'win32');
   assert.equal(web.releaseUrl, 'https://github.com/dpskk2/dsh-chatsync/releases/tag/v0.21.0');
   await check();
   assert.equal(calls, 3);

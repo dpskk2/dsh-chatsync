@@ -54,13 +54,25 @@ test('disk membership cannot hide a stale sidebar index; archives and blanks sta
   assert.deepEqual(h.engine.ungroupedSessionIds(), []);
 });
 
-test('a missing or mismatched cwd is reported without repeated automatic restarts', t => {
+test('a mismatched cwd is reported without an automatic restart', t => {
   const h = fixture(t);
-  h.engine.sessionCwdOf = () => path.join(h.engine.home, 'missing');
+  h.engine.sessionCwdOf = () => os.tmpdir();
   assert.deepEqual(h.engine.hostGroupingState().ungroupedIds, ['a']);
   assert.deepEqual(h.engine.hostGroupingState().refreshableIds, []);
   assert.equal(h.engine.maybeScheduleRepairRestart({ restartRequired: true }), false);
   assert.equal(h.scheduled(), 0);
+});
+
+test('a session whose folder is not on this computer appears in its project after a restart', t => {
+  const h = fixture(t);
+  h.engine.sessionCwdOf = () => path.join(h.engine.home, 'missing');
+  assert.deepEqual(h.engine.hostGroupingState().refreshableIds, ['a']);
+  assert.equal(groupingRepairStatus(h.engine).refreshOnly, true);
+  assert.equal(h.engine.maybeScheduleRepairRestart({ restartRequired: true }), true);
+  assert.equal(h.scheduled(), 1);
+  // The host only treats a fully qualified path as a missing folder.
+  h.engine.sessionCwdOf = () => 'relative/missing';
+  assert.deepEqual(h.engine.hostGroupingState().refreshableIds, []);
 });
 
 test('live unarchive is detected before disk persistence and before project membership exists', t => {

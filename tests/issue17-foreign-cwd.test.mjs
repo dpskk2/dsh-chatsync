@@ -32,22 +32,31 @@ test('only an absolute path of the other OS counts as foreign', () => {
   assert.equal(foreignSessionCwd(undefined, path.posix), null);
 });
 
-test(
-  'the official codec still checks a foreign session, with only its cwd projected',
-  { skip: process.platform === 'win32' && 'the host accepts both path styles on Windows' },
-  async () => {
-    const engine = { loadTransferCatalog: async () => sessionFormatCatalog };
-    const id = 'session-17171717-1717-1717-1717-171717171717',
-      file = `sessions/x/${id}/session.v4.jsonl`;
-    const good = encode(sessionRows(id, winCwd));
-    assert.throws(() => decodeRecoverySession(good, sessionFormatCatalog), /cwd must be absolute/);
-    assert.deepEqual(await validateTransferSession(engine, file, good), { foreign: winCwd });
-    const bad = encode([sessionRows(id, winCwd)[0], { seq: 0, time: 1, type: 'step/end', data: { turn: 1, step: 1 } }]);
-    await assert.rejects(validateTransferSession(engine, file, bad), /step\/end/);
-    const applied = await applySessionTransfer(engine, file, good);
-    assert.equal(applied.reason, 'foreign-platform-session');
-  },
-);
+test('the official codec still checks a foreign session, with only its cwd projected', async () => {
+  // The host is fixed as macOS on every test OS. Only the direct decode below follows
+  // the real OS, because the official codec accepts both path styles on Windows.
+  const engine = { hostPath: path.posix, loadTransferCatalog: async () => sessionFormatCatalog };
+  const id = 'session-17171717-1717-1717-1717-171717171717',
+    file = `sessions/x/${id}/session.v4.jsonl`;
+  const good = encode(sessionRows(id, winCwd));
+  if (process.platform === 'win32') assert.equal(decodeRecoverySession(good, sessionFormatCatalog).header.cwd, winCwd);
+  else assert.throws(() => decodeRecoverySession(good, sessionFormatCatalog), /cwd must be absolute/);
+  assert.deepEqual(await validateTransferSession(engine, file, good), { foreign: winCwd });
+  const bad = encode([sessionRows(id, winCwd)[0], { seq: 0, time: 1, type: 'step/end', data: { turn: 1, step: 1 } }]);
+  await assert.rejects(validateTransferSession(engine, file, bad), /step\/end/);
+  const applied = await applySessionTransfer(engine, file, good);
+  assert.equal(applied.reason, 'foreign-platform-session');
+});
+
+test('on a Windows host a macOS session is an ordinary session, and damage is still refused', async () => {
+  const engine = { hostPath: path.win32, loadTransferCatalog: async () => sessionFormatCatalog };
+  const id = 'session-18181818-1818-1818-1818-181818181818',
+    file = `sessions/x/${id}/session.v4.jsonl`;
+  // POSIX test machines cannot decode a Windows-style projection, so use the session's own POSIX cwd.
+  assert.equal(await validateTransferSession(engine, file, encode(sessionRows(id, macCwd))), undefined);
+  const bad = encode([sessionRows(id, macCwd)[0], { seq: 0, time: 1, type: 'step/end', data: { turn: 1, step: 1 } }]);
+  await assert.rejects(validateTransferSession(engine, file, bad), /step\/end/);
+});
 
 test('a Windows session on the remote no longer stops a macOS sync', { timeout: 120000 }, async t => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-issue17-'));

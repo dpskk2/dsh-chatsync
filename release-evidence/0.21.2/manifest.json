@@ -13,7 +13,7 @@
       "environment": "Windows 11 Home 10.0.26300; standalone Node.js 24.19.0; DSH Desktop 0.2.2-rc.1 built-in Electron 44.7.0 / Node.js 24.21.0",
       "procedure": "Frozen source d26535e. node scripts/check-runtime-regression.mjs with DSH_GUI_TEST_EXE set to the installed Desktop executable; node scripts/check-runtime-regression.mjs --desktop; npm run lint, format:check and typecheck on the same source",
       "observed": "Standalone Node: 589 tests, 589 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. Desktop runtime: 589 tests, 589 passed, 0 failed, 0 cancelled, 0 skipped, exit 0. ESLint, Prettier and tsc reported no findings. Four earlier attempts were not passes and are listed in regression.json, including one unexplained failure of an R3 case that did not recur in 5 repeats or in the final run.",
-      "reviewer": "Claude (agent run); release requested by maintainer 2026-11-05; UI wording accepted by maintainer from an HTML mock-up on 2026-11-06",
+      "reviewer": "Claude (agent run); release requested by maintainer 2026-11-05; UI wording accepted by maintainer from an HTML mock-up on 2026-11-05",
       "artifacts": [
         {
           "path": "release-evidence/0.21.2/regression.json",
@@ -28,7 +28,7 @@
       "environment": "Isolated DSH Desktop host from the installed Desktop runtime (Electron 44.7.0, Node.js 24.21.0, DSH 0.2.2-rc.1); synthetic isolated home, no personal data",
       "procedure": "Packed from a clean core.autocrlf=false clone of d26535e with npm 11.17.0 (npm pack --ignore-scripts; node scripts/pack-short-name.mjs). node scripts/check-local-package-desktop.mjs <candidate.tgz> <new outputs directory>, once for each package name, run from PowerShell",
       "observed": "Both packages (@dpskk2/dsh-chatsync a1f812d3f2276e1584c75dab6923f58ca4982256bed61f1e92d7146e77f316c3, chatsync 053f502997cb5515dc3d7d4f6d3374fc54c9d62074b051bef3f99f0f45369962) loaded through Desktop IPC with version 0.21.2 / build 2026-11-06-release-0.21.2; 77 runtime files and 2 locale files byte-identical to the committed source; public storage API read/write and cold restart read-back passed (4 checks each). One physical machine; GitHub and a native Desktop window were not used.",
-      "reviewer": "Claude (agent run); release requested by maintainer 2026-11-05; UI wording accepted by maintainer from an HTML mock-up on 2026-11-06",
+      "reviewer": "Claude (agent run); release requested by maintainer 2026-11-05; UI wording accepted by maintainer from an HTML mock-up on 2026-11-05",
       "artifacts": [
         {
           "path": "release-evidence/0.21.2/candidate-install-scoped.json",

@@ -1,0 +1,79 @@
+{
+  "sourceCommit": "d26535efb0838d15c785b0ed43e2a02696d7510d",
+  "sourceSha256": "1abd76bdcdfc2d8ce1cf8c56979795e91453fb45edd4c580b37b49d7a5a73c19",
+  "command": "node scripts/check-runtime-regression.mjs (standalone, DSH_GUI_TEST_EXE=<Desktop exe>) and node scripts/check-runtime-regression.mjs --desktop; then npm run lint, npm run format:check, npm run typecheck",
+  "standalone": {
+    "ok": true,
+    "completedAt": "2026-11-05T16:39:29.345Z",
+    "elapsedSeconds": 666.373,
+    "productVersion": "0.21.2",
+    "productBuild": "2026-11-06-release-0.21.2",
+    "testFileConcurrency": 2,
+    "runtime": {
+      "node": "24.19.0",
+      "platform": "win32"
+    },
+    "suite": {
+      "code": 0,
+      "tests": 589,
+      "passed": 589,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  },
+  "desktop": {
+    "ok": true,
+    "completedAt": "2026-11-06T00:45:00.541Z",
+    "elapsedSeconds": 898.478,
+    "productVersion": "0.21.2",
+    "productBuild": "2026-11-06-release-0.21.2",
+    "testFileConcurrency": 2,
+    "runtime": {
+      "node": "24.21.0",
+      "electron": "44.7.0",
+      "platform": "win32"
+    },
+    "suite": {
+      "code": 0,
+      "tests": 589,
+      "passed": 589,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  },
+  "staticChecks": {
+    "eslint": "pass",
+    "prettier": "pass",
+    "tsc": "pass"
+  },
+  "earlierAttempts": [
+    {
+      "sourceCommit": "e24b2090d5c79f1977ecdd045613901738222771",
+      "runtimes": "standalone and desktop",
+      "outcome": "Not a pass. 588 tests, 587 passed, 0 failed, 1 skipped on each runtime. The skipped case was made to run on Windows in d26535e, and the source was frozen again."
+    },
+    {
+      "sourceCommit": "d26535efb0838d15c785b0ed43e2a02696d7510d",
+      "runtimes": "desktop",
+      "startedAt": "2026-11-05T16:39:29.508Z",
+      "outcome": "Not a pass. Stopped at the 20-minute limit with no final result. The Windows power plan changed from Balanced to Power saver at 2026-11-05T16:43Z, during this run."
+    },
+    {
+      "sourceCommit": "d26535efb0838d15c785b0ed43e2a02696d7510d",
+      "runtimes": "desktop",
+      "startedAt": "2026-11-05T17:20:08.155Z",
+      "outcome": "Not a pass. Stopped at the 20-minute limit under Power saver. The spec log also shows one failure of \"R3: independent official codec rejects continuous but impossible events before upload and offline application\" (tests/audit-0.20.2.test.mjs). The run was killed before the reporter printed the error, so the cause of this failure is unknown."
+    },
+    {
+      "sourceCommit": "d26535efb0838d15c785b0ed43e2a02696d7510d",
+      "runtimes": "desktop",
+      "startedAt": "2026-11-05T17:58:32.411Z",
+      "outcome": "Not a pass. Stopped at the 20-minute limit under Power saver, with no failures reported before the stop."
+    }
+  ],
+  "followUpOnR3": "tests/audit-0.20.2.test.mjs repeated 5 times alone on the Desktop runtime: 16 of 16 passed each time. R3 passed in the final desktop run. This shows it did not recur; it does not explain the single failure.",
+  "repeatedAlone": "tests/two-device.test.mjs repeated 6 times alone on the Desktop runtime: 3 of 3 passed each time.",
+  "otherPlatformCi": "GitHub Actions run 42042623132 on the merge candidate of PR 22 (e7a9090): macos-latest 588 tests, 581 passed, 0 failed, 7 Windows-only cases skipped. This is automated testing only and does not start the Desktop app."
+}

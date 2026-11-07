@@ -215,12 +215,15 @@ test('update route reports the running version and rejects mutation requests', a
       packageProbed = true;
       return { ok: true };
     }
+    assert.equal(url, 'https://registry.npmjs.org/@dpskk2%2Fdsh-chatsync/latest');
     return {
       ok: true,
-      json: async () =>
-        url.includes('registry.npmjs.org')
-          ? { name: '@dpskk2/dsh-chatsync', version: newer, dist: { tarball } }
-          : { tag_name: 'v' + newer, body: '新版本更新内容' },
+      json: async () => ({
+        name: '@dpskk2/dsh-chatsync',
+        version: newer,
+        dist: { tarball },
+        engines: { dsh: '>=0.4.0' },
+      }),
     };
   };
   const request = host(t);
@@ -231,7 +234,11 @@ test('update route reports the running version and rejects mutation requests', a
     JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version,
   );
   assert.equal(result.available, true);
-  assert.equal(result.notes, '新版本更新内容');
+  assert.equal(result.dshRequirement, '>=0.4.0');
+  assert.equal(result.packageName, '@dpskk2/dsh-chatsync');
+  assert.equal(result.nativeUpdate, false);
+  assert.equal(Object.hasOwn(result, 'notes'), false);
+  assert.equal(Object.hasOwn(result, 'releaseUrl'), false);
   assert.equal(packageProbed, true);
   assert.ok(
     result.command.endsWith('update @dpskk2/dsh-chatsync@' + newer + ' --registry=https://registry.npmjs.org/'),

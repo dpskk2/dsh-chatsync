@@ -315,8 +315,21 @@ function StartupSyncOverlay() {
   );
 }
 
+let pluginUpdateNavigation = null;
+const pluginUpdateListeners = new Set();
+function usePluginUpdateNavigation() {
+  const [navigation, setNavigation] = useState(pluginUpdateNavigation);
+  useEffect(() => {
+    pluginUpdateListeners.add(setNavigation);
+    setNavigation(pluginUpdateNavigation);
+    return () => pluginUpdateListeners.delete(setNavigation);
+  }, []);
+  return navigation;
+}
+
 /* Global startup reminder; settings retain a separate, expandable update entry. */
 function UpdateNotice(props) {
+  const navigation = usePluginUpdateNavigation();
   const [data, setData] = useState(null);
   const [visible, setVisible] = useState(false);
   const [pos, setPos] = useState(null);
@@ -369,12 +382,7 @@ function UpdateNotice(props) {
     return () => window.removeEventListener('resize', position);
   }, [visible, data, props.busy]);
   if (!visible || !data || (props.startup && (props.busy || !pos))) return null;
-  const notes = data.notes || '此版本的更新说明暂时无法读取，请查看完整更新内容。';
-  // Plain text only: remote Markdown is never injected as HTML.
-  const excerpt = notes
-    .replace(/^#+\s+.*$/gm, '')
-    .replace(/\*\*/g, '')
-    .trim();
+  const nativeUpdate = data.nativeUpdate === true && typeof navigation?.openBundle === 'function';
   const onWindows = data.platform === undefined || data.platform === 'win32';
   const shellName = onWindows ? ' PowerShell ' : '“终端”';
   const updateStep =
@@ -391,15 +399,30 @@ function UpdateNotice(props) {
       setFeedback('复制失败，请手动复制下方代码，到' + shellName + '粘贴执行。' + updateStep);
     }
   };
+  const openUpdate = () => {
+    try {
+      navigation.openBundle(data.packageName);
+      if (props.startup) setVisible(false);
+    } catch {
+      setFeedback('请从侧边栏打开「插件」，找到 ChatSync 后更新。');
+    }
+  };
   const content = e(
     'div',
     null,
-    e('div', { className: 'dss-update-notes' }, props.startup ? excerpt.slice(0, 420) : excerpt),
+    e(
+      'div',
+      { className: 'dss-update-requirement' },
+      data.dshRequirement ? '需要 DSH ' + data.dshRequirement : 'DSH 版本要求：未声明',
+    ),
     e(
       'div',
       { className: 'dss-update-actions' },
-      e('button', { type: 'button', className: 'dss-btn', onClick: copy }, '复制更新代码'),
-      e('a', { href: data.releaseUrl, target: '_blank', rel: 'noopener noreferrer' }, '完整更新内容'),
+      e(
+        'button',
+        { type: 'button', className: 'dss-btn', onClick: nativeUpdate ? openUpdate : copy },
+        nativeUpdate ? '前往插件页更新' : '复制更新代码',
+      ),
     ),
     feedback
       ? e(

@@ -104,41 +104,85 @@ test('stable versions compare numerically, without downgrading local builds', ()
     assert.equal(isNewerVersion(latest, current), expected, `${latest} / ${current}`);
 });
 
-test('checks npm latest and matching release, shares requests and caches for six hours', async () => {
+test('npm checks share requests, cache metadata and refresh native capability per host', async () => {
   let calls = 0,
-    time = 1000;
+    time = 1000,
+    native = false;
   const check = createUpdateChecker({
     version: '0.20.0',
     platform: 'win32',
     now: () => time,
+    nativeUpdatesAvailable: () => native,
     fetchImpl: async (url, options) => {
       calls++;
       assert.ok(options.signal);
-      return {
-        ok: true,
-        json: async () =>
-          url.includes('registry.npmjs.org')
-            ? metadata('0.21.0')
-            : { tag_name: 'v0.21.0', body: '更新内容', draft: false, prerelease: false },
-      };
+      assert.ok(url.startsWith('https://registry.npmjs.org/'));
+      if (url.endsWith('.tgz')) assert.equal(options.method, 'HEAD');
+      return { ok: true, json: async () => ({ ...metadata('0.21.0'), engines: { dsh: '>=0.4.0' } }) };
     },
   });
   const [web, desktop] = await Promise.all([check('web'), check('desktop')]);
-  assert.equal(calls, 3);
+  assert.equal(calls, 2);
   assert.equal(web.available, true);
-  assert.equal(web.notes, '更新内容');
+  assert.equal(web.nativeUpdate, false);
+  assert.equal(web.packageName, '@dpskk2/dsh-chatsync');
+  assert.equal(web.dshRequirement, '>=0.4.0');
   assert.equal(web.command, updateCommand('web', '0.21.0'));
   assert.match(desktop.command, /LOCALAPPDATA.*dsh.cmd.*--profile desktop/);
   assert.equal(desktop.platform, 'win32');
-  assert.equal(web.releaseUrl, 'https://github.com/dpskk2/dsh-chatsync/releases/tag/v0.21.0');
-  await check();
-  assert.equal(calls, 3);
+  assert.equal(Object.hasOwn(web, 'notes'), false);
+  assert.equal(Object.hasOwn(web, 'releaseUrl'), false);
+  native = true;
+  assert.equal((await check('web')).nativeUpdate, true);
+  native = false;
+  assert.equal((await check('desktop')).nativeUpdate, false);
+  assert.equal(calls, 2);
   time += 6 * 60 * 60 * 1000;
   await check();
-  assert.equal(calls, 6);
+  assert.equal(calls, 4);
 });
 
-test('unavailable network retries later; missing or mismatched notes never invent release contents', async () => {
+test('both package names retain their identity and requirement precedence', async () => {
+  for (const packageName of ['chatsync', '@dpskk2/dsh-chatsync']) {
+    for (const [requirements, expected] of [
+      [{ engines: { dsh: '>=0.4.0' }, peerDependencies: { '@deepseek-ai/dsh': '>=0.3.0' } }, '>=0.4.0'],
+      [{ peerDependencies: { '@deepseek-ai/dsh': '>=0.3.0' } }, '>=0.3.0'],
+      [{}, ''],
+    ]) {
+      const tarball =
+        'https://registry.npmjs.org/' + packageName + '/-/' + packageName.split('/').at(-1) + '-0.21.0.tgz';
+      const urls = [];
+      const check = createUpdateChecker({
+        version: '0.20.0',
+        packageName,
+        fetchImpl: async (url, options) => {
+          urls.push(url);
+          if (options.method === 'HEAD') assert.equal(url, tarball);
+          return {
+            ok: true,
+            json: async () => ({ name: packageName, version: '0.21.0', dist: { tarball }, ...requirements }),
+          };
+        },
+      });
+      const result = await check();
+      assert.equal(result.available, true);
+      assert.equal(result.packageName, packageName);
+      assert.equal(result.dshRequirement, expected);
+      assert.equal(result.nativeUpdate, false);
+      assert.equal(result.command, updateCommand('web', '0.21.0', { packageName }));
+      assert.equal(urls.length, 2);
+      assert.ok(urls.every(url => url.startsWith('https://registry.npmjs.org/')));
+      assert.equal(Object.hasOwn(result, 'notes'), false);
+      assert.equal(Object.hasOwn(result, 'releaseUrl'), false);
+    }
+  }
+  for (const packageName of ['other-package', 'chatsync;whoami', '']) {
+    assert.throws(() => createUpdateChecker({ packageName }));
+    assert.throws(() => updateCommand('web', '0.21.0', { packageName }));
+  }
+});
+
+test('unavailable network retries later', async () => {
   let calls = 0,
     time = 0;
   const failed = createUpdateChecker({
@@ -154,26 +198,6 @@ test('unavailable network retries later; missing or mismatched notes never inven
   time += 10 * 60 * 1000;
   await failed();
   assert.equal(calls, 2);
-  for (const release of [
-    null,
-    { tag_name: 'v0.22.0', body: 'wrong' },
-    { tag_name: 'v0.21.0', draft: true, body: 'draft' },
-  ]) {
-    const check = createUpdateChecker({
-      version: '0.20.0',
-      fetchImpl: async url => ({
-        ok: true,
-        json: async () => {
-          if (url.includes('registry.npmjs.org')) return metadata('0.21.0');
-          if (!release) throw new Error('missing');
-          return release;
-        },
-      }),
-    });
-    const result = await check();
-    assert.equal(result.available, true);
-    assert.equal(result.notes, '');
-  }
 });
 
 function ui(
@@ -182,6 +206,8 @@ function ui(
     seen = new Map(),
     clipboard = async () => {},
     global = false,
+    pluginNavigation,
+    injectAvailable = true,
     startupState = { ok: true, startup: { phase: 'ready' }, progress: { running: false } },
   } = {},
 ) {
@@ -190,7 +216,10 @@ function ui(
     cursor = 0,
     effects = [],
     calls = 0;
-  const slots = new Map();
+  const slots = new Map(),
+    cleanups = [],
+    bindings = new Map(),
+    effectCleanups = new Map();
   const react = {
     createElement: (type, props, ...children) => ({ type, props: props || {}, children: children.flat(Infinity) }),
     useState(initial) {
@@ -208,7 +237,13 @@ function ui(
     },
     useEffect(fn, deps) {
       const i = cursor++;
-      if (!hooks[i] || deps.some((d, n) => d !== hooks[i][n])) effects.push(fn);
+      if (!hooks[i] || deps.some((d, n) => d !== hooks[i][n]))
+        effects.push(() => {
+          effectCleanups.get(i)?.();
+          const cleanup = fn();
+          if (typeof cleanup === 'function') effectCleanups.set(i, cleanup);
+          else effectCleanups.delete(i);
+        });
       hooks[i] = deps;
     },
     useMemo: fn => fn(),
@@ -240,7 +275,25 @@ function ui(
     setTimeout,
     clearTimeout,
   });
-  component.apply({ slots: { inject: (_n, cb) => cb(), register: (meta, fn) => slots.set(meta.id, fn) } });
+  const bindNavigation = service => {
+    const cb = bindings.get('pluginNavigation');
+    if (!cb || !service) return;
+    cb({
+      pluginNavigation: service,
+      effect: fn => {
+        const cleanup = fn();
+        if (typeof cleanup === 'function') cleanups.push(cleanup);
+      },
+    });
+  };
+  const ctx = { slots: { inject: (_n, cb) => cb(), register: (meta, fn) => slots.set(meta.id, fn) } };
+  if (injectAvailable)
+    ctx.inject = (names, cb) => {
+      if (!names.includes('pluginNavigation')) return;
+      bindings.set('pluginNavigation', cb);
+      bindNavigation(pluginNavigation);
+    };
+  component.apply(ctx);
   const flatten = n => (!n || typeof n !== 'object' ? [] : [n, ...n.children.flatMap(flatten)]);
   const Notice = flatten(slots.get('dsh-sync-manage')({})).find(n => n.type?.name === 'UpdateNotice').type;
   hooks = [];
@@ -257,6 +310,15 @@ function ui(
       pending.forEach(fn => fn());
       await new Promise(resolve => setImmediate(resolve));
     },
+    bindNavigation,
+    releaseNavigation() {
+      cleanups.splice(0).forEach(cleanup => cleanup());
+    },
+    dispose() {
+      for (const cleanup of effectCleanups.values()) cleanup();
+      effectCleanups.clear();
+      cleanups.splice(0).forEach(cleanup => cleanup());
+    },
     flatten,
     calls: () => calls,
   };
@@ -268,7 +330,10 @@ const available = {
   available: true,
   latestVersion: '0.21.0',
   hostKind: 'desktop',
-  notes: '**新增提醒**',
+  packageName: '@dpskk2/dsh-chatsync',
+  nativeUpdate: false,
+  dshRequirement: '>=0.4.0',
+  notes: '**不应显示的更新说明**',
   command: updateCommand('desktop', '0.21.0'),
   releaseUrl: 'https://github.com/dpskk2/dsh-chatsync/releases/tag/v0.21.0',
 };
@@ -282,7 +347,7 @@ test('startup reminder appears once per version and remains available in setting
   h.render(startup);
   await h.effects();
   let tree = h.render(startup);
-  assert.match(words(tree), /ChatSync 有新版本.*新增提醒/);
+  assert.match(words(tree), /ChatSync 有新版本.*需要 DSH >=0\.4\.0/);
   h.flatten(tree)
     .find(n => n.props['aria-label'] === '关闭更新提醒')
     .props.onClick();
@@ -385,4 +450,146 @@ test('global popup positions itself in the viewport when no footer anchor exists
     .find(n => n.props['aria-label'] === '关闭更新提醒')
     .props.onClick();
   assert.equal(h.render(props), null);
+});
+
+test('native plugin navigation opens either package and dismisses startup', async () => {
+  for (const packageName of ['chatsync', '@dpskk2/dsh-chatsync']) {
+    const opened = [];
+    const h = ui(
+      { ...available, packageName, nativeUpdate: true },
+      {
+        pluginNavigation: { openBundle: name => opened.push(name) },
+        clipboard: async () => assert.fail('native updates must not copy'),
+      },
+    );
+    h.render(startup);
+    await h.effects();
+    h.render(startup);
+    await h.effects();
+    const tree = h.render(startup);
+    assert.doesNotMatch(words(tree), /复制更新代码|不应显示的更新说明|完整更新内容/);
+    assert.equal(
+      h.flatten(tree).some(n => n.type === 'a'),
+      false,
+    );
+    await h
+      .flatten(tree)
+      .find(n => n.type === 'button' && words(n) === '前往插件页更新')
+      .props.onClick();
+    assert.deepEqual(opened, [packageName]);
+    assert.equal(h.render(startup), null);
+    h.dispose();
+  }
+});
+
+test('older hosts and unavailable optional navigation retain command copying', async () => {
+  for (const options of [
+    {
+      data: { ...available, nativeUpdate: false },
+      pluginNavigation: { openBundle: () => assert.fail('unsupported native update') },
+    },
+    { data: { ...available, nativeUpdate: true } },
+    { data: { ...available, nativeUpdate: true }, pluginNavigation: {} },
+    { data: { ...available, nativeUpdate: true }, injectAvailable: false },
+  ]) {
+    let copied;
+    const { data, ...services } = options;
+    const h = ui(data, {
+      ...services,
+      clipboard: async command => {
+        copied = command;
+      },
+    });
+    h.render();
+    await h.effects();
+    const tree = h.render();
+    assert.doesNotMatch(words(tree), /前往插件页更新|不应显示的更新说明|完整更新内容/);
+    assert.equal(
+      h.flatten(tree).some(n => n.type === 'a'),
+      false,
+    );
+    await h
+      .flatten(tree)
+      .find(n => n.type === 'button' && words(n) === '复制更新代码')
+      .props.onClick();
+    assert.equal(copied, available.command);
+    h.dispose();
+  }
+});
+
+test('navigation binding can arrive late and return to copying after release', async () => {
+  const h = ui({ ...available, nativeUpdate: true });
+  h.render();
+  await h.effects();
+  assert.match(words(h.render()), /复制更新代码/);
+  h.bindNavigation({ openBundle() {} });
+  assert.match(words(h.render()), /前往插件页更新/);
+  h.releaseNavigation();
+  assert.match(words(h.render()), /复制更新代码/);
+  h.dispose();
+});
+
+test('missing DSH requirement is stated without release notes or external links', async () => {
+  const h = ui({ ...available, dshRequirement: '' });
+  h.render();
+  await h.effects();
+  const tree = h.render();
+  assert.match(words(tree), /DSH 版本要求：未声明/);
+  assert.doesNotMatch(words(tree), /不应显示的更新说明|完整更新内容|更新说明暂时无法读取/);
+  assert.equal(
+    h.flatten(tree).some(n => n.type === 'a'),
+    false,
+  );
+  h.dispose();
+});
+
+test('legacy macOS Desktop and Web copies keep their host commands and terminal guidance', async () => {
+  for (const hostKind of ['desktop', 'web']) {
+    const command = updateCommand(hostKind, '0.21.0', { platform: 'darwin', packageName: 'chatsync' });
+    let copied;
+    const h = ui(
+      { ...available, hostKind, platform: 'darwin', packageName: 'chatsync', command },
+      {
+        clipboard: async value => {
+          copied = value;
+        },
+      },
+    );
+    h.render();
+    await h.effects();
+    await h
+      .flatten(h.render())
+      .find(n => n.type === 'button')
+      .props.onClick();
+    assert.equal(copied, command);
+    assert.match(command, /update chatsync@0\.21\.0 --registry=https:\/\/registry\.npmjs\.org\/$/);
+    assert.match(words(h.render()), /终端/);
+    assert.doesNotMatch(words(h.render()), /PowerShell/);
+    if (hostKind === 'desktop') assert.match(words(h.render()), /Command\+Q/);
+    else assert.match(words(h.render()), /重新启动 DSH/);
+    h.dispose();
+  }
+});
+
+test('short package commands pin official identity and metadata cannot switch aliases', async () => {
+  assert.equal(
+    updateCommand('web', '0.21.0', { packageName: 'chatsync' }),
+    'dsh plugin --profile web update chatsync@0.21.0 --registry=https://registry.npmjs.org/',
+  );
+  for (const packageName of ['chatsync', '@dpskk2/dsh-chatsync']) {
+    let calls = 0;
+    const other = packageName === 'chatsync' ? '@dpskk2/dsh-chatsync' : 'chatsync';
+    const check = createUpdateChecker({
+      version: '0.20.0',
+      packageName,
+      fetchImpl: async () => {
+        calls++;
+        return { ok: true, json: async () => ({ ...metadata('0.21.0'), name: other }) };
+      },
+    });
+    const result = await check();
+    assert.equal(result.available, false);
+    assert.equal(result.command, undefined);
+    assert.equal(calls, 1);
+  }
 });

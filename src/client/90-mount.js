@@ -14,6 +14,16 @@ function injectStyles() {
 }
 function apply(ctx) {
   if (typeof ctx.inject === 'function')
+    ctx.inject(['pluginNavigation'], guarded => {
+      pluginUpdateNavigation = guarded.pluginNavigation;
+      for (const update of pluginUpdateListeners) update(pluginUpdateNavigation);
+      guarded.effect(() => () => {
+        if (pluginUpdateNavigation !== guarded.pluginNavigation) return;
+        pluginUpdateNavigation = null;
+        for (const update of pluginUpdateListeners) update(null);
+      });
+    });
+  if (typeof ctx.inject === 'function')
     ctx.inject(['layout'], guarded => {
       repairNavigation = guarded.layout;
       guarded.effect(() => () => {

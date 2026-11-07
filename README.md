@@ -62,12 +62,16 @@ dsh plugin --profile web add chatsync
 
 ## 更新方式
 
-**如果原先安装的是 `@dpskk2/dsh-chatsync`，把命令中的 `chatsync` 换成原包名。** 插件更新提醒可关闭，不会自动安装更新。
+有新版本时，提醒只显示版本号、该版本的 DSH 要求和更新按钮。支持插件页更新的宿主显示「前往插件页更新」，打开当前安装的 ChatSync 详情，由你在宿主中确认更新；提醒不会自动安装。
+
+旧宿主继续显示「复制更新代码」：Windows 使用 PowerShell，macOS 使用终端，Web 端在运行 DSH 的电脑执行。生成的命令保留实际安装的包名，指定目标版本和 npm 官方源。提醒可以关闭，同步设置中仍可查看。
+
+以下是更新到 **0.21.2** 的手动命令。**如果原先安装的是 `@dpskk2/dsh-chatsync`，把命令中的 `chatsync` 换成原包名。**
 
 **Web 端：**
 
 ```powershell
-dsh plugin --profile web update chatsync
+dsh plugin --profile web update chatsync@0.21.2 --registry=https://registry.npmjs.org/
 ```
 
 **Windows 桌面端：**
@@ -75,13 +79,13 @@ dsh plugin --profile web update chatsync
 以下命令适用于默认安装位置，自定义安装时请调整路径。
 
 ```powershell
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync@0.21.2 --registry=https://registry.npmjs.org/
 ```
 
 **macOS 桌面端：**
 
 ```bash
-"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" plugin --profile desktop update chatsync
+"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" plugin --profile desktop update chatsync@0.21.2 --registry=https://registry.npmjs.org/
 ```
 
 ## 第一次设置

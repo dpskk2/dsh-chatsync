@@ -62,12 +62,16 @@ You can also download a package from [GitHub Releases](https://github.com/dpskk2
 
 ## Updating
 
-**If you originally installed `@dpskk2/dsh-chatsync`, replace `chatsync` in the commands with that package name.** Update notices can be turned off and never install updates automatically.
+Update notices show the new version, its DSH requirement and one update action. When the host supports updates from its Plugins page, **Go to Plugins to update** opens the installed ChatSync bundle's details. You confirm the update in DSH; the notice never installs it automatically.
+
+Older hosts retain **Copy update command**: use PowerShell on Windows, Terminal on macOS, or the computer running DSH Web. Generated commands preserve the installed package name, pin the target version and use the official npm registry. Dismissed notices remain available in Sync settings.
+
+The manual commands below update to **0.21.2**. **If you originally installed `@dpskk2/dsh-chatsync`, replace `chatsync` with that package name.**
 
 **Web:**
 
 ```powershell
-dsh plugin --profile web update chatsync
+dsh plugin --profile web update chatsync@0.21.2 --registry=https://registry.npmjs.org/
 ```
 
 **Windows Desktop:**
@@ -75,13 +79,13 @@ dsh plugin --profile web update chatsync
 This command uses the default installation location. Adjust the path if you installed DSH elsewhere.
 
 ```powershell
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync@0.21.2 --registry=https://registry.npmjs.org/
 ```
 
 **macOS Desktop:**
 
 ```bash
-"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" plugin --profile desktop update chatsync
+"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" plugin --profile desktop update chatsync@0.21.2 --registry=https://registry.npmjs.org/
 ```
 
 ## First setup

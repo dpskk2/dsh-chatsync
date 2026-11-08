@@ -26,7 +26,7 @@ Your data stays in your own **private Git repository**: GitHub by default, or Gi
 
 ## Installation
 
-First, make sure DSH opens normally. Install [Git](https://git-scm.com/downloads/). When the sync repository is on GitHub (the default), also install [GitHub CLI](https://cli.github.com/) and use a network connection that can reach GitHub. Other Git hosts such as Gitee or GitLab do not need GitHub CLI; see [Other Git hosts](docs/configuration.md#其他-git-托管站).
+First, make sure DSH opens normally. Install [Git](https://git-scm.com/downloads/). When the sync repository is on GitHub (the default), also install [GitHub CLI](https://cli.github.com/) and use a network connection that can reach GitHub. Other Git hosts such as Gitee or GitLab do not need GitHub CLI; see [Other Git hosts](docs/configuration.md#其他-git-托管站). You can also sync over SSH to an empty repository created with `git init --bare` on your own server; see [Self-hosted SSH server (experimental)](docs/configuration.md#自建-ssh-服务器实验性).
 
 Without a manually specified proxy, sync uses proxy environment variables first, then the current Windows or macOS system proxy. Changing the system proxy port requires no restart. Set a previously saved fixed proxy to an empty string or `auto` to enable automatic selection; see [proxy configuration](docs/configuration.md).
 

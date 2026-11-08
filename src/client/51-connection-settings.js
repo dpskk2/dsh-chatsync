@@ -7,6 +7,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
   const [saving, setSaving] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [helpTab, setHelpTab] = useState(null);
+  const [serverDraft, setServerDraft] = useState(null);
   const dirty = useRef(false);
   const savingRef = useRef(false);
   useEffect(() => {
@@ -44,19 +45,18 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
     setDraft(config.remote || '');
     setAttempt(attempt + 1);
   };
-  const save = async event => {
-    event.preventDefault();
-    if (!config || savingRef.current || busy || (config.remote && !editing)) return;
+  const submit = async body => {
     savingRef.current = true;
     setSaving(true);
     setMessage('');
     setError('');
     try {
-      const d = await API.saveConnection({ remote: draft.trim(), expectedRemote: config.remote || '' });
+      const d = await API.saveConnection(body);
       if (!d || !d.ok || !d.config) throw new Error((d && d.error) || '保存失败，请重试');
       setConfig(d.config);
       setDraft(d.config.remote || '');
       setEditing(false);
+      if (body.selfHosted) setServerDraft(null);
       dirty.current = false;
       setMessage(
         d.hint ||
@@ -83,6 +83,21 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
       setSaving(false);
     }
   };
+  const save = async event => {
+    event.preventDefault();
+    if (!config || savingRef.current || busy || (config.remote && !editing)) return;
+    await submit({ remote: draft.trim(), expectedRemote: config.remote || '' });
+  };
+  // The self-hosted tab saves its own address, outside the ordinary form.
+  const saveServer = async () => {
+    if (!config || savingRef.current || busy) return;
+    const remote = (serverDraft ?? (config.selfHosted ? config.remote : '')).trim();
+    if (!remote) {
+      setError('请填写自建服务器仓库的 SSH 地址。');
+      return;
+    }
+    await submit({ remote, expectedRemote: config.remote || '', selfHosted: true });
+  };
   const showForm = config && editing;
   const parsedLink = config?.remoteWeb || null;
   // Login help opens on the tab for the repository in use; a choice lasts for this page only.
@@ -108,21 +123,29 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
           e(
             'div',
             { className: 'dss-connection-status' },
-            config.remote ? (parsedLink ? '已连接同步仓库' : '请更换同步仓库') : '使用默认仓库',
+            config.remote
+              ? config.selfHosted
+                ? '已连接自建服务器（实验性）'
+                : parsedLink
+                  ? '已连接同步仓库'
+                  : '请更换同步仓库'
+              : '使用默认仓库',
           ),
-          !config.remote
-            ? e(
-                'div',
-                { className: 'dss-desc' },
-                '首次同步时，自动创建或复用当前 GitHub 账号下的 dsh-sync 私有仓库。想放在 Gitee、GitLab 等其他托管站，点「使用其他仓库」。',
-              )
-            : parsedLink
-              ? null
-              : e(
+          config.selfHosted
+            ? e('div', { className: 'dss-desc' }, config.remote + ' · 自建服务器不做私有检查，请自行确认只有你能访问。')
+            : !config.remote
+              ? e(
                   'div',
-                  { className: 'dss-err', role: 'alert' },
-                  '现有地址不受支持，请更换为私有 Git 仓库的 HTTPS 或 SSH 地址。',
-                ),
+                  { className: 'dss-desc' },
+                  '首次同步时，自动创建或复用当前 GitHub 账号下的 dsh-sync 私有仓库。想放在 Gitee、GitLab 等其他托管站，点「使用其他仓库」。',
+                )
+              : parsedLink
+                ? null
+                : e(
+                    'div',
+                    { className: 'dss-err', role: 'alert' },
+                    '现有地址不受支持，请更换为私有 Git 仓库的 HTTPS 或 SSH 地址。',
+                  ),
           e(
             'div',
             { className: 'dss-actions dss-connection-actions' },
@@ -207,7 +230,17 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
       { className: 'dss-tip', open: config ? !config.remote : false },
       e('summary', null, '登录帮助'),
       loginHelpTabs(activeHelpTab, selectHelpTab),
-      helpTabPanel(activeHelpTab),
+      helpTabPanel(activeHelpTab, {
+        value: serverDraft ?? (config?.selfHosted ? config.remote : ''),
+        onChange: value => {
+          setServerDraft(value);
+          setMessage('');
+          setError('');
+        },
+        onSave: saveServer,
+        disabled: !config || busy || saving,
+        saving,
+      }),
     ),
   );
 }
@@ -410,7 +443,7 @@ function helpTabPanel(active, selfHosted) {
     ...body,
   );
 }
-function selfHostedHelp() {
+function selfHostedHelp(server) {
   return [
     e(
       'ol',
@@ -434,6 +467,37 @@ function selfHostedHelp() {
       ),
       e('li', null, '在下方填写地址并保存'),
     ),
+    server
+      ? e(
+          'div',
+          { key: 'form', className: 'dss-stack dss-server-form' },
+          e(
+            'label',
+            { className: 'dss-field' },
+            '自建服务器仓库地址（SSH）',
+            e('input', {
+              className: 'dss-input',
+              type: 'text',
+              value: server.value,
+              placeholder: '例如 用户名@服务器地址:/srv/git/dsh-sync.git',
+              autoComplete: 'off',
+              spellCheck: false,
+              disabled: server.disabled,
+              onChange: ev => server.onChange(ev.target.value),
+            }),
+          ),
+          e(
+            'div',
+            { className: 'dss-desc' },
+            '只支持 SSH 地址。自建服务器不做私有检查，保存时用这台电脑的 SSH 登录读取一次仓库。',
+          ),
+          e(
+            'button',
+            { type: 'button', className: 'dss-pill', disabled: server.disabled, onClick: server.onSave },
+            server.saving ? '正在检查并保存…' : '保存自建服务器地址',
+          ),
+        )
+      : null,
     e(
       'nav',
       { key: 'links', className: 'dss-links', 'aria-label': '自建服务器帮助' },

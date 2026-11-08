@@ -26,7 +26,7 @@
 
 ## 安装方式
 
-先准备能正常打开的 DSH 和 [Git](https://git-scm.com/downloads/)。同步仓库放在 GitHub（默认）时，还需要 [GitHub CLI](https://cli.github.com/) 和可访问 GitHub 的网络；放在 Gitee、GitLab 等其他托管站时不需要 GitHub CLI，见[其他 Git 托管站](docs/configuration.md#其他-git-托管站)。
+先准备能正常打开的 DSH 和 [Git](https://git-scm.com/downloads/)。同步仓库放在 GitHub（默认）时，还需要 [GitHub CLI](https://cli.github.com/) 和可访问 GitHub 的网络；放在 Gitee、GitLab 等其他托管站时不需要 GitHub CLI，见[其他 Git 托管站](docs/configuration.md#其他-git-托管站)。也可以用自己服务器上 `git init --bare` 建的空仓库通过 SSH 同步，见[自建 SSH 服务器（实验性）](docs/configuration.md#自建-ssh-服务器实验性)。
 
 未手动指定代理时，同步优先使用环境变量，否则跟随当前 Windows 或 macOS 系统代理；更换系统代理端口无需重启。已保存的固定代理可以改为空或 `auto`，详见[代理配置](docs/configuration.md)。
 

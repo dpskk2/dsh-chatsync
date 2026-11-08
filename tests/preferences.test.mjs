@@ -1159,6 +1159,44 @@ test('login help opens on the tab of the connected repository', async () => {
   }
 });
 
+test('the self-hosted tab saves its own SSH address and the page shows no repository link', async () => {
+  const posts = [];
+  let config = { remote: '', autoRepo: true };
+  const h = harness((url, options) => {
+    if (!options) return response({ ok: true, config });
+    posts.push(JSON.parse(options.body));
+    config = { remote: posts.at(-1).remote, remoteWeb: null, selfHosted: true, autoRepo: false };
+    return response({ ok: true, config, hint: '已连接自建服务器 nas.local' });
+  }, 'ConnectionSettings');
+  h.render();
+  await h.effects();
+  helpTabs(h.render())[2].props.onClick();
+  let tree = h.render();
+  const input = () => all(helpPanel(h.render())).find(n => n.type === 'input');
+  assert.equal(input().props.value, '');
+  // An empty address is not sent.
+  await all(helpPanel(tree))
+    .find(n => n.type === 'button' && text(n) === '保存自建服务器地址')
+    .props.onClick();
+  assert.deepEqual(posts, []);
+  assert.match(text(h.render()), /请填写自建服务器仓库的 SSH 地址/);
+  input().props.onChange({ target: { value: ' alice@nas.local:/srv/git/dsh-sync.git ' } });
+  tree = h.render();
+  await all(helpPanel(tree))
+    .find(n => n.type === 'button' && text(n) === '保存自建服务器地址')
+    .props.onClick();
+  assert.deepEqual(posts, [{ remote: 'alice@nas.local:/srv/git/dsh-sync.git', expectedRemote: '', selfHosted: true }]);
+  tree = h.render();
+  assert.match(text(tree), /已连接自建服务器（实验性）/);
+  assert.match(text(tree), /已连接自建服务器 nas\.local/);
+  assert.doesNotMatch(text(tree), /不受支持|查看仓库/);
+  assert.equal(
+    all(tree).some(n => n.type === 'a' && /查看仓库/.test(text(n))),
+    false,
+  );
+  assert.equal(input().props.value, 'alice@nas.local:/srv/git/dsh-sync.git');
+});
+
 test('connection form submits a custom repository for server verification', async () => {
   let saved;
   const config = { remote: '', branch: 'my-existing-backup', autoRepo: true };

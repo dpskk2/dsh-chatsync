@@ -1,0 +1,34 @@
+{
+  "version": "0.21.3",
+  "build": "2026-11-08-release-0.21.3",
+  "sourceCommit": "74417745247db07cde3065876a8fe35e3ffcfd16",
+  "sourceSha256": "15e3e0fbd77c717af1fa4e5a07d4d2cbc2d003f77c74632acd2185b8d5caff78",
+  "startedAt": "2026-11-08T15:33:21Z",
+  "finishedAt": "2026-11-08T15:36:03Z",
+  "environment": "Linux 6.18 (cloud container); standalone Node.js 24.22.2; Git from the container image",
+  "command": "npm test (build-client --check, node --test --test-concurrency=2 tests/*.test.mjs, eslint, prettier --check, tsc)",
+  "exitCode": 0,
+  "tests": 610,
+  "passed": 603,
+  "failed": 0,
+  "cancelled": 0,
+  "skipped": 7,
+  "skippedTests": [
+    "offline task uses escaped long paths, current-user identity and preserved host overrides (0.780797ms) # SKIP",
+    "task creation failure cleans temporary state and never launches a close (0.16942ms) # SKIP",
+    "task start failure removes the unused task and reports failure (0.091433ms) # SKIP",
+    "confirmed repair restarts wait for the repair worker, without running ordinary network sync (0.111312ms) # SKIP",
+    "PowerShell scripts parse without errors in Windows PowerShell 5.1 (0.140971ms) # Windows PowerShell 5.1 is Windows only",
+    "offline Windows probe excludes only itself and continues to reject another Desktop process (0.714598ms) # SKIP",
+    "Windows GUI sync invocation waits for its actual exit and returns its exit code (0.411718ms) # SKIP"
+  ],
+  "relevantTests": [
+    "tests/settings-version-gate.test.mjs",
+    "tests/settings-version-reset.test.mjs",
+    "tests/dsh-version.test.mjs",
+    "tests/self-hosted-remote.test.mjs",
+    "tests/request-and-import-safety.test.mjs",
+    "tests/preferences.test.mjs"
+  ],
+  "notes": "Not a Windows or DSH Desktop runtime run; does not satisfy full-regression."
+}

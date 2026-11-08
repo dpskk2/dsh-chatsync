@@ -3,7 +3,7 @@
   "version": "0.21.3",
   "build": "2026-11-08-release-0.21.3",
   "tier": "patch",
-  "sourceSha256": "",
+  "sourceSha256": "15e3e0fbd77c717af1fa4e5a07d4d2cbc2d003f77c74632acd2185b8d5caff78",
   "packageSha256": "",
   "checks": [
     {
@@ -40,13 +40,18 @@
     },
     {
       "id": "data-loss/automated",
-      "status": "pending",
-      "completedAt": "",
-      "environment": "",
-      "procedure": "",
-      "observed": "",
-      "reviewer": "",
-      "artifacts": []
+      "status": "passed",
+      "completedAt": "2026-11-08T15:36:03Z",
+      "environment": "Linux 6.18 (cloud container); standalone Node.js 24.22.2; Git from the container image",
+      "procedure": "Source commit 7441774 (same source fingerprint as this manifest). npm test",
+      "observed": "610 tests: 603 passed, 0 failed, 0 cancelled, 7 skipped (Windows-only cases, listed in the report); exit 0; ESLint, Prettier and tsc reported no findings. Settings-version cases assert remote and local bytes, the shared version record, recovery-record bytes for both sides, and the local marker lifecycle. Linux only: this is not the Windows/Desktop full regression.",
+      "reviewer": "Claude (agent run); release preparation requested by maintainer in release-evidence/0.21.3/plan.md",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.21.3/linux-test-run.json",
+          "sha256": "39a7b83d0812c0d81a39d0b843f26f04f5c1f62ca75a3939b7b302d77f12545a"
+        }
+      ]
     },
     {
       "id": "data-loss/fault-injection",

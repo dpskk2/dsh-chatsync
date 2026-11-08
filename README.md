@@ -150,7 +150,7 @@ git ls-remote https://gitee.com/用户名/dsh-sync.git
 
 支持 DSH 的 Web 和 Windows、macOS 桌面端，最低 **0.2.0-rc.1**（macOS 没有真机验收记录，会话日志格式和设置已按 DSH 0.2.2-rc.1 的官方源码核对，见[文件说明](docs/dsh-file-catalog.md)）；桌面端推荐 **0.2.1-rc.3 或更新版**。独立运行要求 **Node.js 24 或更新版**，桌面端使用应用自带运行时。
 
-具体已验证与未覆盖范围见[本版验证记录](docs/release-0.21.2-validation.md)。
+具体已验证与未覆盖范围见[本版验证记录](docs/release-0.21.3-validation.md)。
 
 ## 帮助与开发
 

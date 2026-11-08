@@ -90,13 +90,15 @@ dsh plugin --profile web update chatsync
 
 **① 登录托管站**
 
-使用默认仓库（GitHub）时，在 PowerShell 中执行，按提示在浏览器完成授权：
+使用默认仓库（GitHub）时，安装 Git 和 GitHub CLI，打开“终端”（如需通过代理访问 GitHub，请确保已通过环境变量为 GitHub CLI（gh）配置可用代理，或已启用能够代理 GitHub 流量的 TUN 模式。），运行：
 
 ```powershell
 gh auth login --hostname github.com --git-protocol https --web
 ```
 
-使用 Gitee、GitLab 等其他托管站时，先在网页创建空的私有仓库（不要勾选用 README 初始化），再运行一次下面的命令（换成你的仓库地址），在弹出的 Git 登录窗口输入该站的账号和密码或访问令牌；SSH 地址则先配置 SSH 密钥。
+根据指引完成授权：输入 Y，按 Enter 打开授权页，在浏览器中输入“终端”显示的一次性代码（已自动复制，按 Ctrl + V 粘贴），点击 Authorize。
+
+使用 Gitee、GitLab 等其他托管站时，安装 Git，先在网页创建空的私有仓库（不要勾选用 README 初始化）。HTTPS 地址：打开“终端”，运行下面的命令（换成你的仓库地址），按 Git 的提示输入该站的账号和密码或访问令牌。SSH 地址：为这台电脑生成 SSH 密钥，把公钥添加到托管站的「SSH 公钥」设置，再运行 `git ls-remote` 加仓库地址。
 
 ```powershell
 git ls-remote https://gitee.com/用户名/dsh-sync.git

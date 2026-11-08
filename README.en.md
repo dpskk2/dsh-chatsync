@@ -90,13 +90,15 @@ Restart DSH after installation. Click **Sync** in the sidebar, or open **Setting
 
 **① Sign in to your Git host**
 
-For the default repository (GitHub), run this in PowerShell and follow the prompts to authorize access in your browser:
+For the default repository (GitHub), install Git and GitHub CLI, open a terminal (if you reach GitHub through a proxy, make sure GitHub CLI (gh) has a working proxy set through environment variables, or that a TUN mode able to proxy GitHub traffic is enabled), and run:
 
 ```powershell
 gh auth login --hostname github.com --git-protocol https --web
 ```
 
-For Gitee, GitLab or another host, first create an empty private repository on its website (do not initialize it with a README). Then run the command below once with your repository address and sign in with that site's account and password or access token in the Git sign-in window. For an SSH address, set up an SSH key instead.
+Follow the prompts to authorize: type Y, press Enter to open the authorization page, then enter the one-time code shown in the terminal in your browser (it is already copied; paste it with Ctrl + V) and click Authorize.
+
+For Gitee, GitLab or another host, install Git and first create an empty private repository on its website (do not initialize it with a README). For an HTTPS address, open a terminal, run the command below with your repository address and enter that site's account and password or access token when Git asks. For an SSH address, generate an SSH key for this computer, add the public key to the site's SSH key settings, then run `git ls-remote` with the repository address.
 
 ```powershell
 git ls-remote https://gitee.com/username/dsh-sync.git

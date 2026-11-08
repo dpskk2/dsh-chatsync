@@ -6,6 +6,7 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [helpTab, setHelpTab] = useState(null);
   const dirty = useRef(false);
   const savingRef = useRef(false);
   useEffect(() => {
@@ -84,6 +85,13 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
   };
   const showForm = config && editing;
   const parsedLink = config?.remoteWeb || null;
+  // Login help opens on the tab for the repository in use; a choice lasts for this page only.
+  const activeHelpTab = helpTab || defaultHelpTab(config);
+  const selectHelpTab = (id, focus = false) => {
+    setHelpTab(id);
+    if (focus && typeof document !== 'undefined')
+      setTimeout(() => document.getElementById(HELP_TAB_ID + id)?.focus(), 0);
+  };
   return e(
     'form',
     { className: 'dss-sec dss-setting-card', id: 'dss-connect', tabIndex: -1, onSubmit: save },
@@ -198,52 +206,240 @@ function ConnectionSettings({ busy, onSaved, remote, branch, setup = false }) {
       'details',
       { className: 'dss-tip', open: config ? !config.remote : false },
       e('summary', null, '登录帮助'),
+      loginHelpTabs(activeHelpTab, selectHelpTab),
+      helpTabPanel(activeHelpTab),
+    ),
+  );
+}
+
+const HELP_TAB_ID = 'dss-login-help-tab-';
+const HELP_PANEL_ID = 'dss-login-help-panel';
+const HELP_TABS = [
+  { id: 'github', label: 'GitHub 仓库' },
+  { id: 'other', label: 'Gitee、GitLab 等其他托管站' },
+  { id: 'self-hosted', label: '自建服务器（实验性）' },
+];
+/** The help tab for the repository in use: GitHub until another host or a server is connected. */
+function defaultHelpTab(config) {
+  if (!config || !config.remote) return 'github';
+  if (config.selfHosted) return 'self-hosted';
+  return config.remoteWeb?.label === 'GitHub' ? 'github' : 'other';
+}
+function loginHelpTabs(active, select) {
+  const onKeyDown = event => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    const index = HELP_TABS.findIndex(tab => tab.id === active);
+    const step = event.key === 'ArrowRight' ? 1 : HELP_TABS.length - 1;
+    select(HELP_TABS[(index + step) % HELP_TABS.length].id, true);
+  };
+  return e(
+    'div',
+    { className: 'dss-help-tabs', role: 'tablist', 'aria-label': '仓库类型', onKeyDown },
+    HELP_TABS.map(tab =>
       e(
-        'div',
-        { className: 'dss-help-group' },
-        '所有托管站都要：安装 ',
-        helpLink('Git', 'https://git-scm.com/downloads'),
-        '。',
-      ),
-      e('div', { className: 'dss-help-group' }, '默认仓库，或其他 GitHub 仓库'),
-      e(
-        'ol',
-        null,
-        e('li', null, '再安装 ', helpLink('GitHub CLI', 'https://cli.github.com/'), '。'),
-        e(
-          'li',
-          null,
-          '打开终端（Windows 终端或 macOS 的“终端”）运行下面的命令，按提示在浏览器授权：',
-          e('code', { className: 'dss-command' }, 'gh auth login --hostname github.com --git-protocol https --web'),
-        ),
-        e('li', null, '两台电脑登录同一 GitHub 账号，即可使用同一个默认仓库。'),
-      ),
-      e('div', { className: 'dss-help-group' }, 'Gitee、GitLab 等其他托管站（不需要 GitHub CLI）'),
-      e(
-        'ol',
-        null,
-        e(
-          'li',
-          null,
-          'HTTPS 地址：在终端运行一次下面的命令（换成你的仓库地址），按 Git 的提示（Windows 弹出登录窗口，macOS 可能在终端里询问）输入该站的账号和密码或访问令牌，登录会保存在本机。',
-          e('code', { className: 'dss-command' }, 'git ls-remote https://gitee.com/用户名/dsh-sync.git'),
-        ),
-        e(
-          'li',
-          null,
-          'SSH 地址：为这台电脑生成 SSH 密钥，把公钥添加到托管站的「SSH 公钥」设置，再运行 git ls-remote 加仓库地址，确认能读取。',
-        ),
-        e('li', null, '每台要同步的电脑都做一次。'),
-      ),
-      e(
-        'nav',
-        { className: 'dss-links', 'aria-label': '仓库连接帮助' },
-        helpLink('GitHub 登录说明', 'https://cli.github.com/manual/gh_auth_login'),
-        helpLink('其他托管站说明', DOCS + 'configuration.md#其他-git-托管站'),
-        helpLink('代理与高级配置', DOCS + 'configuration.md'),
+        'button',
+        {
+          key: tab.id,
+          type: 'button',
+          role: 'tab',
+          id: HELP_TAB_ID + tab.id,
+          className: 'dss-help-tab',
+          'aria-selected': tab.id === active,
+          'aria-controls': HELP_PANEL_ID,
+          tabIndex: tab.id === active ? 0 : -1,
+          onClick: () => select(tab.id),
+        },
+        tab.label,
       ),
     ),
   );
+}
+// Annotated, account-free picture of `gh auth login`: the terminal stays dark in
+// both themes, the browser step uses the host's colours.
+function githubLoginDiagram() {
+  const badge = n => e('span', { className: 'dss-gh-badge', 'aria-hidden': true }, n);
+  const row = (n, line, note, dim = false) =>
+    e(
+      'div',
+      { className: 'dss-gh-row' + (n ? ' dss-gh-act' : '') + (dim ? ' dss-gh-dim' : '') },
+      e('span', { className: 'dss-gh-n' }, n ? badge(n) : null),
+      e('span', { className: 'dss-gh-t' }, ...line),
+      note ? e('span', { className: 'dss-gh-note' }, note) : null,
+    );
+  const key = label => e('kbd', { className: 'dss-gh-key' }, label);
+  const warn = e('span', { className: 'dss-gh-warn' }, '!');
+  const ok = e('span', { className: 'dss-gh-ok' }, '✓');
+  return e(
+    'div',
+    { className: 'dss-gh-diagram' },
+    e('div', { className: 'dss-gh-cap' }, '终端里会看到这些（蓝色是你要做的）'),
+    e(
+      'div',
+      {
+        className: 'dss-gh-term',
+        role: 'img',
+        'aria-label':
+          '终端授权过程示意：1 粘贴命令并按 Enter；2 输入 Y 并按 Enter；3 一次性代码已自动复制；4 再按一次 Enter 打开浏览器授权页',
+      },
+      e('div', { className: 'dss-gh-bar' }, 'Windows PowerShell'),
+      row(
+        1,
+        ['PS C:\\Users\\你> gh auth login --hostname github.com --git-protocol https --web'],
+        '粘贴命令，按 Enter',
+      ),
+      row(
+        null,
+        [warn, ' Did you know that expiring tokens can be requested with --expiring? …'],
+        '提示信息，不用管',
+        true,
+      ),
+      row(
+        2,
+        [
+          e('span', { className: 'dss-gh-ok' }, '?'),
+          ' Authenticate Git with your GitHub credentials? (Y/n) ',
+          e('span', { className: 'dss-gh-you' }, 'Y'),
+        ],
+        '输入 Y，按 Enter',
+      ),
+      row(
+        3,
+        [warn, ' One-time code (', e('span', { className: 'dss-gh-code' }, 'ABCD-1234'), ') copied to clipboard'],
+        '一次性代码，已经自动复制好了',
+      ),
+      row(
+        4,
+        [
+          'Press ',
+          e('span', { className: 'dss-gh-you' }, 'Enter'),
+          ' to open https://github.com/login/device in your browser...',
+        ],
+        '再按一次 Enter，浏览器会打开授权页',
+      ),
+    ),
+    e(
+      'div',
+      { className: 'dss-gh-browser', role: 'group', 'aria-label': '浏览器中的步骤' },
+      e('div', { className: 'dss-gh-url' }, 'github.com/login/device'),
+      e(
+        'ol',
+        { className: 'dss-gh-steps' },
+        e('li', null, badge(5), e('span', null, '没登录 GitHub 时先登录；没有账号就点 Sign up 注册一个')),
+        e(
+          'li',
+          null,
+          badge(6),
+          e('span', null, '在代码框里按 ', key('Ctrl'), ' + ', key('V'), ' 粘贴一次性代码，点 Continue'),
+        ),
+        e('li', null, badge(7), e('span', null, '点 Authorize 确认授权，看到授权成功后回到终端')),
+      ),
+    ),
+    e(
+      'div',
+      {
+        className: 'dss-gh-term dss-gh-done',
+        role: 'img',
+        'aria-label': '授权完成示意：8 终端显示 Logged in as 你的用户名，回到这里点立即同步',
+      },
+      row(null, [ok, ' Authentication complete.']),
+      row(8, [ok, ' Logged in as 你的用户名'], '看到这一行就完成了，回到这里点「立即同步」'),
+    ),
+  );
+}
+const GIT_DOWNLOAD = () => e('li', null, '安装 ', helpLink('Git', 'https://git-scm.com/downloads'));
+function helpTabPanel(active, selfHosted) {
+  let body;
+  if (active === 'github')
+    body = [
+      e(
+        'ol',
+        { key: 'steps' },
+        GIT_DOWNLOAD(),
+        e('li', null, '安装 ', helpLink('GitHub CLI', 'https://cli.github.com/')),
+        e(
+          'li',
+          null,
+          '打开“终端”（如需通过代理访问 GitHub，请确保已通过环境变量为 GitHub CLI（gh）配置可用代理，或已启用能够代理 GitHub 流量的 TUN 模式。），运行',
+          e('code', { className: 'dss-command' }, 'gh auth login --hostname github.com --git-protocol https --web'),
+        ),
+        e('li', null, '根据指引完成授权（输入 Y，点击 Enter 打开授权页，输入“终端”显示的一次性代码）'),
+      ),
+      e('div', { key: 'diagram' }, githubLoginDiagram()),
+      e(
+        'nav',
+        { key: 'links', className: 'dss-links', 'aria-label': 'GitHub 登录帮助' },
+        helpLink('GitHub 登录说明', 'https://cli.github.com/manual/gh_auth_login'),
+        helpLink('代理与高级配置', DOCS + 'configuration.md'),
+      ),
+    ];
+  else if (active === 'other')
+    body = [
+      e(
+        'ol',
+        { key: 'steps' },
+        GIT_DOWNLOAD(),
+        e(
+          'li',
+          null,
+          'HTTPS 地址：打开“终端”，运行（换成你的仓库地址）',
+          e('code', { className: 'dss-command' }, 'git ls-remote https://gitee.com/用户名/dsh-sync.git'),
+          '按 Git 的提示输入该站的账号和密码或访问令牌。',
+          e(
+            'div',
+            { className: 'dss-help-alt' },
+            '或 SSH 地址：为这台电脑生成 SSH 密钥，把公钥添加到托管站的「SSH 公钥」设置，再运行 git ls-remote 加仓库地址。',
+          ),
+        ),
+      ),
+      e(
+        'nav',
+        { key: 'links', className: 'dss-links', 'aria-label': '其他托管站帮助' },
+        helpLink('其他托管站说明', DOCS + 'configuration.md#其他-git-托管站'),
+      ),
+    ];
+  else body = selfHostedHelp(selfHosted);
+  return e(
+    'div',
+    {
+      className: 'dss-help-panel',
+      role: 'tabpanel',
+      id: HELP_PANEL_ID,
+      'aria-labelledby': HELP_TAB_ID + active,
+    },
+    ...body,
+  );
+}
+function selfHostedHelp() {
+  return [
+    e(
+      'ol',
+      { key: 'steps' },
+      GIT_DOWNLOAD(),
+      e('li', null, '在服务器上建空仓库：', e('code', { className: 'dss-command' }, 'git init --bare dsh-sync.git')),
+      e(
+        'li',
+        null,
+        '为这台电脑生成 SSH 密钥（',
+        e('code', null, 'ssh-keygen -t ed25519'),
+        '），把公钥加入服务器的 ',
+        e('code', null, '~/.ssh/authorized_keys'),
+      ),
+      e(
+        'li',
+        null,
+        '打开“终端”，运行',
+        e('code', { className: 'dss-command' }, 'git ls-remote 用户名@服务器地址:dsh-sync.git'),
+        '首次连接输入 yes 确认服务器指纹',
+      ),
+      e('li', null, '在下方填写地址并保存'),
+    ),
+    e(
+      'nav',
+      { key: 'links', className: 'dss-links', 'aria-label': '自建服务器帮助' },
+      helpLink('自建服务器说明', DOCS + 'configuration.md#自建-ssh-服务器实验性'),
+    ),
+  ];
 }
 function WorkspaceLocations({ busy }) {
   const [open, setOpen] = useState(false),

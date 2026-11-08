@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GitHub 登录示意</title>
+<style>
+:root{--bg:#fff;--fg:#202124;--sub:#5f6368;--line:rgba(127,127,127,.25);--accent:#3979df;--badge-fg:#fff;--card:#f7f8fa;--ok:#1e8e3e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1b1b1f;--fg:#e9e9ee;--sub:#a3a6ad;--line:rgba(127,127,127,.3);--accent:#6ea8fe;--badge-fg:#10131a;--card:#24252a;--ok:#5bd17a}}
+:root[data-theme="dark"]{--bg:#1b1b1f;--fg:#e9e9ee;--sub:#a3a6ad;--line:rgba(127,127,127,.3);--accent:#6ea8fe;--badge-fg:#10131a;--card:#24252a;--ok:#5bd17a}
+body{margin:0;padding:24px 16px;background:var(--bg);color:var(--fg);font:14px/1.7 system-ui,"Microsoft YaHei",sans-serif}
+.wrap{max-width:640px;margin:auto}
+ol.steps{padding-left:20px;margin:0 0 14px}
+ol.steps li{margin:4px 0}
+code.cmd{display:block;margin:6px 0;padding:8px 10px;border-radius:8px;background:var(--card);border:1px solid var(--line);font:13px/1.5 Consolas,monospace;overflow-wrap:anywhere}
+.cap{font-size:12px;color:var(--sub);margin:14px 0 6px}
+.term{border-radius:10px;background:#0f1115;color:#d7dae0;font:12.5px/1.6 Consolas,"Cascadia Mono",monospace;padding:10px 0;overflow:hidden;border:1px solid var(--line)}
+.term .bar{display:flex;gap:6px;padding:0 12px 8px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:6px;color:#8a8f98;font:11px system-ui}
+.row{display:grid;grid-template-columns:26px minmax(0,1fr);gap:0 8px;padding:3px 12px}
+.row.act{background:rgba(110,168,254,.12)}
+.row .t{white-space:pre-wrap;overflow-wrap:anywhere}
+.row .n{grid-row:span 2}
+.row .note{grid-column:2;font:12px/1.5 system-ui,"Microsoft YaHei",sans-serif;color:#9ec3ff}
+.row.dim .t{color:#6c717b}
+.row.dim .note{color:#8a8f98}
+.badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#6ea8fe;color:#0f1115;font:600 12px/1 system-ui;margin-top:1px}
+.y{color:#6ea8fe;font-weight:600}.g{color:#5bd17a}.q{color:#5bd17a}.w{color:#e5c07b}.code{background:#d7dae0;color:#0f1115;border-radius:3px;padding:0 4px}
+.browser{margin-top:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden}
+.browser .url{font:12px Consolas,monospace;color:var(--sub);padding:7px 12px;border-bottom:1px solid var(--line)}
+.bsteps{list-style:none;margin:0;padding:8px 12px 10px;display:flex;flex-direction:column;gap:6px}
+.bsteps li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align-items:start}
+.bsteps .badge{background:var(--accent);color:var(--badge-fg)}
+.k{display:inline-block;padding:0 6px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;font:12px/18px Consolas,monospace}
+.done{margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<ol class="steps">
+<li>安装 <a href="#">Git</a></li>
+<li>安装 <a href="#">GitHub CLI</a></li>
+<li>打开“终端”（如需通过代理访问 GitHub，请确保已通过环境变量为 GitHub CLI（gh）配置可用代理，或已启用能够代理 GitHub 流量的 TUN 模式。），运行
+<code class="cmd">gh auth login --hostname github.com --git-protocol https --web</code></li>
+<li>根据指引完成授权（输入 Y，点击 Enter 打开授权页，输入“终端”显示的一次性代码）</li>
+</ol>
+
+<div class="cap">终端里会看到这些（蓝色是你要做的）</div>
+<div class="term" role="img" aria-label="终端授权过程示意">
+  <div class="bar">Windows PowerShell</div>
+  <div class="row act"><span class="n"><span class="badge">1</span></span><span class="t">PS C:\Users\你&gt; gh auth login --hostname github.com --git-protocol https --web</span><span class="note">粘贴命令，按 Enter</span></div>
+  <div class="row dim"><span class="n"></span><span class="t"><span class="w">!</span> Did you know that expiring tokens can be requested with --expiring? …</span><span class="note">提示信息，不用管</span></div>
+  <div class="row act"><span class="n"><span class="badge">2</span></span><span class="t"><span class="q">?</span> Authenticate Git with your GitHub credentials? (Y/n) <span class="y">Y</span></span><span class="note">输入 Y，按 Enter</span></div>
+  <div class="row act"><span class="n"><span class="badge">3</span></span><span class="t"><span class="w">!</span> One-time code <span class="code">ABCD-1234</span> copied to clipboard</span><span class="note">一次性代码，已经自动复制好了</span></div>
+  <div class="row act"><span class="n"><span class="badge">4</span></span><span class="t">Press <span class="y">Enter</span> to open https://github.com/login/device in your browser...</span><span class="note">再按一次 Enter，浏览器会打开授权页</span></div>
+</div>
+
+<div class="browser" role="group" aria-label="浏览器中的步骤">
+  <div class="url">github.com/login/device</div>
+  <ul class="bsteps">
+    <li><span class="badge">5</span><span>没登录 GitHub 时先登录；没有账号就点 Sign up 注册一个</span></li>
+    <li><span class="badge">6</span><span>在代码框里按 <span class="k">Ctrl</span> + <span class="k">V</span> 粘贴一次性代码，点 Continue</span></li>
+    <li><span class="badge">7</span><span>点 Authorize 确认授权，看到授权成功后回到终端</span></li>
+  </ul>
+</div>
+
+<div class="term done" role="img" aria-label="授权完成示意">
+  <div class="row"><span class="n"></span><span class="t"><span class="g">✓</span> Authentication complete.</span></div>
+  <div class="row act"><span class="n"><span class="badge">8</span></span><span class="t"><span class="g">✓</span> Logged in as 你的用户名</span><span class="note">看到这一行就完成了，回到这里点「立即同步」</span></div>
+</div>
+</div>
+</body>
+</html>

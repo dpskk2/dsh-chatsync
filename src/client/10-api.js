@@ -90,6 +90,12 @@ const API = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),
     }).then(r => r.json()),
+  resetSettingsVersion: expectedVersion =>
+    fetch('/dsh-sync/api/settings-version/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expectedVersion }),
+    }).then(r => r.json()),
   checkConnection: () => fetch('/dsh-sync/api/connection/check').then(r => r.json()),
   network: () => fetch('/dsh-sync/api/network', { signal: AbortSignal.timeout(40000) }).then(r => r.json()),
   remoteCleanup: () => fetch('/dsh-sync/api/remote-cleanup').then(r => r.json()),

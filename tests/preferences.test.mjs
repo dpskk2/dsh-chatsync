@@ -1070,27 +1070,31 @@ test('login help shows one tab at a time and opens on GitHub before a repository
   }
   let panel = helpPanel(tree);
   assert.equal(panel.props['aria-labelledby'], 'dss-login-help-tab-github');
-  assert.ok(text(panel).includes('如需通过代理访问 GitHub，请确保已通过环境变量为 GitHub CLI（gh）配置可用代理'));
+  assert.equal(
+    text(all(panel).find(n => n.type === 'strong' && n.props.className === 'dss-gh-proxy')),
+    '如需通过代理访问 GitHub，请确保已通过环境变量为 GitHub CLI（gh）配置可用代理，或已启用能够代理 GitHub 流量的 TUN 模式',
+  );
   assert.deepEqual(
     all(panel)
       .filter(n => n.props.className === 'dss-command')
       .map(n => text(n)),
     ['gh auth login --hostname github.com --git-protocol https --web'],
   );
-  assert.match(text(panel), /根据指引完成授权（输入 Y，点击 Enter 打开授权页，输入“终端”显示的一次性代码）/);
+  assert.match(text(panel), /根据指引完成授权。/);
   assert.deepEqual(
     all(panel)
       .filter(n => n.type === 'a')
       .map(n => text(n)),
     ['Git', 'GitHub CLI', 'GitHub 登录说明', '代理与高级配置'],
   );
-  // The annotated sign-in picture: eight numbered steps, no real account.
+  // The terminal diagram contains a single sequence and no real account.
   const badges = all(panel).filter(n => n.props.className === 'dss-gh-badge');
   assert.deepEqual(
     badges.map(n => text(n)),
-    ['1', '2', '3', '4', '5', '6', '7', '8'],
+    ['1', '2', '3', '4', '5'],
   );
-  assert.match(text(panel), /终端里会看到这些（蓝色是你要做的）/);
+  assert.doesNotMatch(text(panel), /终端里会看到这些|Sign up|点 Authorize/);
+  assert.equal(all(panel).filter(n => n.props.role === 'img').length, 1);
   assert.match(text(panel), /One-time code \(\s*ABCD-1234\s*\) copied to clipboard/);
   assert.match(text(panel), /Logged in as 你的用户名/);
   assert.ok(all(panel).some(n => n.props.role === 'img' && /终端授权过程/.test(n.props['aria-label'])));

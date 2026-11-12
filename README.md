@@ -94,11 +94,13 @@ dsh plugin --profile web update chatsync@0.21.2 --registry=https://registry.npmj
 
 **① 登录托管站**
 
-使用默认仓库（GitHub）时，安装 Git 和 GitHub CLI，打开“终端”（如需通过代理访问 GitHub，请确保已通过环境变量为 GitHub CLI（gh）配置可用代理，或已启用能够代理 GitHub 流量的 TUN 模式。），运行：
+使用默认仓库（GitHub）时，安装 Git 和 GitHub CLI，在“终端”运行：
 
 ```powershell
 gh auth login --hostname github.com --git-protocol https --web
 ```
+
+**如需通过代理访问 GitHub，请确保已通过环境变量为 GitHub CLI（gh）配置可用代理，或已启用能够代理 GitHub 流量的 TUN 模式**
 
 根据指引完成授权：输入 Y，按 Enter 打开授权页，在浏览器中输入“终端”显示的一次性代码（已自动复制，按 Ctrl + V 粘贴），点击 Authorize。
 

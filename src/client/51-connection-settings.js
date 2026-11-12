@@ -253,8 +253,7 @@ function loginHelpTabs(active, select) {
     ),
   );
 }
-// Annotated, account-free picture of `gh auth login`: the terminal stays dark in
-// both themes, the browser step uses the host's colours.
+// Annotated, account-free picture of the gh auth login terminal output.
 function githubLoginDiagram() {
   const badge = n => e('span', { className: 'dss-gh-badge', 'aria-hidden': true }, n);
   const row = (n, line, note, dim = false) =>
@@ -265,84 +264,49 @@ function githubLoginDiagram() {
       e('span', { className: 'dss-gh-t' }, ...line),
       note ? e('span', { className: 'dss-gh-note' }, note) : null,
     );
-  const key = label => e('kbd', { className: 'dss-gh-key' }, label);
   const warn = e('span', { className: 'dss-gh-warn' }, '!');
   const ok = e('span', { className: 'dss-gh-ok' }, '✓');
   return e(
     'div',
-    { className: 'dss-gh-diagram' },
-    e('div', { className: 'dss-gh-cap' }, '终端里会看到这些（蓝色是你要做的）'),
-    e(
-      'div',
-      {
-        className: 'dss-gh-term',
-        role: 'img',
-        'aria-label':
-          '终端授权过程示意：1 粘贴命令并按 Enter；2 输入 Y 并按 Enter；3 一次性代码已自动复制；4 再按一次 Enter 打开浏览器授权页',
-      },
-      e('div', { className: 'dss-gh-bar' }, 'Windows PowerShell'),
-      row(
-        1,
-        ['PS C:\\Users\\你> gh auth login --hostname github.com --git-protocol https --web'],
-        '粘贴命令，按 Enter',
-      ),
-      row(
-        null,
-        [warn, ' Did you know that expiring tokens can be requested with --expiring? …'],
-        '提示信息，不用管',
-        true,
-      ),
-      row(
-        2,
-        [
-          e('span', { className: 'dss-gh-ok' }, '?'),
-          ' Authenticate Git with your GitHub credentials? (Y/n) ',
-          e('span', { className: 'dss-gh-you' }, 'Y'),
-        ],
-        '输入 Y，按 Enter',
-      ),
-      row(
-        3,
-        [warn, ' One-time code (', e('span', { className: 'dss-gh-code' }, 'ABCD-1234'), ') copied to clipboard'],
-        '一次性代码，已经自动复制好了',
-      ),
-      row(
-        4,
-        [
-          'Press ',
-          e('span', { className: 'dss-gh-you' }, 'Enter'),
-          ' to open https://github.com/login/device in your browser...',
-        ],
-        '再按一次 Enter，浏览器会打开授权页',
-      ),
+    {
+      className: 'dss-gh-diagram dss-gh-term',
+      role: 'img',
+      'aria-label':
+        '终端授权过程示意：1 粘贴命令并按 Enter；2 输入 Y 并按 Enter；3 一次性代码已自动复制；4 按 Enter 打开授权页；5 终端显示 Logged in as 你的用户名，授权完成',
+    },
+    e('div', { className: 'dss-gh-bar' }, 'Windows PowerShell'),
+    row(1, ['PS C:\\Users\\你> gh auth login --hostname github.com --git-protocol https --web'], '粘贴命令，按 Enter'),
+    row(
+      null,
+      [warn, ' Did you know that expiring tokens can be requested with --expiring? …'],
+      '提示信息，不用管',
+      true,
     ),
-    e(
-      'div',
-      { className: 'dss-gh-browser', role: 'group', 'aria-label': '浏览器中的步骤' },
-      e('div', { className: 'dss-gh-url' }, 'github.com/login/device'),
-      e(
-        'ol',
-        { className: 'dss-gh-steps' },
-        e('li', null, badge(5), e('span', null, '没登录 GitHub 时先登录；没有账号就点 Sign up 注册一个')),
-        e(
-          'li',
-          null,
-          badge(6),
-          e('span', null, '在代码框里按 ', key('Ctrl'), ' + ', key('V'), ' 粘贴一次性代码，点 Continue'),
-        ),
-        e('li', null, badge(7), e('span', null, '点 Authorize 确认授权，看到授权成功后回到终端')),
-      ),
+    row(
+      2,
+      [
+        e('span', { className: 'dss-gh-ok' }, '?'),
+        ' Authenticate Git with your GitHub credentials? (Y/n) ',
+        e('span', { className: 'dss-gh-you' }, 'Y'),
+      ],
+      '输入 Y，按 Enter',
     ),
-    e(
-      'div',
-      {
-        className: 'dss-gh-term dss-gh-done',
-        role: 'img',
-        'aria-label': '授权完成示意：8 终端显示 Logged in as 你的用户名，回到这里点立即同步',
-      },
-      row(null, [ok, ' Authentication complete.']),
-      row(8, [ok, ' Logged in as 你的用户名'], '看到这一行就完成了，回到这里点「立即同步」'),
+    row(
+      3,
+      [warn, ' One-time code (', e('span', { className: 'dss-gh-code' }, 'ABCD-1234'), ') copied to clipboard'],
+      '一次性代码，已经自动复制好了',
     ),
+    row(
+      4,
+      [
+        'Press ',
+        e('span', { className: 'dss-gh-you' }, 'Enter'),
+        ' to open https://github.com/login/device in your browser...',
+      ],
+      '再按一次 Enter，浏览器会打开授权页',
+    ),
+    row(null, [ok, ' Authentication complete.']),
+    row(5, [ok, ' Logged in as 你的用户名'], '看到这一行就完成了，回到这里点「立即同步」'),
   );
 }
 const GIT_DOWNLOAD = () => e('li', null, '安装 ', helpLink('Git', 'https://git-scm.com/downloads'));
@@ -358,10 +322,15 @@ function helpTabPanel(active) {
         e(
           'li',
           null,
-          '打开“终端”（如需通过代理访问 GitHub，请确保已通过环境变量为 GitHub CLI（gh）配置可用代理，或已启用能够代理 GitHub 流量的 TUN 模式。），运行',
+          '在“终端”运行',
           e('code', { className: 'dss-command' }, 'gh auth login --hostname github.com --git-protocol https --web'),
+          e(
+            'strong',
+            { className: 'dss-gh-proxy' },
+            '如需通过代理访问 GitHub，请确保已通过环境变量为 GitHub CLI（gh）配置可用代理，或已启用能够代理 GitHub 流量的 TUN 模式',
+          ),
         ),
-        e('li', null, '根据指引完成授权（输入 Y，点击 Enter 打开授权页，输入“终端”显示的一次性代码）'),
+        e('li', null, '根据指引完成授权。'),
       ),
       e('div', { key: 'diagram' }, githubLoginDiagram()),
       e(

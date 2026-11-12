@@ -94,13 +94,15 @@ Restart DSH after installation. Click **Sync** in the sidebar, or open **Setting
 
 **① Sign in to your Git host**
 
-For the default repository (GitHub), install Git and GitHub CLI, open a terminal (if you reach GitHub through a proxy, make sure GitHub CLI (gh) has a working proxy set through environment variables, or that a TUN mode able to proxy GitHub traffic is enabled), and run:
+For the default repository (GitHub), install Git and GitHub CLI and run this command in a terminal:
 
 ```powershell
 gh auth login --hostname github.com --git-protocol https --web
 ```
 
-Follow the prompts to authorize: type Y, press Enter to open the authorization page, then enter the one-time code shown in the terminal in your browser (it is already copied; paste it with Ctrl + V) and click Authorize.
+**If GitHub requires a proxy, configure a working proxy for GitHub CLI (gh) through environment variables or enable a TUN mode that proxies GitHub traffic**
+
+Follow the authorization prompts. Type Y and press Enter to open the authorization page, paste the one-time code with Ctrl + V, then click Authorize.
 
 For Gitee, GitLab or another host, install Git and first create an empty private repository on its website (do not initialize it with a README). For an HTTPS address, open a terminal, run the command below with your repository address and enter that site's account and password or access token when Git asks. For an SSH address, generate an SSH key for this computer, add the public key to the site's SSH key settings, then run `git ls-remote` with the repository address.
 

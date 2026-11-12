@@ -94,6 +94,22 @@ function Section(props) {
     return run(runRef.current);
   };
   const detail = useMemo(() => (status ? lastDetailText(status.lastDetail) : ''), [status]);
+  const [versionReset, setVersionReset] = useState({ pending: false, error: '' });
+  // Give up a version record left by a DSH that is no longer used: back up, then sync.
+  const resetSettingsVersion = async other => {
+    if (busy || settingsPending || versionReset.pending) return;
+    if (!window.confirm(`清除 DSH ${other} 的版本记录，由这台电脑接管设置同步？当前设置会先另存为恢复记录。`)) return;
+    setVersionReset({ pending: true, error: '' });
+    try {
+      const d = await API.resetSettingsVersion(other);
+      if (!d || !d.ok) throw new Error((d && d.error) || '清除失败，请重试。');
+      setVersionReset({ pending: false, error: '' });
+      await onRun();
+    } catch (err) {
+      setVersionReset({ pending: false, error: err.message || String(err) });
+    }
+  };
+  const pauseVersions = status?.lastDetail?.settingsPauseVersions || null;
   const currentNotice = status && syncMessagePresentation(status.lastMessage, status.lastOk, status.lastDetail).current;
   const verificationPending = status?.dataVerificationPending ?? status?.lastDetail?.dataVerificationPending;
   const repairQueued = status?.queuedRepairs > 0;
@@ -288,6 +304,29 @@ function Section(props) {
                   },
                   verificationPending ? '前往核对修复结果' : '前往处理修复安排',
                 ),
+              )
+            : null,
+          !busy && pauseVersions
+            ? e(
+                'div',
+                { className: 'dss-guide dss-version-pause' },
+                e('p', { className: 'dss-desc' }, status.lastDetail.settingsPause),
+                e(
+                  'p',
+                  { className: 'dss-desc' },
+                  '较新 DSH 的电脑已不再使用（重置、退役或回退）时，可以清除版本记录，由这台电脑接管设置同步。',
+                ),
+                e(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dss-pill',
+                    disabled: settingsPending || versionReset.pending,
+                    onClick: () => resetSettingsVersion(pauseVersions.other),
+                  },
+                  versionReset.pending ? '正在备份…' : '清除版本记录',
+                ),
+                versionReset.error ? e('div', { className: 'dss-err', role: 'alert' }, versionReset.error) : null,
               )
             : null,
           !busy && status?.lastOk === false

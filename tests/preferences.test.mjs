@@ -333,6 +333,84 @@ test('repair blockers open a dedicated repair page without acknowledging or star
   }
 });
 
+test('clear version record appears only for a version pause and does nothing when not confirmed', async () => {
+  const pause =
+    '同步仓库中的设置由较新的 DSH 0.2.2-rc.1 写入，本机是 0.2.1-rc.5，本轮暂停同步设置；把这台电脑的 DSH 更新到 0.2.2-rc.1 或更新版本后自动恢复。会话和附件照常同步。';
+  for (const [detail, shown] of [
+    [{ settingsPause: pause, settingsPauseVersions: { own: '0.2.1-rc.5', other: '0.2.2-rc.1' } }, true],
+    [{ settingsPause: pause }, false],
+    [{}, false],
+  ]) {
+    const calls = [];
+    let confirmed = '';
+    const h = harness(
+      (url, options) => {
+        calls.push({ url, body: options?.body });
+        if (url.endsWith('/settings-version/reset')) return response({ ok: true, backups: 2 });
+        return response(
+          url.endsWith('/status')
+            ? { ok: true, remote: 'https://github.com/fixture/data', lastOk: true, lastDetail: detail }
+            : { ok: true, config: initial },
+        );
+      },
+      'Section',
+      {
+        timers: false,
+        confirm: message => {
+          confirmed = message;
+          return false;
+        },
+      },
+    );
+    h.render();
+    await h.effects();
+    const tree = h.render();
+    const button = all(tree).find(n => n.type === 'button' && text(n) === '清除版本记录');
+    assert.equal(Boolean(button), shown, JSON.stringify(detail));
+    if (!button) continue;
+    await button.props.onClick();
+    assert.equal(confirmed, '清除 DSH 0.2.2-rc.1 的版本记录，由这台电脑接管设置同步？当前设置会先另存为恢复记录。');
+    assert.equal(
+      calls.some(call => /settings-version|\/run$/.test(call.url)),
+      false,
+      'a cancelled confirmation sends nothing',
+    );
+  }
+});
+
+test('a confirmed clear sends the shown version and then starts a sync', async () => {
+  const calls = [];
+  const h = harness(
+    (url, options) => {
+      calls.push({ url, body: options?.body ? JSON.parse(options.body) : null });
+      if (url.endsWith('/settings-version/reset')) return response({ ok: true, backups: 2 });
+      if (url.endsWith('/run')) return response({ ok: true, summary: '同步完成' });
+      return response(
+        url.endsWith('/status')
+          ? {
+              ok: true,
+              remote: 'https://github.com/fixture/data',
+              lastOk: true,
+              lastDetail: { settingsPause: 'x', settingsPauseVersions: { own: '0.2.1', other: '0.2.2' } },
+            }
+          : { ok: true, config: initial },
+      );
+    },
+    'Section',
+    { timers: false, confirm: () => true },
+  );
+  h.render();
+  await h.effects();
+  await all(h.render())
+    .find(n => n.type === 'button' && text(n) === '清除版本记录')
+    .props.onClick();
+  await h.effects();
+  const reset = calls.findIndex(call => call.url === '/dsh-sync/api/settings-version/reset');
+  assert.ok(reset >= 0);
+  assert.deepEqual(calls[reset].body, { expectedVersion: '0.2.2' });
+  assert.ok(calls.findIndex(call => call.url === '/dsh-sync/api/run') > reset, calls.map(call => call.url).join(','));
+});
+
 test('repair verification stays visible and clears only after successful explicit acknowledgment', async () => {
   let succeeds = false,
     changed = 0;
@@ -934,10 +1012,11 @@ test('configured backup hides its address until an explicit edit and cancel disc
   assert.equal(text(link), '在 Gitee 查看仓库');
   assert.match(text(tree), /已连接同步仓库/);
   assert.doesNotMatch(text(tree), /不受支持/);
-  // GitHub CLI belongs to the GitHub group only; other hosts get their own sign-in command.
-  assert.match(text(tree), /所有托管站都要：安装\s+Git\s+。\s+默认仓库，或其他 GitHub 仓库\s+再安装\s+GitHub CLI/);
-  assert.match(text(tree), /Gitee、GitLab 等其他托管站（不需要 GitHub CLI）/);
-  assert.ok(text(tree).includes('git ls-remote https://gitee.com/用户名/dsh-sync.git'));
+  // A connected Gitee repository opens the login help on the other-hosts tab only.
+  const panel = all(tree).find(n => n.props.role === 'tabpanel');
+  assert.equal(panel.props['aria-labelledby'], 'dss-login-help-tab-other');
+  assert.ok(text(panel).includes('git ls-remote https://gitee.com/用户名/dsh-sync.git'));
+  assert.doesNotMatch(text(panel), /GitHub CLI/);
   all(tree)
     .find(n => n.type === 'button' && text(n) === '更换同步仓库')
     .props.onClick();
@@ -960,6 +1039,111 @@ test('configured backup hides its address until an explicit edit and cancel disc
     .find(n => n.type === 'button' && text(n) === '更换同步仓库')
     .props.onClick();
   assert.equal(all(h.render()).find(n => n.type === 'input').props.value, remote);
+});
+
+const helpTabs = tree => all(tree).filter(n => n.props.role === 'tab');
+const helpPanel = tree => all(tree).find(n => n.props.role === 'tabpanel');
+const selectedHelpTab = tree => helpTabs(tree).find(n => n.props['aria-selected'] === true);
+
+test('login help shows one tab at a time and opens on GitHub before a repository is connected', async () => {
+  const h = harness(() => response({ ok: true, config: { remote: '', autoRepo: true } }), 'ConnectionSettings');
+  h.render();
+  await h.effects();
+  let tree = h.render();
+  const details = all(tree).find(n => n.type === 'details');
+  assert.equal(details.props.open, true);
+  assert.deepEqual(
+    helpTabs(tree).map(n => text(n)),
+    ['GitHub 仓库', 'Gitee、GitLab 等其他托管站'],
+  );
+  assert.equal(all(tree).find(n => n.props.role === 'tablist').props['aria-label'], '仓库类型');
+  assert.equal(all(tree).filter(n => n.props.role === 'tabpanel').length, 1);
+  assert.equal(selectedHelpTab(tree).props.id, 'dss-login-help-tab-github');
+  assert.deepEqual(
+    helpTabs(tree).map(n => n.props.tabIndex),
+    [0, -1],
+  );
+  for (const tab of helpTabs(tree)) {
+    assert.equal(tab.type, 'button');
+    assert.equal(tab.props.type, 'button');
+    assert.equal(tab.props['aria-controls'], helpPanel(tree).props.id);
+  }
+  let panel = helpPanel(tree);
+  assert.equal(panel.props['aria-labelledby'], 'dss-login-help-tab-github');
+  assert.ok(text(panel).includes('如需通过代理访问 GitHub，请确保已通过环境变量为 GitHub CLI（gh）配置可用代理'));
+  assert.deepEqual(
+    all(panel)
+      .filter(n => n.props.className === 'dss-command')
+      .map(n => text(n)),
+    ['gh auth login --hostname github.com --git-protocol https --web'],
+  );
+  assert.match(text(panel), /根据指引完成授权（输入 Y，点击 Enter 打开授权页，输入“终端”显示的一次性代码）/);
+  assert.deepEqual(
+    all(panel)
+      .filter(n => n.type === 'a')
+      .map(n => text(n)),
+    ['Git', 'GitHub CLI', 'GitHub 登录说明', '代理与高级配置'],
+  );
+  // The annotated sign-in picture: eight numbered steps, no real account.
+  const badges = all(panel).filter(n => n.props.className === 'dss-gh-badge');
+  assert.deepEqual(
+    badges.map(n => text(n)),
+    ['1', '2', '3', '4', '5', '6', '7', '8'],
+  );
+  assert.match(text(panel), /终端里会看到这些（蓝色是你要做的）/);
+  assert.match(text(panel), /One-time code \(\s*ABCD-1234\s*\) copied to clipboard/);
+  assert.match(text(panel), /Logged in as 你的用户名/);
+  assert.ok(all(panel).some(n => n.props.role === 'img' && /终端授权过程/.test(n.props['aria-label'])));
+
+  // Clicking another tab switches the single panel.
+  helpTabs(tree)[1].props.onClick();
+  tree = h.render();
+  assert.equal(selectedHelpTab(tree).props.id, 'dss-login-help-tab-other');
+  assert.deepEqual(
+    helpTabs(tree).map(n => n.props['aria-selected']),
+    [false, true],
+  );
+  panel = helpPanel(tree);
+  assert.equal(all(panel).filter(n => n.props.className === 'dss-gh-badge').length, 0);
+  assert.deepEqual(
+    all(panel)
+      .filter(n => n.props.className === 'dss-command')
+      .map(n => text(n)),
+    ['git ls-remote https://gitee.com/用户名/dsh-sync.git'],
+  );
+  assert.match(text(panel), /按 Git 的提示输入该站的账号和密码或访问令牌。/);
+  assert.match(text(panel), /或 SSH 地址：为这台电脑生成 SSH 密钥/);
+  assert.deepEqual(
+    all(panel)
+      .filter(n => n.type === 'a')
+      .map(n => text(n)),
+    ['Git', '其他托管站说明'],
+  );
+
+  // Arrow keys move between tabs and wrap around.
+  const keyed = [];
+  const tablist = () => all(h.render()).find(n => n.props.role === 'tablist');
+  tablist().props.onKeyDown({ key: 'ArrowRight', preventDefault: () => keyed.push('right') });
+  assert.equal(selectedHelpTab(h.render()).props.id, 'dss-login-help-tab-github');
+  tablist().props.onKeyDown({ key: 'ArrowLeft', preventDefault: () => keyed.push('left') });
+  assert.equal(selectedHelpTab(h.render()).props.id, 'dss-login-help-tab-other');
+  tablist().props.onKeyDown({ key: 'Enter', preventDefault: () => keyed.push('enter') });
+  assert.deepEqual(keyed, ['right', 'left']);
+});
+
+test('login help opens on the tab of the connected repository', async () => {
+  for (const [config, tab] of [
+    [{ remote: 'https://github.com/alice/dsh-sync.git', remoteWeb: { label: 'GitHub', url: 'x' } }, 'github'],
+    [{ remote: 'git@gitee.com:alice/dsh-sync.git', remoteWeb: { label: 'Gitee', url: 'x' } }, 'other'],
+  ]) {
+    const h = harness(() => response({ ok: true, config: { autoRepo: false, ...config } }), 'ConnectionSettings');
+    h.render();
+    await h.effects();
+    const tree = h.render();
+    assert.equal(all(tree).find(n => n.type === 'details').props.open, false);
+    assert.equal(selectedHelpTab(tree).props.id, 'dss-login-help-tab-' + tab, config.remote);
+    assert.equal(helpPanel(tree).props['aria-labelledby'], 'dss-login-help-tab-' + tab);
+  }
 });
 
 test('connection form submits a custom repository for server verification', async () => {

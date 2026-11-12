@@ -66,7 +66,7 @@ dsh plugin --profile web add chatsync
 
 旧宿主继续显示「复制更新代码」：Windows 使用 PowerShell，macOS 使用终端，Web 端在运行 DSH 的电脑执行。生成的命令保留实际安装的包名，指定目标版本和 npm 官方源。提醒可以关闭，同步设置中仍可查看。
 
-以下是更新到 **0.21.2** 的手动命令。**如果原先安装的是 `@dpskk2/dsh-chatsync`，把命令中的 `chatsync` 换成原包名。**
+以下是更新到已发布的 **0.21.2** 的手动命令。**如果原先安装的是 `@dpskk2/dsh-chatsync`，把命令中的 `chatsync` 换成原包名。**
 
 **Web 端：**
 
@@ -94,13 +94,15 @@ dsh plugin --profile web update chatsync@0.21.2 --registry=https://registry.npmj
 
 **① 登录托管站**
 
-使用默认仓库（GitHub）时，在 PowerShell 中执行，按提示在浏览器完成授权：
+使用默认仓库（GitHub）时，安装 Git 和 GitHub CLI，打开“终端”（如需通过代理访问 GitHub，请确保已通过环境变量为 GitHub CLI（gh）配置可用代理，或已启用能够代理 GitHub 流量的 TUN 模式。），运行：
 
 ```powershell
 gh auth login --hostname github.com --git-protocol https --web
 ```
 
-使用 Gitee、GitLab 等其他托管站时，先在网页创建空的私有仓库（不要勾选用 README 初始化），再运行一次下面的命令（换成你的仓库地址），在弹出的 Git 登录窗口输入该站的账号和密码或访问令牌；SSH 地址则先配置 SSH 密钥。
+根据指引完成授权：输入 Y，按 Enter 打开授权页，在浏览器中输入“终端”显示的一次性代码（已自动复制，按 Ctrl + V 粘贴），点击 Authorize。
+
+使用 Gitee、GitLab 等其他托管站时，安装 Git，先在网页创建空的私有仓库（不要勾选用 README 初始化）。HTTPS 地址：打开“终端”，运行下面的命令（换成你的仓库地址），按 Git 的提示输入该站的账号和密码或访问令牌。SSH 地址：为这台电脑生成 SSH 密钥，把公钥添加到托管站的「SSH 公钥」设置，再运行 `git ls-remote` 加仓库地址。
 
 ```powershell
 git ls-remote https://gitee.com/用户名/dsh-sync.git
@@ -152,7 +154,7 @@ git ls-remote https://gitee.com/用户名/dsh-sync.git
 
 支持 DSH 的 Web 和 Windows、macOS 桌面端，最低 **0.2.0-rc.1**（macOS 没有真机验收记录，会话日志格式和设置已按 DSH 0.2.2-rc.1 的官方源码核对，见[文件说明](docs/dsh-file-catalog.md)）；桌面端推荐 **0.2.1-rc.3 或更新版**。独立运行要求 **Node.js 24 或更新版**，桌面端使用应用自带运行时。
 
-具体已验证与未覆盖范围见[本版验证记录](docs/release-0.21.2-validation.md)。
+设置同步按 DSH 版本保护。升级后会自动恢复，旧版本的电脑会继续同步会话和附件。若较新版本的电脑已停用，可在同步状态中清除版本记录，先备份再接管设置同步。[设置同步说明](docs/sync-content.md) · [本版验证记录](docs/release-0.21.3-validation.md)
 
 ## 帮助与开发
 

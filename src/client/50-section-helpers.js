@@ -54,6 +54,14 @@ function lastDetailText(lastDetail) {
   for (const w of lastDetail.sessionDeferred || []) lines.push('会话等待应用: ' + w.hint + '；' + w.file);
   for (const warning of lastDetail.scopeWarnings || []) lines.push(warning);
   if (lastDetail.settingsPause) lines.push(lastDetail.settingsPause);
+  if (lastDetail.settingsVersionReset)
+    lines.push(
+      '已清除 DSH ' +
+        lastDetail.settingsVersionReset.from +
+        ' 的设置版本记录，设置恢复同步；原设置另存为 ' +
+        lastDetail.settingsVersionReset.backups +
+        ' 份恢复记录。',
+    );
   if (lastDetail.backupBranch)
     lines.push(
       '备份分支: ' +

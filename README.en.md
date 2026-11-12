@@ -66,7 +66,7 @@ Update notices show the new version, its DSH requirement and one update action. 
 
 Older hosts retain **Copy update command**: use PowerShell on Windows, Terminal on macOS, or the computer running DSH Web. Generated commands preserve the installed package name, pin the target version and use the official npm registry. Dismissed notices remain available in Sync settings.
 
-The manual commands below update to **0.21.2**. **If you originally installed `@dpskk2/dsh-chatsync`, replace `chatsync` with that package name.**
+The manual commands below update to the published **0.21.2**. **If you originally installed `@dpskk2/dsh-chatsync`, replace `chatsync` with that package name.**
 
 **Web:**
 
@@ -94,13 +94,15 @@ Restart DSH after installation. Click **Sync** in the sidebar, or open **Setting
 
 **① Sign in to your Git host**
 
-For the default repository (GitHub), run this in PowerShell and follow the prompts to authorize access in your browser:
+For the default repository (GitHub), install Git and GitHub CLI, open a terminal (if you reach GitHub through a proxy, make sure GitHub CLI (gh) has a working proxy set through environment variables, or that a TUN mode able to proxy GitHub traffic is enabled), and run:
 
 ```powershell
 gh auth login --hostname github.com --git-protocol https --web
 ```
 
-For Gitee, GitLab or another host, first create an empty private repository on its website (do not initialize it with a README). Then run the command below once with your repository address and sign in with that site's account and password or access token in the Git sign-in window. For an SSH address, set up an SSH key instead.
+Follow the prompts to authorize: type Y, press Enter to open the authorization page, then enter the one-time code shown in the terminal in your browser (it is already copied; paste it with Ctrl + V) and click Authorize.
+
+For Gitee, GitLab or another host, install Git and first create an empty private repository on its website (do not initialize it with a README). For an HTTPS address, open a terminal, run the command below with your repository address and enter that site's account and password or access token when Git asks. For an SSH address, generate an SSH key for this computer, add the public key to the site's SSH key settings, then run `git ls-remote` with the repository address.
 
 ```powershell
 git ls-remote https://gitee.com/username/dsh-sync.git
@@ -152,7 +154,7 @@ Migration originals can be cleaned manually after verification and archiving of 
 
 Supports DSH Web and Windows and macOS Desktop, with a minimum version of **0.2.0-rc.1** (macOS has no real-device acceptance record; the session log format and settings were reviewed against the official DSH 0.2.2-rc.1 source, see [file notes](docs/dsh-file-catalog.md)). **Desktop 0.2.1-rc.3 or newer is recommended**. Standalone use requires **Node.js 24 or newer**; Desktop uses its bundled runtime.
 
-See the [version validation record](docs/release-0.21.2-validation.md) for the environments actually tested and the remaining gaps.
+Settings sync respects the DSH version that last wrote the shared settings. Older DSH installations continue to sync sessions and attachments, and settings sync resumes after upgrading. If the newer installation is no longer in use, clear the version record from Sync status to take over after backing up both sides. [Settings sync details](docs/sync-content.md) · [Version validation record](docs/release-0.21.3-validation.md)
 
 ## Help and development
 

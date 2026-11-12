@@ -1,7 +1,7 @@
 {
   "name": "@dpskk2/dsh-chatsync",
-  "version": "0.21.2",
-  "chatsyncBuild": "2026-11-06-release-0.21.2",
+  "version": "0.21.3",
+  "chatsyncBuild": "2026-11-12-candidate-0.21.3",
   "description": "换台电脑，接着聊。同步会话、附件、设置和项目文件。",
   "keywords": [
     "dsh",
@@ -42,7 +42,7 @@
     "docs/sync-content.md",
     "docs/data-repair-0.20.1.md",
     "docs/assets",
-    "docs/release-0.21.2-validation.md",
+    "docs/release-0.21.3-validation.md",
     "docs/dsh-0.2.1-rc.3-adaptation.md",
     "docs/local-storage.md"
   ],

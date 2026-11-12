@@ -55,7 +55,7 @@
 | 项目登记、投影缓存 | `storages/workspace.json` 仍是 `workspace` 第 2 版，字段不变；`session_projcache` 规格不变 |
 | 设置位置 | 仍是 `profiles/<环境>/cordis.patch.yml` 和数据目录下的 `cordis.patch.yml`，结构仍是按 id 的补丁列表。Include 改用 journal 写盘并会为无 id 的行写回生成的 id，这些写入发生在加载器自己的 `cordis.yml` 层；profile 根 Include 的运行时变更不再写回 |
 | 新增设置 | 模型服务商的 `maxRequestImages`、`imageOffloadCountQuantum` 为可选字段，按普通设置原样同步；未发现新增的凭据或代理字段。`DEFAULT_CONTEXT_WINDOW`、`DEFAULT_MAX_TOKENS`、`fs-observation-policy` 等默认值变化不写入用户文件 |
-| 随版本移除的条目 | `tool-subagent-list-agents`、`ui-deepseek-model-label-1017`、`tools` 等捆绑条目已移除或替换，用户补丁中指向旧条目的行只产生一条宿主警告，不影响启动；两台电脑 DSH 版本不同时设置本来就暂停互传 |
+| 随版本移除的条目 | `tool-subagent-list-agents`、`ui-deepseek-model-label-1017`、`tools` 等捆绑条目已移除或替换，用户补丁中指向旧条目的行只产生一条宿主警告，不影响启动；DSH 较旧的电脑在较新的电脑写入设置后本来就暂停同步设置 |
 | 不同步的新内容 | `schedule` 领域升到第 2 版、`change-request-states`、Computer Use 授权都不在同步范围内，留在各台电脑 |
 | macOS 桌面端 | 宿主进程参数和 Windows 一致；`/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh` 是自带命令行；桌面端启动时读取登录 shell 环境，因此 Homebrew 安装的 Git 和 GitHub CLI 能被找到 |
 

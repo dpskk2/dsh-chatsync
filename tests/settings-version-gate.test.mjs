@@ -53,6 +53,20 @@ function devices(t) {
 }
 const patch = theme => `- name: theme\n  value: ${theme}\n`;
 
+test('a new remote receives the first snapshot even when fetch reports the missing branch in another language', async t => {
+  const { make, put, shown, sync } = devices(t);
+  const engine = make('first', '0.2.2-rc.1');
+  put(engine, 'cordis.patch.yml', patch('first'));
+  const run = engine.runWithRetry;
+  engine.runWithRetry = async function (op, ...args) {
+    const result = await run.call(this, op, ...args);
+    return op === 'fetch' && !this.ok(result) ? { ...result, err: '找不到远端引用 refs/heads/main' } : result;
+  };
+  await sync(engine);
+  assert.equal(shown('cordis.patch.yml'), patch('first'));
+  assert.match(shown('storages/sync-meta/settings-writer.json'), /0\.2\.2-rc\.1/);
+});
+
 test('a newer writer appearing at fetch pauses settings before export and still sends attachments', async t => {
   const { make, put, read, shown, sync } = devices(t);
   const newer = make('newer', '0.2.2-rc.1');

@@ -696,6 +696,7 @@ function SyncPreferences({
   const confirmed = useRef(null);
   const automatic = config?.automatic ?? config?.enabled !== false;
   const accept = actual => {
+    acceptPreferences({ ok: true, config: actual });
     confirmed.current = actual;
     setConfig(actual);
     setUncertain(false);

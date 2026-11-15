@@ -114,7 +114,7 @@ test('two transport copies expose saved fork originals after later runs and rest
 });
 
 test('keeping one conflict version preserves the live session and allows deleting the backup on demand', async t => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'chatsync-fork-keep-'));
+  const home = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'chatsync-fork-keep-'));
   t.after(() => removeFixture(home));
   const engine = new SyncEngine(home, { autoRepo: false, workspaceSync: false });
   engine.loadRecoveryCatalog = async () => fixtureCatalog;

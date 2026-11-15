@@ -19,6 +19,37 @@ function RecoveryMarkdown({ text }) {
   return e('div', { className: 'dss-readable-text' }, text);
 }
 
+function recoveryMessage(message, difference, key) {
+  return e(
+    'article',
+    {
+      key,
+      className:
+        'dss-message dss-message-' +
+        message.role +
+        (difference ? ' dss-message-different dss-message-diff-' + difference : ''),
+      'aria-label': (message.role === 'user' ? '用户消息' : '助手回复') + (difference ? '（与另一版本不同）' : ''),
+    },
+    e(
+      'div',
+      { className: 'dss-message-body' },
+      message.content.map((part, i) =>
+        part.type === 'text'
+          ? message.role === 'assistant'
+            ? e(RecoveryMarkdown, { key: i, text: part.text })
+            : e('div', { key: i, className: 'dss-readable-text' }, part.text)
+          : e(
+              'div',
+              { key: i, className: 'dss-file-preview' },
+              e('span', { 'aria-hidden': true }, '▧'),
+              e('span', null, part.name),
+              part.bytes ? e('small', null, fmtBytes(part.bytes)) : null,
+            ),
+      ),
+    ),
+  );
+}
+
 function RecoveryReadableVersion({ value, onMore, loading }) {
   const presentation = value.presentation;
   if (value.missing || presentation?.kind === 'missing') return e('p', { className: 'dss-desc' }, '此版本没有文件');
@@ -28,33 +59,7 @@ function RecoveryReadableVersion({ value, onMore, loading }) {
     return e(
       'div',
       { className: 'dss-transcript', 'aria-label': '会话预览' },
-      presentation.messages.map((message, index) =>
-        e(
-          'article',
-          {
-            key: message.id + ':' + index,
-            className: 'dss-message dss-message-' + message.role,
-            'aria-label': message.role === 'user' ? '用户消息' : '助手回复',
-          },
-          e(
-            'div',
-            { className: 'dss-message-body' },
-            message.content.map((part, i) =>
-              part.type === 'text'
-                ? message.role === 'assistant'
-                  ? e(RecoveryMarkdown, { key: i, text: part.text })
-                  : e('div', { key: i, className: 'dss-readable-text' }, part.text)
-                : e(
-                    'div',
-                    { key: i, className: 'dss-file-preview' },
-                    e('span', { 'aria-hidden': true }, '▧'),
-                    e('span', null, part.name),
-                    part.bytes ? e('small', null, fmtBytes(part.bytes)) : null,
-                  ),
-            ),
-          ),
-        ),
-      ),
+      presentation.messages.map((message, index) => recoveryMessage(message, false, message.id + ':' + index)),
       !presentation.total ? e('p', { className: 'dss-desc' }, '这份记录中没有用户消息或助手回复。') : null,
       presentation.incomplete ? e('p', { className: 'dss-err' }, '部分记录无法读取，预览不完整。') : null,
       presentation.hasMore
@@ -119,11 +124,72 @@ function RecoveryReadableVersion({ value, onMore, loading }) {
   );
 }
 
-function RecoveryReadableComparison({ preview, record, onMore, loading }) {
+function RecoveryTranscriptComparison({ local, remote, headings, onMore, loading }) {
+  const key = message => JSON.stringify([message.role, message.content]);
+  const comparison = useMemo(
+    () => alignRecoveryRows(local.messages.map(key), remote.messages.map(key)),
+    [local.messages, remote.messages],
+  );
+  const hasMore = local.hasMore || remote.hasMore;
+  const incomplete = local.incomplete || remote.incomplete;
+  const rows = comparison.rows;
+  // While paging, only compare through the last pair seen on both sides.
+  // An apparent insertion after it may match a message on the next page.
+  const lastMatch = hasMore
+    ? rows.findLastIndex(([i, j, changed]) => !changed && i != null && j != null)
+    : rows.length - 1;
+  return e(
+    'div',
+    { className: 'dss-transcript-comparison' },
+    e(
+      'div',
+      { className: 'dss-transcript-headings' },
+      headings.map((label, i) => e('div', { key: i, className: 'dss-readable-heading' }, label)),
+    ),
+    comparison.limited || incomplete
+      ? e(
+          'div',
+          { role: 'status' },
+          comparison.limited
+            ? '对话较长，仅按顺序显示。请在原始记录中查看差异。'
+            : '部分消息无法读取，差异可能不完整。',
+        )
+      : null,
+    e(
+      'div',
+      { className: 'dss-transcript-scroll', tabIndex: 0, 'aria-label': '本机与云端会话同步滚动比较' },
+      e(
+        'div',
+        { className: 'dss-transcript-grid' },
+        rows.flatMap(([i, j, changed], row) =>
+          [i, j].map((index, side) => {
+            const version = side ? remote : local;
+            const difference = changed && row <= lastMatch && !incomplete && (side ? 'add' : 'remove');
+            return e(
+              'div',
+              { key: row + ':' + side, className: 'dss-transcript-cell' },
+              index == null ? null : recoveryMessage(version.messages[index], difference),
+            );
+          }),
+        ),
+      ),
+      !rows.length && !hasMore ? e('p', null, '没有可预览的用户消息或助手回复。') : null,
+      hasMore && !comparison.clipped
+        ? pill(loading ? '正在读取…' : '继续显示对话', () => onMore(), { disabled: loading })
+        : null,
+    ),
+  );
+}
+
+function RecoveryReadableComparison({ preview, record, onMore, loading, headings = ['本机版本', '云端版本'] }) {
   const single =
     record?.reason === 'local-project-unavailable' &&
     record.versions?.local?.sha256 &&
     record.versions.local.sha256 === record.versions?.remote?.sha256;
+  const local = preview.local.presentation,
+    remote = preview.remote.presentation;
+  if (!single && local?.kind === 'conversation' && remote?.kind === 'conversation')
+    return e(RecoveryTranscriptComparison, { local, remote, headings, onMore, loading });
   return e(
     'div',
     { className: 'dss-readable-comparison', style: single ? { gridTemplateColumns: 'minmax(0,1fr)' } : undefined },
@@ -131,11 +197,7 @@ function RecoveryReadableComparison({ preview, record, onMore, loading }) {
       e(
         'section',
         { key: side, className: 'dss-readable-side' },
-        e(
-          'div',
-          { className: 'dss-readable-heading' },
-          single ? '迁移前的会话' : side === 'local' ? '当时本机的内容' : '当时远端的内容',
-        ),
+        e('div', { className: 'dss-readable-heading' }, single ? '迁移前的会话' : headings[side === 'local' ? 0 : 1]),
         e(
           'div',
           { className: 'dss-readable-scroll', tabIndex: 0 },

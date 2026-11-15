@@ -47,6 +47,12 @@ function apply(ctx) {
   ctx.slots.inject('shell.overlay', () =>
     ctx.slots.register({ name: 'shell.overlay', id: 'dsh-sync-grouping', order: 110 }, GroupingRepairOverlay),
   );
+  ctx.slots.inject('plugins.bundle.config', () => {
+    const dispose = ['@dpskk2/dsh-chatsync', 'chatsync'].map(key =>
+      ctx.slots.register({ name: 'plugins.bundle.config', key }, PluginPreferences),
+    );
+    return () => dispose.forEach(remove => remove?.());
+  });
   injectStyles(); // 侧栏胶囊按钮等样式全局注入,不依赖设置分节挂载
   // Same native panel contract as dshmarket; opening it never starts an upload.
   ctx.slots.inject('sidebar.panellist', () => {
@@ -54,6 +60,17 @@ function apply(ctx) {
     const repair = ctx.slots.register(
       { name: 'main', key: 'dsh-sync-repair', id: 'dsh-sync-repair-panel' },
       RepairPage,
+    );
+    const backups = ctx.slots.register(
+      { name: 'main', key: 'dsh-sync-conflict-backups', id: 'dsh-sync-backups-panel' },
+      SyncBackupPage,
+    );
+    const management = [
+      ['storage', StoragePage],
+      ['connection', ConnectionPage],
+      ['conflict', SessionConflictPage],
+    ].map(([key, component]) =>
+      ctx.slots.register({ name: 'main', key: 'dsh-sync-' + key, id: 'dsh-sync-' + key + '-panel' }, component),
     );
     let removeEntry = null;
     const show = visible => {
@@ -68,12 +85,14 @@ function apply(ctx) {
       }
     };
     sidebarBinding = show;
-    if (sidebarState.value !== null) show(sidebarState.value);
+    if (pluginPreferences.config) show(pluginPreferences.config.showSidebarSync !== false);
     return () => {
       if (sidebarBinding === show) sidebarBinding = null;
       removeEntry?.();
       main?.();
       repair?.();
+      backups?.();
+      management.forEach(remove => remove?.());
     };
   });
   // 设置面板分节:同步状态卡(只读状态 + 上次结果(含错误) + 立即同步)

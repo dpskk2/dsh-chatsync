@@ -104,7 +104,7 @@ test('sync issues show the category and reason instead of a bare "push"', () => 
   };
   const [issue] = syncIssues(result);
   assert.equal(issue.code, 'SYNC_PUSH_STALLED');
-  assert.equal(issue.category, '传输停滞');
+  assert.equal(issue.category, '上传停滞');
   assert.equal(issue.reason, '上传 3 分钟无进展，已停止');
   assert.notEqual(issue.reason, 'push');
   // Pauses for review or privacy are not Git failures and keep their own messages.

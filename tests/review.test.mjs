@@ -85,7 +85,7 @@ test('mass deletion pauses upload and preserves the remote files until approved'
   for (let i = 0; i < 5; i++) fs.unlinkSync(path.join(engine.home, 'attachments/fixture-' + i + '.txt'));
   const result = await SyncEngine.prototype.syncOnce.call(engine, 'interval', { forceCommit: true });
   assert.equal(result.needsReview, true);
-  assert.ok(result.review.reasons.includes('删除较多'));
+  assert.ok(result.review.reasons.includes('本机缺少已同步的文件'));
   assert.equal(
     execFileSync('git', ['--git-dir', remote, 'show', 'main:attachments/fixture-0.txt'], { encoding: 'utf8' }),
     'fixture',

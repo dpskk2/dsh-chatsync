@@ -1,37 +1,65 @@
-function TransferReview({ review, busy, onConfirm }) {
+function TransferReview({ review, busy, collapsed, onExpand, onConfirm, onDismiss }) {
   if (!review) return null;
+  const alternatives = review.alternatives || [];
+  const missingFiles = alternatives.some(choice => choice.action === 'restore');
+  if (missingFiles && collapsed)
+    return e(
+      'div',
+      { className: 'dss-storage-head' },
+      e('span', { role: 'status' }, '缺少文件，待处理'),
+      pill('处理缺少文件', onExpand),
+    );
   return e(
     'div',
-    { className: 'dss-review', role: 'region', 'aria-label': '同步预览' },
+    { className: 'dss-review', role: 'region', 'aria-label': missingFiles ? '本机缺少已同步的文件' : '同步预览' },
+    missingFiles ? e('h3', null, '本机缺少已同步的文件') : null,
     e('p', { style: { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' } }, review.summary),
     e(
       'div',
       { className: 'dss-actions' },
-      e(
-        'button',
-        {
-          type: 'button',
-          className: 'dss-pill dss-primary dss-startup-primary',
-          disabled: Boolean(busy),
-          onClick: () => onConfirm(review.id),
-        },
-        busy ? '正在继续…' : review.confirmLabel || '确认并继续',
-      ),
-      // Some previews offer a safe alternative answer, such as restoring instead of deleting.
-      ...(review.alternatives || []).map(choice =>
+      ...alternatives.map(choice =>
         e(
           'button',
           {
             key: choice.id,
             type: 'button',
-            className: 'dss-pill',
+            className: choice.action === 'restore' ? 'dss-pill dss-primary' : 'dss-pill',
             disabled: Boolean(busy),
             onClick: () => onConfirm(choice.id),
           },
           choice.label,
         ),
       ),
+      e(
+        'button',
+        {
+          type: 'button',
+          className: missingFiles ? 'dss-pill dss-danger' : 'dss-pill dss-primary',
+          disabled: Boolean(busy),
+          onClick: () => onConfirm(review.id),
+        },
+        busy && !missingFiles ? '正在继续…' : review.confirmLabel || '确认并继续',
+      ),
+      missingFiles && typeof onDismiss === 'function'
+        ? e(
+            'button',
+            { type: 'button', className: 'dss-pill dss-review-dismiss', disabled: Boolean(busy), onClick: onDismiss },
+            '暂不处理',
+          )
+        : null,
     ),
+    missingFiles && review.sampleFiles?.length
+      ? e(
+          'details',
+          null,
+          e('summary', null, review.counts.deleted > review.sampleFiles.length ? '查看部分文件' : '查看文件'),
+          e(
+            'ul',
+            null,
+            review.sampleFiles.map(file => e('li', { key: file }, file)),
+          ),
+        )
+      : null,
   );
 }
 // Startup has a small snapshot route: do not rescan all sessions to draw a bar.
@@ -85,7 +113,7 @@ function StartupProgress({ progress, phase }) {
                 ? '正在连接同步仓库'
                 : transferring
                   ? '正在获取同步数据'
-                  : '正在核对本机与远端变化';
+                  : '正在核对本机与云端变化';
   const quiet = now - (t?.at || p.at || p.startedAt || now) > 20000;
   return e(
     'div',
@@ -219,7 +247,6 @@ function StartupSyncOverlay() {
   const [attempt, setAttempt] = useState(null);
   const [feedback, setFeedback] = useState('');
   const [actionPending, setActionPending] = useState(false);
-  const dialog = useRef(null);
   const s = snapshot?.startup;
   useEffect(() => {
     sendBlockListeners.add(setAttempt);
@@ -246,16 +273,6 @@ function StartupSyncOverlay() {
       clearInterval(timer);
     };
   }, [attempt?.sessionId]);
-  useEffect(() => {
-    if (!attempt || typeof document === 'undefined' || !dialog.current) return;
-    const panel = dialog.current,
-      previous = document.activeElement;
-    if (!panel.open) panel.showModal();
-    return () => {
-      if (panel.open) panel.close();
-      previous?.focus?.();
-    };
-  }, [Boolean(attempt)]);
   if (!attempt)
     return e(UpdateNotice, {
       startup: true,
@@ -274,40 +291,38 @@ function StartupSyncOverlay() {
     }
   };
   return e(
-    'dialog',
+    Modal,
     {
-      className: 'dss-startup-dialog',
-      ref: dialog,
-      tabIndex: -1,
-      role: 'dialog',
-      'aria-modal': true,
-      'aria-label': '发送前同步检查',
-      onCancel: () => setAttempt(null),
-      onKeyDown: event => event.stopPropagation(),
+      label: '发送前同步检查',
+      title: attempt.ready ? '这条会话已完成同步' : '这条会话还不能发送',
+      onClose: () => setAttempt(null),
     },
-    e('div', { className: 'dss-startup-kicker' }, 'ChatSync · 发送前检查'),
-    e('h2', null, attempt.ready ? '这条会话已完成同步' : '这条会话还不能发送'),
-    e('p', { role: 'status' }, attempt.ready ? '请先查看最新对话，再次发送。输入内容和附件已保留。' : attempt.message),
-    !attempt.ready && s?.phase === 'running'
-      ? e(StartupProgress, { progress: snapshot.progress, phase: s.phase })
-      : null,
-    !attempt.ready && s?.issues?.length ? e(SyncIssues, { issues: s.issues, detail: s.detail }) : null,
-    !attempt.ready && s?.phase === 'pending'
-      ? e('p', null, '这条会话正在使用中。可先使用新会话，重新打开 DSH 后继续同步旧会话。')
-      : null,
-    connectionError || feedback ? e('p', { role: 'alert' }, feedback || '状态连接暂时中断，正在重连。') : null,
-    e(
-      'div',
-      { className: 'dss-startup-actions' },
+    dialogBody(
+      e(
+        'p',
+        { role: 'status' },
+        attempt.ready ? '请先查看最新对话，再次发送。输入内容和附件已保留。' : attempt.message,
+      ),
+      !attempt.ready && s?.phase === 'running'
+        ? e(StartupProgress, { progress: snapshot.progress, phase: s.phase })
+        : null,
+      !attempt.ready && s?.issues?.length ? e(SyncIssues, { issues: s.issues, detail: s.detail }) : null,
+      !attempt.ready && s?.phase === 'pending'
+        ? e('p', null, '这条会话正在使用中。可先使用新会话，重新打开 DSH 后继续同步旧会话。')
+        : null,
+      connectionError || feedback ? e('p', { role: 'alert' }, feedback || '状态连接暂时中断，正在重连。') : null,
+    ),
+    dialogActions(
+      '',
       e(
         'button',
-        { type: 'button', className: 'dss-pill dss-startup-primary', onClick: () => setAttempt(null) },
+        { type: 'button', className: 'dss-pill', onClick: () => setAttempt(null) },
         attempt.ready ? '返回会话，查看更新' : '返回编辑',
       ),
       !attempt.ready && s?.phase !== 'running'
         ? e(
             'button',
-            { type: 'button', className: 'dss-pill', disabled: actionPending, onClick: retry },
+            { type: 'button', className: 'dss-pill dss-primary', disabled: actionPending, onClick: retry },
             actionPending ? '正在重试…' : '重试同步',
           )
         : null,
@@ -329,6 +344,8 @@ function usePluginUpdateNavigation() {
 
 /* Global startup reminder; settings retain a separate, expandable update entry. */
 function UpdateNotice(props) {
+  const { config } = usePluginPreferences();
+  const enabled = Boolean(config && config.autoCheckUpdates !== false);
   const navigation = usePluginUpdateNavigation();
   const [data, setData] = useState(null);
   const [visible, setVisible] = useState(false);
@@ -336,6 +353,10 @@ function UpdateNotice(props) {
   const [feedback, setFeedback] = useState('');
   const [copyFailed, setCopyFailed] = useState(false);
   useEffect(() => {
+    if (!enabled) {
+      setVisible(false);
+      return;
+    }
     let live = true;
     loadUpdate().then(result => {
       if (!live || !result || !result.ok || !result.available) return;
@@ -352,9 +373,9 @@ function UpdateNotice(props) {
     return () => {
       live = false;
     };
-  }, []);
+  }, [enabled, props.startup]);
   useEffect(() => {
-    if (!props.startup || !visible || !data || props.busy) return;
+    if (!enabled || !props.startup || !visible || !data || props.busy) return;
     const position = () => {
       const anchor = props.anchorRef && props.anchorRef.current;
       if (anchor?.getBoundingClientRect) {
@@ -380,8 +401,8 @@ function UpdateNotice(props) {
     position();
     window.addEventListener('resize', position);
     return () => window.removeEventListener('resize', position);
-  }, [visible, data, props.busy]);
-  if (!visible || !data || (props.startup && (props.busy || !pos))) return null;
+  }, [enabled, visible, data, props.busy]);
+  if (!enabled || !visible || !data || (props.startup && (props.busy || !pos))) return null;
   const nativeUpdate = data.nativeUpdate === true && typeof navigation?.openBundle === 'function';
   const onWindows = data.platform === undefined || data.platform === 'win32';
   const shellName = onWindows ? ' PowerShell ' : '“终端”';

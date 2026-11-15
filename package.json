@@ -1,7 +1,7 @@
 {
   "name": "@dpskk2/dsh-chatsync",
   "version": "0.21.3",
-  "chatsyncBuild": "2026-11-12-candidate-0.21.3-r2",
+  "chatsyncBuild": "2026-11-15-release-0.21.3",
   "description": "换台电脑，接着聊。同步会话、附件、设置和项目文件。",
   "keywords": [
     "dsh",
@@ -31,7 +31,6 @@
     "icon.png",
     "cordis.patch.yml",
     "README.md",
-    "README.en.md",
     "LICENSE",
     "CHANGELOG.md",
     "scripts/restart-dsh-desktop.ps1",

@@ -164,3 +164,21 @@ test('clearing a version record does not authorize a newer unbacked snapshot fro
   assert.equal(shown('cordis.patch.yml'), patch('changed-after-backup'));
   assert.equal(fs.existsSync(marker(b)), false);
 });
+
+test('a confirmed reset does not authorize syncing settings while the local version is unknown', async t => {
+  const { b, put, read, shown, sync, marker } = await pausedBehindNewer(t);
+  await resetSettingsVersion(b, { expectedVersion: '0.2.2-rc.1' });
+  const pendingReset = fs.readFileSync(marker(b), 'utf8');
+  const writer = shown('storages/sync-meta/settings-writer.json');
+  b.hostDshVersion = () => null;
+  put(b, 'cordis.patch.yml', patch('unknown-edit'));
+
+  const paused = await sync(b);
+  assert.match(paused.settingsPause, /无法检测本机的 DSH 版本/);
+  assert.equal(paused.settingsPauseVersions, undefined);
+  assert.equal(paused.settingsVersionReset, undefined);
+  assert.equal(read(b, 'cordis.patch.yml'), patch('unknown-edit'));
+  assert.equal(shown('cordis.patch.yml'), patch('dark'));
+  assert.equal(shown('storages/sync-meta/settings-writer.json'), writer);
+  assert.equal(fs.readFileSync(marker(b), 'utf8'), pendingReset);
+});

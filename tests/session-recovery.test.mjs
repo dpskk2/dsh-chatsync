@@ -44,9 +44,10 @@ function fixture(t, events = [{ type: 'fixture/event', seq: 0, time: 1, data: {}
   };
   fs.mkdirSync(workspace.path);
   const bytes = Buffer.from(
-    [JSON.stringify({ version: 4, id, createdAt: 1, isSeeded: false }), ...events.map(e => JSON.stringify(e))].join(
-      '\n',
-    ) + '\n',
+    [
+      JSON.stringify({ type: 'session', version: 4, id, createdAt: 1, isSeeded: false }),
+      ...events.map(e => JSON.stringify(e)),
+    ].join('\n') + '\n',
   );
   const record = engine.recovery.save(
     { kind: 'main', path: 'sessions/test/' + id + '/log.v4.jsonl.zstd', status: 'merged' },
@@ -119,14 +120,82 @@ test('imported conversation conflicts recover as independent forks with their or
 
 test('session import preflight is read-only and unsupported hosts retain originals', async t => {
   const f = fixture(t);
+  f.workspace.sessionIds.push(sourceId);
   const before = fs.readFileSync(f.engine.recovery.recordPath(f.record.id));
   assert.equal((await sessionRecoveryOptions(f.engine, {}, f.record.id, async () => catalog)).available, false);
   const options = await sessionRecoveryOptions(f.engine, f.ctx, f.record.id, async () => catalog);
   assert.equal(options.available, true);
+  assert.equal(options.sourceProject.id, f.workspace.id);
   assert.deepEqual(options.workspaces, [{ id: f.workspace.id, title: f.workspace.title, path: f.workspace.path }]);
   assert.deepEqual(fs.readFileSync(f.engine.recovery.recordPath(f.record.id)), before);
   await assert.rejects(importRecoverySession(f.engine, {}, f.request), /缺少/);
   assert.equal(f.storage.size, 0);
+});
+
+test('another copy is retained as backup when all missing versions have been saved', async t => {
+  const f = fixture(t);
+  const remote = Buffer.from(f.bytes.toString().replace('"data":{}', '"data":{"side":"cloud"}'));
+  const record = f.engine.recovery.save(
+    { kind: 'main', path: f.record.path, status: 'merged', kept: 'local' },
+    { local: f.bytes, remote },
+  );
+  const original = path.join(f.engine.home, f.record.path);
+  fs.mkdirSync(path.dirname(original), { recursive: true });
+  fs.writeFileSync(original, f.bytes);
+  assert.equal(f.engine.recovery.pendingSessionForks().length, 1);
+  const request = { ...f.request, id: record.id, sourceProjectOnly: true, expectedHash: digest(remote) };
+  await assert.rejects(
+    importRecoverySession(f.engine, f.ctx, request, async () => catalog),
+    /原项目在本机不可用/,
+  );
+  f.workspace.sessionIds.push(sourceId);
+  await assert.rejects(
+    importRecoverySession(f.engine, f.ctx, { ...request, workspaceId: 'other' }, async () => catalog),
+    /项目已变化/,
+  );
+  await assert.rejects(
+    importRecoverySession(
+      f.engine,
+      f.ctx,
+      { ...request, side: 'local', expectedHash: digest(f.bytes) },
+      async () => catalog,
+    ),
+    /当前会话已变化/,
+  );
+  assert.equal(f.storage.size, 0);
+  const d = await importRecoverySession(f.engine, f.ctx, request, async () => catalog);
+  assert.equal(d.conflictComplete, true);
+  assert.equal(f.engine.recovery.read(record.id).reviewState, 'archived');
+  assert.deepEqual(f.engine.recovery.pendingSessionForks(), []);
+  assert.throws(() => f.engine.recovery.archive(record.id, null, false), /已处理完成/);
+  assert.deepEqual(fs.readFileSync(original), f.bytes);
+  assert.deepEqual(f.engine.recovery.version(f.engine.recovery.read(record.id), 'remote'), remote);
+});
+
+test('saving a single version leaves the other pending when the original session is absent', async t => {
+  const f = fixture(t);
+  const remote = Buffer.from(f.bytes.toString().replace('"data":{}', '"data":{"side":"cloud"}'));
+  const record = f.engine.recovery.save(
+    { kind: 'main', path: f.record.path, status: 'merged', kept: 'local' },
+    { local: f.bytes, remote },
+  );
+  const request = { ...f.request, id: record.id };
+  const first = await importRecoverySession(
+    f.engine,
+    f.ctx,
+    { ...request, expectedHash: digest(remote) },
+    async () => catalog,
+  );
+  assert.equal(first.conflictComplete, false);
+  assert.equal(f.engine.recovery.pendingSessionForks()[0].id, record.id);
+  f.engine.recovery.archive(record.id, { local: digest(f.bytes), remote: digest(remote) });
+  assert.equal(f.engine.recovery.pendingSessionForks().length, 0);
+  f.engine.recovery.archive(record.id, null, false);
+  assert.equal(f.engine.recovery.pendingSessionForks()[0].id, record.id);
+  const second = await importRecoverySession(f.engine, f.ctx, { ...request, side: 'local' }, async () => catalog);
+  assert.equal(second.conflictComplete, true);
+  assert.notEqual(first.sessionId, second.sessionId);
+  assert.equal(f.engine.recovery.pendingSessionForks().length, 0);
 });
 
 test('import creates a distinct ID, verifies readback and membership, and repeats without duplication', async t => {
@@ -145,6 +214,39 @@ test('import creates a distinct ID, verifies readback and membership, and repeat
   assert.equal(f.storage.size, 1);
   assert.equal(f.engine.recovery.read(f.record.id).imports.remote.status, 'verified');
   assert.deepEqual(f.engine.recovery.version(f.record, 'remote'), f.bytes);
+});
+
+test('rechecks the selected project before writing and retries a saved session when attachment fails', async t => {
+  const f = fixture(t);
+  const importSession = () => importRecoverySession(f.engine, f.ctx, f.request, async () => catalog);
+  const actions = [];
+  f.ctx.workspaceRegistry.get = () => undefined;
+  await assert.rejects(importSession(), /项目已移除或位置已变化/);
+  assert.equal(f.storage.size, 0);
+  f.ctx.workspaceRegistry.get = () => f.workspace;
+  const attach = f.workspace.attachSession.bind(f.workspace);
+  f.workspace.attachSession = async () => {
+    actions.push('attach');
+    throw new Error('fixture registry failure');
+  };
+  let observed;
+  f.ctx.sessionProjectionCache = {
+    coldSnapshot(header, inherited, events) {
+      actions.push('cache');
+      observed = { header, inherited, events };
+    },
+  };
+  await assert.rejects(importSession(), /会话 .+ 已保存，项目归属尚未完成.*fixture registry failure/);
+  const { sessionId, status } = f.engine.recovery.read(f.record.id).imports.remote;
+  assert.equal(status, 'pending');
+  assert.deepEqual(actions, ['cache', 'attach']);
+  assert.equal(observed.header.id, sessionId);
+  assert.equal(observed.inherited, 1);
+  assert.deepEqual(observed.events, f.storage.get(sessionId).events);
+  f.workspace.attachSession = attach;
+  assert.equal((await importSession()).sessionId, sessionId);
+  assert.equal(f.storage.size, 1);
+  assert.deepEqual(f.workspace.sessionIds, [sessionId]);
 });
 
 test('partial writes retry the journalled ID and preserve the verified prefix', async t => {
@@ -217,7 +319,7 @@ test('immutable fork plan survives an interrupted journal update and refuses tam
   fs.appendFileSync(file, ' ');
   await assert.rejects(
     importRecoverySession(f.engine, f.ctx, f.request, async () => catalog),
-    /计划校验失败/,
+    /会话导入方案校验失败/,
   );
   assert.equal(f.storage.size, 1);
 });
@@ -249,11 +351,11 @@ test('missing public fork capability and empty content never create a target ses
   assert.equal((await sessionRecoveryOptions(f.engine, f.ctx, f.record.id, async () => unsupported)).available, false);
   await assert.rejects(
     importRecoverySession(f.engine, f.ctx, f.request, async () => unsupported),
-    /分叉接口/,
+    /会话另存接口/,
   );
   await assert.rejects(
     importRecoverySession(f.engine, f.ctx, f.request, async () => catalog),
-    /暂无可分叉/,
+    /没有可另存/,
   );
   assert.equal(f.storage.size, 0);
 });

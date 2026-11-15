@@ -15,6 +15,31 @@ function fixture(t) {
   return { home, engine: new SyncEngine(home, { autoRepo: false, workspaceSync: false }) };
 }
 
+test('a first sync only runs against the connection confirmed in setup', async t => {
+  const { engine } = fixture(t);
+  const expectedConnection = { remote: '', branch: 'main', autoRepo: false };
+  const run = t.mock.method(engine, '_syncOnce', async () => ({}));
+  for (const changed of [
+    { remote: 'https://example.invalid/fixture/other' },
+    { branch: 'other' },
+    { autoRepo: true },
+  ]) {
+    const stale = await engine.syncOnce('web-button', { expectedConnection: { ...expectedConnection, ...changed } });
+    assert.match(stale.error, /同步仓库已变化/);
+  }
+  const scope = { sessions: true, attachments: true, settings: true, syncInstructions: false, workspaceSync: false };
+  const staleScope = await engine.syncOnce('web-button', {
+    expectedConnection: { ...expectedConnection, scope: { ...scope, workspaceSync: true } },
+  });
+  assert.match(staleScope.error, /同步范围已变化/);
+  assert.equal(run.mock.callCount(), 0);
+  assert.equal(
+    (await engine.syncOnce('web-button', { expectedConnection: { ...expectedConnection, scope } })).error,
+    undefined,
+  );
+  assert.equal(run.mock.callCount(), 1);
+});
+
 test('startup waits for an exit upload lock then continues without a false failure', async t => {
   const { home, engine: exit } = fixture(t),
     startup = new SyncEngine(home, { autoRepo: false, workspaceSync: false });

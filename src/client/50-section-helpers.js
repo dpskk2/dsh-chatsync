@@ -21,12 +21,6 @@ function lastDetailText(lastDetail) {
       lines.push('可能含密钥（已上传）: ' + finding.file + ' · ' + finding.reasons.join('、'));
   for (const item of lastDetail.skippedLarge || [])
     lines.push('未同步（' + (item.reason || '超过 ' + item.limit) + '）: ' + item.file + ' · ' + fmtBytes(item.size));
-  const act = [];
-  if (lastDetail.committed) act.push('提交');
-  if (lastDetail.pushed) act.push('推送');
-  if (lastDetail.pulled && lastDetail.pulled !== 'reset') act.push('拉取(' + lastDetail.pulled + ')');
-  if (lastDetail.pulled === 'reset') act.push('整体取回');
-  if (act.length) lines.push('本次动作: ' + act.join(' / '));
   if (lastDetail.durationMs != null) lines.push('耗时: ' + (lastDetail.durationMs / 1000).toFixed(1) + 's');
   const transfers = lastDetail.transfers || [];
   for (const [op, label] of [
@@ -45,10 +39,10 @@ function lastDetailText(lastDetail) {
       '会话未混合合并: ' +
         w.path +
         '；当前保留' +
-        (w.kept === 'remote' ? '远端' : '本机') +
+        (w.kept === 'remote' ? '云端' : '本机') +
         '；本机原件 ' +
         w.localHead +
-        '；远端原件 ' +
+        '；云端原件 ' +
         w.remoteHead,
     );
   for (const w of lastDetail.sessionDeferred || []) lines.push('会话等待应用: ' + w.hint + '；' + w.file);
@@ -78,6 +72,8 @@ function lastDetailText(lastDetail) {
     );
   if (lastDetail.workspaces) {
     const w = lastDetail.workspaces;
+    for (const project of w.created || [])
+      lines.push('已创建项目「' + (project.title || project.id) + '」：' + project.path);
     for (const b of w.backups || [])
       lines.push('工作区 ' + b.id + ' 备份分支: ' + b.branch + (b.pushed ? '（已上传）' : '（仅在本机，上传失败）'));
     if (w.total)
@@ -104,7 +100,7 @@ function lastDetailText(lastDetail) {
         '  - ' +
           (c.kind === 'ws' ? '[工作区' + (c.id || '?') + '] ' : '') +
           c.path +
-          (c.copy ? '\n      远端版本: ' + c.copy : ''),
+          (c.copy ? '\n      云端版本: ' + c.copy : ''),
       );
     }
   }
@@ -121,7 +117,7 @@ function stepHeading(number, title) {
     'div',
     { className: 'dss-step-heading' },
     e('span', { className: 'dss-step-number', 'aria-hidden': true }, number),
-    e('div', { className: 'dss-h' }, title),
+    e('h2', { className: 'dss-section-title', id: 'dss-setup-heading-' + number, tabIndex: -1 }, title),
   );
 }
 // The host's modal scroll lock can cancel native-dialog wheel defaults. Handle

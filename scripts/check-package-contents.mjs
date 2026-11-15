@@ -36,7 +36,6 @@ const userDocs = new Set([
 const metadata = new Set([
   'package.json',
   'README.md',
-  'README.en.md',
   'CHANGELOG.md',
   'LICENSE',
   'icon.png',
@@ -61,6 +60,7 @@ const required = [
   ...metadata,
   ...userDocs,
   ...runtime,
+  'docs/assets/readme/sync-settings.jpg',
   pkg.main,
   pkg.icon,
   pkg.dsh.bundle.patch,

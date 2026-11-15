@@ -200,7 +200,7 @@ test('unavailable network retries later', async () => {
   assert.equal(calls, 2);
 });
 
-function ui(
+async function ui(
   data,
   {
     seen = new Map(),
@@ -246,6 +246,9 @@ function ui(
         });
       hooks[i] = deps;
     },
+    useLayoutEffect(fn, deps) {
+      react.useEffect(fn, deps);
+    },
     useMemo: fn => fn(),
     useCallback: fn => fn,
   };
@@ -264,6 +267,8 @@ function ui(
       },
     },
     fetch: async url => {
+      if (url === '/dsh-sync/api/config')
+        return { json: async () => ({ ok: true, config: { autoCheckUpdates: true } }) };
       calls++;
       if (url === '/dsh-sync/api/startup') return { ok: true, json: async () => startupState };
       assert.equal(url, '/dsh-sync/api/update');
@@ -294,6 +299,13 @@ function ui(
       bindNavigation(pluginNavigation);
     };
   component.apply(ctx);
+  slots.get('dsh-sync-sidebar-preference')();
+  effects.splice(0).forEach(fn => fn());
+  await new Promise(resolve => setImmediate(resolve));
+  for (const cleanup of effectCleanups.values()) cleanup();
+  effectCleanups.clear();
+  cursor = 0;
+  hooks = [];
   const flatten = n => (!n || typeof n !== 'object' ? [] : [n, ...n.children.flatMap(flatten)]);
   const Notice = flatten(slots.get('dsh-sync-manage')({})).find(n => n.type?.name === 'UpdateNotice').type;
   hooks = [];
@@ -341,7 +353,7 @@ const startup = { startup: true, anchorRef: { current: { getBoundingClientRect: 
 
 test('startup reminder appears once per version and remains available in settings after closing', async () => {
   const seen = new Map();
-  const h = ui(available, { seen });
+  const h = await ui(available, { seen });
   h.render(startup);
   await h.effects();
   h.render(startup);
@@ -352,16 +364,16 @@ test('startup reminder appears once per version and remains available in setting
     .find(n => n.props['aria-label'] === '关闭更新提醒')
     .props.onClick();
   assert.equal(h.render(startup), null);
-  const reopened = ui(available, { seen });
+  const reopened = await ui(available, { seen });
   reopened.render(startup);
   await reopened.effects();
   assert.equal(reopened.render(startup), null);
-  const settings = ui(available, { seen });
+  const settings = await ui(available, { seen });
   settings.render();
   await settings.effects();
   assert.match(words(settings.render()), /查看更新/);
   assert.equal(settings.flatten(settings.render()).find(n => n.type === 'details').props.open, undefined);
-  const nextVersion = ui({ ...available, latestVersion: '0.22.0' }, { seen });
+  const nextVersion = await ui({ ...available, latestVersion: '0.22.0' }, { seen });
   nextVersion.render(startup);
   await nextVersion.effects();
   nextVersion.render(startup);
@@ -372,7 +384,7 @@ test('startup reminder appears once per version and remains available in setting
 test('clipboard success guides PowerShell; failure displays selectable command', async () => {
   for (const fail of [false, true]) {
     let copied;
-    const h = ui(available, {
+    const h = await ui(available, {
       clipboard: async command => {
         if (fail) throw new Error('denied');
         copied = command;
@@ -396,13 +408,13 @@ test('clipboard success guides PowerShell; failure displays selectable command',
 
 test('quiet when no release or check failed; busy sync defers first display', async () => {
   for (const data of [null, { ok: false }, { ok: true, available: false }]) {
-    const h = ui(data);
+    const h = await ui(data);
     h.render(startup);
     await h.effects();
     assert.equal(h.render(startup), null);
   }
   const seen = new Map(),
-    h = ui(available, { seen });
+    h = await ui(available, { seen });
   h.render({ ...startup, busy: true });
   await h.effects();
   h.render({ ...startup, busy: true });
@@ -416,7 +428,7 @@ test('quiet when no release or check failed; busy sync defers first display', as
 
 test('registered startup overlay mounts the update popup without opening settings or relying on a removed sidebar footer', async () => {
   for (const running of [false, true]) {
-    const h = ui(available, {
+    const h = await ui(available, {
       global: true,
       startupState: { ok: true, startup: { phase: running ? 'running' : 'ready' }, progress: { running } },
     });
@@ -434,7 +446,7 @@ test('registered startup overlay mounts the update popup without opening setting
 });
 
 test('global popup positions itself in the viewport when no footer anchor exists', async () => {
-  const h = ui(available);
+  const h = await ui(available);
   const props = { startup: true, busy: false };
   h.render(props);
   await h.effects();
@@ -455,7 +467,7 @@ test('global popup positions itself in the viewport when no footer anchor exists
 test('native plugin navigation opens either package and dismisses startup', async () => {
   for (const packageName of ['chatsync', '@dpskk2/dsh-chatsync']) {
     const opened = [];
-    const h = ui(
+    const h = await ui(
       { ...available, packageName, nativeUpdate: true },
       {
         pluginNavigation: { openBundle: name => opened.push(name) },
@@ -494,7 +506,7 @@ test('older hosts and unavailable optional navigation retain command copying', a
   ]) {
     let copied;
     const { data, ...services } = options;
-    const h = ui(data, {
+    const h = await ui(data, {
       ...services,
       clipboard: async command => {
         copied = command;
@@ -518,7 +530,7 @@ test('older hosts and unavailable optional navigation retain command copying', a
 });
 
 test('navigation binding can arrive late and return to copying after release', async () => {
-  const h = ui({ ...available, nativeUpdate: true });
+  const h = await ui({ ...available, nativeUpdate: true });
   h.render();
   await h.effects();
   assert.match(words(h.render()), /复制更新代码/);
@@ -530,7 +542,7 @@ test('navigation binding can arrive late and return to copying after release', a
 });
 
 test('missing DSH requirement is stated without release notes or external links', async () => {
-  const h = ui({ ...available, dshRequirement: '' });
+  const h = await ui({ ...available, dshRequirement: '' });
   h.render();
   await h.effects();
   const tree = h.render();
@@ -547,7 +559,7 @@ test('legacy macOS Desktop and Web copies keep their host commands and terminal 
   for (const hostKind of ['desktop', 'web']) {
     const command = updateCommand(hostKind, '0.21.0', { platform: 'darwin', packageName: 'chatsync' });
     let copied;
-    const h = ui(
+    const h = await ui(
       { ...available, hostKind, platform: 'darwin', packageName: 'chatsync', command },
       {
         clipboard: async value => {

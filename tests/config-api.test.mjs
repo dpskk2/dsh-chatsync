@@ -63,6 +63,35 @@ test('status exposes current repair verification even with no prior sync and cle
   assert.equal((await request('status')).dataVerificationPending, false);
 });
 
+test('GitHub account endpoint reads the signed-in login without saving a repository', async t => {
+  const gh = t.mock.method(SyncEngine.prototype, 'gh', async () => ({ code: 0, out: ' alice\n' }));
+  const request = host(t);
+  const before = (await request('config')).config;
+  assert.deepEqual(await request('connection/account'), { ok: true, owner: 'alice' });
+  assert.deepEqual(gh.mock.calls[0].arguments[0], ['api', 'user', '--jq', '.login']);
+  assert.deepEqual((await request('config')).config, before);
+  assert.equal((await request('connection/account', {})).ok, false);
+});
+
+test('manual run validates and forwards the optional first-sync connection', async t => {
+  const run = t.mock.method(SyncEngine.prototype, 'syncOnce', async () => ({}));
+  const request = host(t);
+  assert.equal((await request('run', { expectedConnection: { remote: '' } })).ok, false);
+  const target = { remote: '', branch: 'main', autoRepo: true };
+  assert.equal((await request('run', { expectedConnection: { ...target, scope: { sessions: true } } })).ok, false);
+  assert.equal((await request('run', { expectedConnection: { ...target, defaultOwner: 'owner/repo' } })).ok, false);
+  assert.equal(run.mock.callCount(), 0);
+  const expectedConnection = {
+    ...target,
+    defaultOwner: 'fixture-owner',
+    scope: { sessions: true, attachments: true, settings: true, syncInstructions: false, workspaceSync: true },
+  };
+  assert.equal((await request('run', { expectedConnection, approval: 'example' })).ok, true);
+  assert.equal(run.mock.calls[0].arguments[0], 'web-button');
+  assert.deepEqual(run.mock.calls[0].arguments[1].expectedConnection, expectedConnection);
+  assert.equal(run.mock.calls[0].arguments[1].approval, 'example');
+});
+
 test('the manual restart endpoint is removed while data repair remains available', t => {
   const request = host(t);
   assert.equal(request.routes.has('/dsh-sync/api/restart'), false);
@@ -77,6 +106,51 @@ test('local grouping diagnosis is available without a configured sync remote', a
   assert.equal(result.count, 0);
   assert.equal(result.busy, false);
   assert.equal(result.issueKey, null);
+});
+
+test('saving a project location checks its directory without creating it or replacing a valid mapping on failure', async t => {
+  const folder = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-workspace-location-')));
+  t.after(() => fs.rmSync(folder, { recursive: true, force: true }));
+  const recorded = path.join(folder, 'recorded');
+  const other = path.join(folder, 'other');
+  const expected = path.join(folder, 'new');
+  const file = path.join(folder, 'file.txt');
+  fs.writeFileSync(file, 'not a directory');
+  let dataHome;
+  const request = host(t, {}, home => {
+    dataHome = home;
+    fs.mkdirSync(path.join(home, 'storages'));
+    fs.writeFileSync(
+      path.join(home, 'storages', 'workspace.json'),
+      JSON.stringify({
+        global: {},
+        tables: {
+          workspaces: {
+            first: { title: '产品规划', path: recorded, sessionIds: [] },
+            second: { title: '其他项目', path: other, sessionIds: [] },
+          },
+        },
+      }),
+    );
+  });
+  const save = localPath => request('data-health/workspace-path', { workspaceId: 'first', localPath });
+  assert.match((await save('relative-folder')).error, /完整目录/);
+  assert.match((await save(file)).error, /路径指向文件/);
+  assert.match((await save(path.join(file, 'nested'))).error, /文件，请选择项目文件夹/);
+  assert.match((await save(path.join(dataHome, 'nested'))).error, /DSH 数据目录重叠/);
+  assert.match((await save(path.join(other, 'nested'))).error, /其他项目/);
+  const saved = await save(expected);
+  assert.equal(saved.ok, true);
+  assert.equal(saved.localPath, expected);
+  assert.match(saved.hint, /将创建/);
+  assert.equal(fs.existsSync(expected), false);
+  assert.equal((await save(file)).ok, false);
+  const locations = await request('data-health/workspaces');
+  assert.equal(locations.ok, true);
+  assert.deepEqual(Object.keys(locations), ['ok', 'workspaces']);
+  assert.equal(locations.workspaces.find(ws => ws.id === 'first').localPath, expected);
+  fs.mkdirSync(expected);
+  assert.match((await save(expected)).hint, /文件夹可访问/);
 });
 
 function host(t, overrides = {}, inspect = () => {}) {
@@ -208,8 +282,10 @@ test('update route reports the running version and rejects mutation requests', a
   const current = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
   const newer = Number(current.split('.')[0]) + 1 + '.0.0';
   let packageProbed = false;
+  let requests = 0;
   const tarball = 'https://registry.npmjs.org/@dpskk2/dsh-chatsync/-/dsh-chatsync-' + newer + '.tgz';
   globalThis.fetch = async (url, options) => {
+    requests++;
     if (options?.method === 'HEAD') {
       assert.equal(url, tarball);
       packageProbed = true;
@@ -227,6 +303,12 @@ test('update route reports the running version and rejects mutation requests', a
     };
   };
   const request = host(t);
+  assert.equal((await request('config')).config.autoCheckUpdates, true);
+  assert.equal((await request('config', { autoCheckUpdates: 'off' })).ok, false);
+  assert.equal((await request('config', { autoCheckUpdates: false })).config.autoCheckUpdates, false);
+  assert.deepEqual(await request('update'), { ok: true, available: false });
+  assert.equal(requests, 0);
+  assert.equal((await request('config', { autoCheckUpdates: true })).config.autoCheckUpdates, true);
   const result = await request('update');
   assert.equal(result.ok, true);
   assert.equal(
@@ -508,4 +590,26 @@ test('local storage API scans, saves retention and requires a concrete confirmed
   assert.equal((await request('local-storage/apply', { token: preview.token, confirm: true })).ok, true);
   assert.equal(fs.existsSync(file), false);
   assert.equal((await request('local-storage/policy', { retentionDays: -1 })).ok, false);
+});
+
+test('scope writes wait for the shared sync lock while sidebar visibility stays available', async t => {
+  let engine;
+  const original = SyncEngine.prototype.loadConfig;
+  t.mock.method(SyncEngine.prototype, 'loadConfig', function () {
+    engine = this;
+    return original.call(this);
+  });
+  const request = host(t);
+  const release = engine.acquireProcessLock();
+  assert.ok(release);
+  try {
+    assert.equal((await request('config', { workspaceSync: false })).ok, false);
+    assert.equal((await request('config', { showSidebarSync: false })).ok, true);
+    const { config } = await request('config');
+    assert.equal(config.workspaceSync, true);
+    assert.equal(config.showSidebarSync, false);
+  } finally {
+    release();
+  }
+  assert.equal((await request('config', { workspaceSync: false })).config.workspaceSync, false);
 });

@@ -1,172 +1,41 @@
-<div align="center">
+# ChatSync
 
-# chatsync 接着聊
-### 换台电脑，继续做。
+ChatSync 是 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-harness) 的多设备同步插件。把常用的会话、附件、项目分组和文件夹同步到另一台电脑，在原来的项目里接着工作。
 
-把 DeepSeek Harness（DSH）的会话、附件、设置和项目文件带到另一台电脑。<br>
-数据存放在你自己的 **私有 Git 仓库**中：默认 GitHub，也可以用 Gitee、GitLab 等。
+数据存放在你自己的私有 Git 仓库。可以使用 GitHub 默认仓库，也可以连接 Gitee、GitLab 等托管站上的已有私有仓库。
 
-[![npm](https://img.shields.io/npm/v/chatsync?color=2563eb)](https://www.npmjs.com/package/chatsync)
-[![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.2.0--rc.1-0f766e)](#兼容性)
-[![Desktop](https://img.shields.io/badge/Desktop-%E6%8E%A8%E8%8D%90%200.2.1--rc.5-2563eb)](#兼容性)
-[![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A524-43853d)](#兼容性)
-[![MIT](https://img.shields.io/badge/license-MIT-slateblue)](LICENSE)
+[![npm 版本](https://img.shields.io/npm/v/chatsync?color=4d6bfe)](https://www.npmjs.com/package/chatsync)
+[![MIT 许可证](https://img.shields.io/badge/license-MIT-59616e)](https://github.com/dpskk2/dsh-chatsync/blob/main/LICENSE)
 
-[安装方式](#安装方式) · [更新方式](#更新方式) · [首次设置](#第一次设置) · [换台电脑](#换台电脑接着使用) · [详细指南](docs/getting-started.md) · [发布与下载](https://github.com/dpskk2/dsh-chatsync/releases/latest) · [English](README.en.md)
+![ChatSync 同步页。左侧工作区显示取回的项目和会话，右侧显示同步状态、同步设置与本机项目目录。](https://raw.githubusercontent.com/dpskk2/dsh-chatsync/main/docs/assets/readme/sync-settings.jpg)
 
-</div>
+*同步后的工作区与设置页，使用示例数据。*
 
-## chatsync 能做什么
+## 安装与首次同步
 
-| 接着做的事 | 同步内容 |
+需要 **DSH 0.2.0-rc.1 或更新版**和 **Git**。支持 DSH 网页端及 Windows、macOS 桌面端。GitHub 仓库还需要 GitHub CLI。
+
+1. **安装。** 在 DSH 打开「插件 → 添加插件」，搜索 `chatsync`，安装后重新打开 DSH。已安装 `@dpskk2/dsh-chatsync` 的用户可沿用原包名更新。
+2. **连接并同步。** 从侧栏打开「同步」，按页内提示连接私有仓库，再勾选要同步的内容并点「立即同步」。
+3. **换台电脑。** 安装 ChatSync，连接同一个仓库并同步，即可取回已同步的内容。不同电脑的项目目录可在「同步设置」中调整。
+
+[安装与换机指南](https://github.com/dpskk2/dsh-chatsync/blob/main/docs/getting-started.md) · [查看版本与下载安装包](https://github.com/dpskk2/dsh-chatsync/releases/latest)
+
+## 可以同步什么
+
+| 内容 | 同步范围 |
 | --- | --- |
-| 接着聊 | 会话记录、聊天附件，以及会话与「工作区」的对应关系 |
-| 接着做 | 项目文件夹中的文档、代码等文件 |
-| 少配一遍 | 模型、界面设置；密钥、代理和本机路径各机保留；可选同步全局 AGENTS.md 与技能 |
+| 会话与聊天附件 | 对话记录、项目归属、聊天中上传的图片和文件 |
+| 设置 | 支持共享的模型、界面和插件偏好 |
+| 项目文件 | 项目目录中的文档、代码等文件，支持指定每台电脑的保存位置 |
+| 指令与技能（实验性） | 可选同步全局 `AGENTS.md` 和 `skills/` 文件夹 |
 
-## 安装方式
-
-先准备能正常打开的 DSH 和 [Git](https://git-scm.com/downloads/)。同步仓库放在 GitHub（默认）时，还需要 [GitHub CLI](https://cli.github.com/) 和可访问 GitHub 的网络；放在 Gitee、GitLab 等其他托管站时不需要 GitHub CLI，见[其他 Git 托管站](docs/configuration.md#其他-git-托管站)。
-
-未手动指定代理时，同步优先使用环境变量，否则跟随当前 Windows 或 macOS 系统代理；更换系统代理端口无需重启。已保存的固定代理可以改为空或 `auto`，详见[代理配置](docs/configuration.md)。
-
-**推荐：在 DSH 中安装。** 打开「插件」→「添加插件」，输入 `chatsync`。
-
-也可使用命令行安装（Windows 用 PowerShell，macOS 用“终端”）：
-
-**Web 端：**
-
-```powershell
-dsh plugin --profile web add chatsync
-```
-
-**Windows 桌面端：**
-
-以下命令适用于默认安装位置，自定义安装时请调整路径。
-
-```powershell
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add chatsync
-```
-
-**macOS 桌面端：**
-
-以下命令适用于安装在「应用程序」文件夹的情况，其他位置请调整路径。
-
-```bash
-"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" plugin --profile desktop add chatsync
-```
-
-旧包名 `@dpskk2/dsh-chatsync` 继续提供同版本，原有安装可沿用，无需重复安装两个包名。
-
-也可从 [GitHub Release](https://github.com/dpskk2/dsh-chatsync/releases/latest) 下载安装包，按[本地包安装指南](docs/getting-started.md#1-安装本地包)操作。
-
-## 更新方式
-
-有新版本时，提醒只显示版本号、该版本的 DSH 要求和更新按钮。支持插件页更新的宿主显示「前往插件页更新」，打开当前安装的 ChatSync 详情，由你在宿主中确认更新；提醒不会自动安装。
-
-旧宿主继续显示「复制更新代码」：Windows 使用 PowerShell，macOS 使用终端，Web 端在运行 DSH 的电脑执行。生成的命令保留实际安装的包名，指定目标版本和 npm 官方源。提醒可以关闭，同步设置中仍可查看。
-
-以下是更新到已发布的 **0.21.2** 的手动命令。**如果原先安装的是 `@dpskk2/dsh-chatsync`，把命令中的 `chatsync` 换成原包名。**
-
-**Web 端：**
-
-```powershell
-dsh plugin --profile web update chatsync@0.21.2 --registry=https://registry.npmjs.org/
-```
-
-**Windows 桌面端：**
-
-以下命令适用于默认安装位置，自定义安装时请调整路径。
-
-```powershell
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop update chatsync@0.21.2 --registry=https://registry.npmjs.org/
-```
-
-**macOS 桌面端：**
-
-```bash
-"/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" plugin --profile desktop update chatsync@0.21.2 --registry=https://registry.npmjs.org/
-```
-
-## 第一次设置
-
-安装后重启 DSH，点击侧边栏「同步」，也可从「设置 → 同步」进入。
-
-**① 登录托管站**
-
-使用默认仓库（GitHub）时，安装 Git 和 GitHub CLI，在“终端”运行：
-
-```powershell
-gh auth login --hostname github.com --git-protocol https --web
-```
-
-**如需通过代理访问 GitHub，请确保已通过环境变量为 GitHub CLI（gh）配置可用代理，或已启用能够代理 GitHub 流量的 TUN 模式**
-
-根据指引完成授权：输入 Y，按 Enter 打开授权页，在浏览器中输入“终端”显示的一次性代码（已自动复制，按 Ctrl + V 粘贴），点击 Authorize。
-
-使用 Gitee、GitLab 等其他托管站时，安装 Git，先在网页创建空的私有仓库（不要勾选用 README 初始化）。HTTPS 地址：打开“终端”，运行下面的命令（换成你的仓库地址），按 Git 的提示输入该站的账号和密码或访问令牌。SSH 地址：为这台电脑生成 SSH 密钥，把公钥添加到托管站的「SSH 公钥」设置，再运行 `git ls-remote` 加仓库地址。
-
-```powershell
-git ls-remote https://gitee.com/用户名/dsh-sync.git
-```
-
-**② 同步仓库** — 点击「使用默认仓库并继续」。首次同步时自动创建或复用 `dsh-sync` 私有仓库；使用已有仓库则点击「使用其他仓库」，填写 GitHub、Gitee、GitLab 等托管站的私有仓库地址（HTTPS 或 SSH）。
-
-**③ 选择内容** — 按需勾选，修改即时保存。首次连接先手动使用，之后可开启自动同步。[完整同步范围与排除规则](docs/sync-content.md)
-
-**④ 首次同步** — 点击「立即同步」，等待完成。确认上传成功后再换电脑；只生成本地快照不代表已经上传。
-
-## 换台电脑接着使用
-
-1. 原电脑同步成功后，在新电脑安装插件，并按「第一次设置」登录同一托管站账号。
-2. 打开「同步」，使用默认仓库；自定义仓库时，两台电脑使用相同仓库与分支。
-3. 同步取回后，检查会话、附件和项目文件，配置本机模型 API 密钥。界面提示需要重启时，完全退出后重新打开。
-
-其他插件和项目依赖需另装；项目目录不同可在同步设置中调整本机保存位置。在 Windows 与 macOS 之间共用仓库时，macOS 打不开 Windows 上建的会话（工作目录是 Windows 路径），这类会话不导入、远端保留，不影响其他内容同步。macOS 上建的会话可以导入 Windows 查看，继续对话前需要按提示换到本机项目。macOS 桌面端不支持自动重启，需要刷新会话列表时会提示手动退出再打开。[详细指南](docs/getting-started.md#4-换台电脑接着使用)
+每类内容可单独选择。模型密钥、代理和本机路径配置保留在各自电脑上。Windows 与 macOS 混用时，原会话的工作目录可能影响打开或续聊。[完整同步范围](https://github.com/dpskk2/dsh-chatsync/blob/main/docs/sync-content.md) · [跨系统换机说明](https://github.com/dpskk2/dsh-chatsync/blob/main/docs/getting-started.md#4-换台电脑接着使用)
 
 ## 日常使用
 
-点击侧边栏「同步」→「立即同步」。
+- **手动或自动同步。** 随时点「立即同步」。也可以开启启动时或退出时自动同步。
+- **处理会话冲突。** 两台电脑各自向同一会话新增消息时，可并排查看差异、保留两个版本，或只保留当前版本。另存的会话由 DSH 写入并核对项目归属，项目登记失败时可以重试。舍弃的版本可在「历史冲突会话备份」中查看。
+- **查看存储与恢复记录。** 在「管理存储」查看同步仓库、本机存储和同步前留存的原件。
 
-开启自动同步后，会在启动和正常退出时运行。
-
-启动同步期间可正常新建会话、工作区和编辑草稿。旧会话若提示等待，请在核对完成后再次发送；文字与附件会保留。
-
-## 冲突与修复
-
-- **查看冲突内容：** 选择文件，点击「查看内容」。会话默认按用户与助手消息阅读，设置和会话列表信息按字段显示；需要排查时可切换「查看原始记录」。项目文件可选择版本恢复，会话分叉可另存为独立会话。
-- **会话与数据修复：** 在同步页打开处理页面，查看检查结果、预览方案并确认；需要退出 DSH 的修复会明确提示，原件和备份会保留。
-- **分组检查：** 会话分组异常时，可在同步页查看检查结果与处理方案。
-
-[冲突与恢复](docs/configuration.md#冲突原件与项目文件恢复) · [历史数据修复与会话分支](docs/data-repair-0.20.1.md)
-
-## 数据与隐私
-
-聊天、附件或项目文件中写入的密钥等敏感信息需自行处理，可用[排除规则](docs/sync-content.md)控制同步范围。本机凭据、锁、缓存及运行状态不参与传输。
-
-会话分叉会保留为独立版本。远端删除不会直接删除本机会话。重要资料请另留备份。[同步与恢复边界](docs/configuration.md)
-
-**同步仓库与本机存储（实验性）：** 点「检查」后，每行以「明细」打开详情。首次同步只取当前快照；旧 Git 历史保留在同步仓库，不再自动下载整段历史。本机把当前同步副本、必要的恢复原件、旧版本遗留分开显示；清除历史时旧内容留在同步仓库的归档分支，不生成完整本机备份。[同步范围](docs/sync-content.md#同步仓库与本机存储) · [本机存储](docs/local-storage.md)
-
-上次同步详情中的「本机同步副本（含历史）」统计本机 Git 对象的占用，不代表本次传输量或新电脑下载量。清除历史会回收当前同步副本中已归档的旧历史；本机独有分支继续保留。早先版本清除历史后留在本机的同步前备份会显示为「本机另存旧历史」，同步仓库仍保有时可在同步仓库明细中「回收本机空间」。历史检查复用已缓存的设备回执，最多等待 2 分钟，失败时说明具体阶段。
-
-已核对且旧会话已归档的迁移原件可手动清理；旧仓库中尚未被当前副本覆盖的提交（含 reflog 历史）仍受保护。
-
-## 兼容性
-
-支持 DSH 的 Web 和 Windows、macOS 桌面端，最低 **0.2.0-rc.1**（macOS 没有真机验收记录，会话日志格式和设置已按 DSH 0.2.2-rc.1 的官方源码核对，见[文件说明](docs/dsh-file-catalog.md)）；桌面端推荐 **0.2.1-rc.3 或更新版**。独立运行要求 **Node.js 24 或更新版**，桌面端使用应用自带运行时。
-
-设置同步按 DSH 版本保护。升级后会自动恢复，旧版本的电脑会继续同步会话和附件。若较新版本的电脑已停用，可在同步状态中清除版本记录，先备份再接管设置同步。[设置同步说明](docs/sync-content.md) · [本版验证记录](docs/release-0.21.3-validation.md)
-
-## 帮助与开发
-
-[安装与使用](docs/getting-started.md) · [配置与恢复](docs/configuration.md) · [同步范围](docs/sync-content.md) · [文件说明](docs/dsh-file-catalog.md) · [提交问题](https://github.com/dpskk2/dsh-chatsync/issues)
-
-开发需要 Node.js 24 和 Git，原生 ESM，无运行时 npm 依赖：
-
-```powershell
-npm test
-npm pack --dry-run
-```
-
-[开发约定](https://github.com/dpskk2/dsh-chatsync/blob/main/CONTRIBUTING.md) · [更新日志](CHANGELOG.md) · [MIT License](LICENSE)
+[配置与恢复](https://github.com/dpskk2/dsh-chatsync/blob/main/docs/configuration.md) · [本机存储](https://github.com/dpskk2/dsh-chatsync/blob/main/docs/local-storage.md) · [反馈问题](https://github.com/dpskk2/dsh-chatsync/issues)

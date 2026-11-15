@@ -1,94 +1,97 @@
 /* ---------- 侧栏入口与页面 ---------- */
 let sidebarBinding = null,
-  sidebarLoad = null;
-let sidebarState = { value: null, loading: false, saving: false, error: '' };
-const sidebarListeners = new Set();
-function publishSidebarState(patch) {
-  sidebarState = { ...sidebarState, ...patch };
-  for (const listener of sidebarListeners) listener(sidebarState);
+  preferenceLoad = null;
+let pluginPreferences = { config: null, saving: false, error: '' };
+const preferenceListeners = new Set();
+function publishPreferences(patch) {
+  pluginPreferences = { ...pluginPreferences, ...patch };
+  for (const listener of preferenceListeners) listener(pluginPreferences);
 }
-function acceptSidebarConfig(data) {
-  if (!data?.ok || !data.config) throw new Error(data?.error || '无法读取侧边栏设置');
-  const value = data.config.showSidebarSync !== false;
-  sidebarBinding?.(value);
-  publishSidebarState({ value });
-  return value;
+function acceptPreferences(data) {
+  if (!data?.ok || !data.config) throw new Error(data?.error || '无法读取插件设置');
+  if (pluginPreferences.config?.autoCheckUpdates !== data.config.autoCheckUpdates) updateRequest = null;
+  sidebarBinding?.(data.config.showSidebarSync !== false);
+  publishPreferences({ config: data.config });
 }
-function loadSidebarPreference() {
-  if (sidebarLoad) return sidebarLoad;
-  publishSidebarState({ loading: true, error: '' });
-  sidebarLoad = API.config()
-    .then(acceptSidebarConfig)
+function loadPluginPreferences() {
+  if (preferenceLoad) return preferenceLoad;
+  publishPreferences({ error: '' });
+  preferenceLoad = API.config()
+    .then(acceptPreferences)
     .catch(error => {
-      if (sidebarState.value === null) sidebarBinding?.(true);
-      publishSidebarState({ error: error.message || '无法读取侧边栏设置' });
+      if (!pluginPreferences.config) sidebarBinding?.(true);
+      publishPreferences({ error: error.message || '无法读取插件设置' });
     })
     .finally(() => {
-      sidebarLoad = null;
-      publishSidebarState({ loading: false });
+      preferenceLoad = null;
     });
-  return sidebarLoad;
+  return preferenceLoad;
 }
-function useSidebarPreference() {
-  const [state, setState] = useState(sidebarState);
+function usePluginPreferences() {
+  const [state, setState] = useState(pluginPreferences);
   useEffect(() => {
-    sidebarListeners.add(setState);
-    setState(sidebarState);
-    if (sidebarState.value === null) loadSidebarPreference();
-    return () => sidebarListeners.delete(setState);
+    preferenceListeners.add(setState);
+    setState(pluginPreferences);
+    if (!pluginPreferences.config) loadPluginPreferences();
+    return () => preferenceListeners.delete(setState);
   }, []);
   return state;
 }
-async function toggleSidebarPreference() {
-  if (sidebarState.value === null || sidebarState.saving) return;
-  const next = !sidebarState.value;
-  publishSidebarState({ saving: true, error: '' });
+async function togglePluginPreference(key) {
+  if (!pluginPreferences.config || pluginPreferences.saving) return;
+  const next = pluginPreferences.config[key] === false;
+  publishPreferences({ saving: true, error: '' });
   try {
-    const actual = acceptSidebarConfig(await API.saveConfig({ showSidebarSync: next }));
-    if (actual !== next) publishSidebarState({ error: '受宿主设置限制，已显示实际选择。' });
+    const data = await API.saveConfig({ [key]: next });
+    acceptPreferences(data);
+    if ((data.config[key] !== false) !== next) publishPreferences({ error: '宿主配置固定了此选项。' });
   } catch (error) {
     try {
-      acceptSidebarConfig(await API.config());
-      publishSidebarState({ error: error.message || '保存失败，请重试' });
+      acceptPreferences(await API.config());
+      publishPreferences({ error: error.message || '保存失败，请重试' });
     } catch {
-      publishSidebarState({ value: null, error: '保存状态未知，请重新读取。' });
+      publishPreferences({ config: null, error: '保存状态未知，请重新读取。' });
     }
   } finally {
-    publishSidebarState({ saving: false });
+    publishPreferences({ saving: false });
   }
 }
 function SidebarVisibilityProvider() {
-  useSidebarPreference();
+  usePluginPreferences();
   return null;
 }
-function SidebarVisibilityToggle() {
-  const state = useSidebarPreference();
+function PluginPreferences({ view } = {}) {
+  const { config, saving, error } = usePluginPreferences();
+  if (view === 'summary') return null;
   return e(
     'div',
-    { className: 'dss-sidebar-pref' },
-    e('span', null, '侧边栏显示同步'),
-    e(
-      'button',
-      {
-        type: 'button',
-        role: 'switch',
-        'aria-label': '在侧边栏显示同步',
-        'aria-checked': state.value === true,
-        'aria-busy': state.loading || state.saving,
-        disabled: state.value === null || state.saving,
-        className: 'dss-switch' + (state.value === true ? ' dss-switch-on' : ''),
-        onClick: toggleSidebarPreference,
-      },
-      e('span', { className: 'dss-switch-knob' }),
-    ),
-    state.error ? e('span', { role: 'alert', className: 'dss-err' }, state.error) : null,
-    state.value === null && state.error
-      ? e(
+    { className: 'dss-plugin-prefs' },
+    ...[
+      ['showSidebarSync', '侧边栏显示同步'],
+      ['autoCheckUpdates', '自动检查更新'],
+    ].map(([key, label]) => {
+      const checked = Boolean(config && config[key] !== false);
+      return e(
+        'div',
+        { className: 'dss-rowline', key },
+        e('span', null, label),
+        e(
           'button',
-          { type: 'button', className: 'dss-pill', disabled: state.loading, onClick: loadSidebarPreference },
-          '重新读取',
-        )
-      : null,
+          {
+            type: 'button',
+            role: 'switch',
+            'aria-label': label,
+            'aria-checked': checked,
+            disabled: !config || saving,
+            className: 'dss-switch' + (checked ? ' dss-switch-on' : ''),
+            onClick: () => togglePluginPreference(key),
+          },
+          e('span', { className: 'dss-switch-knob' }),
+        ),
+      );
+    }),
+    error ? e('p', { role: 'alert', className: 'dss-err' }, error) : null,
+    !config && error ? pill('重新读取', loadPluginPreferences) : null,
   );
 }
 
@@ -104,6 +107,221 @@ function SidebarSyncIcon(props = {}) {
 function SyncPanel() {
   return e('div', { className: 'dss-panel' }, e(Section));
 }
+let conflictRequest = null;
+function openSessionConflict(record) {
+  conflictRequest = record;
+  repairNavigation.selectPanel('dsh-sync-conflict');
+}
+function SessionConflictPage() {
+  const { busy, refresh } = useSync();
+  const request = conflictRequest;
+  const close = () => repairNavigation.selectPanel('dsh-sync');
+  return e(
+    ManagementPage,
+    { className: 'dss-conflict-page' },
+    request
+      ? e(RecoveryItem, {
+          record: request,
+          busy,
+          page: true,
+          initiallyOpen: true,
+          onRestored: refresh,
+          onPreviewClosed: close,
+        })
+      : e(SyncPageHeading, { title: '会话同步冲突' }),
+  );
+}
+const syncBackupTitle = '历史冲突会话备份';
+function usePageStart() {
+  const root = useRef(null);
+  useLayoutEffect(() => {
+    const page = root.current;
+    if (!page) return;
+    const parent = scrollParent(page);
+    if (parent) parent.scrollTop = 0;
+    page.scrollTop = 0;
+    page.focus({ preventScroll: true });
+  }, []);
+  return root;
+}
+function ManagementPage({ title, className = '', children }) {
+  const root = usePageStart();
+  return e(
+    'div',
+    { className: 'dss-panel dss-management-panel' },
+    e(
+      'main',
+      { className: 'dss-wrap dss-manage-page ' + className, tabIndex: -1, ref: root, 'aria-label': title },
+      title ? e(SyncPageHeading, { title }) : null,
+      children,
+    ),
+  );
+}
+function SyncPageHeading({ title }) {
+  return e(
+    'header',
+    { className: 'dss-page-heading' },
+    e('h1', null, title),
+    pill('返回同步', () => repairNavigation.selectPanel('dsh-sync')),
+  );
+}
+function ConnectionPage() {
+  const { busy, status } = useSync();
+  return e(
+    ManagementPage,
+    { title: '更换同步仓库' },
+    e(ConnectionSettings, { manage: true, busy, remote: status?.remote, branch: status?.branch }),
+  );
+}
+function isSyncBackup(record) {
+  return Boolean(record.conflictResolution) || record.kind === 'settings-version-reset';
+}
+function SyncBackupPage() {
+  const [section, setSection] = useState('conflicts');
+  const [query, setQuery] = useState('');
+  const [records, setRecords] = useState(null);
+  const [error, setError] = useState('');
+  const [selection, setSelection] = useState(null);
+  const [status, setStatus] = useState('');
+  const [busy, setBusy] = useState(false);
+  const load = async () => {
+    try {
+      const data = await API.recovery();
+      if (!data.ok) throw new Error(data.error);
+      setRecords(data.records.filter(isSyncBackup));
+      setError('');
+    } catch (error) {
+      setError(error.message || String(error));
+    }
+  };
+  useEffect(() => {
+    load();
+  }, []);
+  const remove = async () => {
+    if (busy || !selection) return;
+    setBusy(true);
+    setError('');
+    try {
+      const preview = await API.localStorage('preview', { recoveryId: selection.id });
+      if (!preview.ok) throw new Error(preview.error);
+      const result = await API.localStorage('apply', { token: preview.token, confirm: true });
+      if (!result.ok) throw new Error(result.error || result.results?.find(item => !item.ok)?.error || '删除失败');
+      setSelection(null);
+      await load();
+      setStatus('已删除备份。');
+    } catch (error) {
+      setError(error.message || String(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const matches = (records || []).filter(
+    record =>
+      Boolean(record.conflictResolution) === (section === 'conflicts') &&
+      [record.projectTitle, record.sessionTitle, record.path]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(query.trim().toLowerCase()),
+  );
+  const projects = Map.groupBy(matches, record => (record.conflictResolution ? record.projectTitle || '' : ''));
+  return e(
+    ManagementPage,
+    { className: 'dss-sync-backups', title: syncBackupTitle },
+    e(
+      'div',
+      { className: 'dss-help-tabs', role: 'group', 'aria-label': '备份类型' },
+      ...[
+        ['conflicts', '冲突会话'],
+        ['settings', '设置'],
+      ].map(([id, title]) =>
+        e(
+          'button',
+          {
+            key: id,
+            type: 'button',
+            className: 'dss-help-tab',
+            'aria-pressed': id === section,
+            onClick: () => {
+              setSection(id);
+              setQuery('');
+            },
+          },
+          title,
+        ),
+      ),
+    ),
+    e('input', {
+      className: 'dss-input',
+      value: query,
+      type: 'search',
+      'aria-label': '搜索备份',
+      placeholder: section === 'conflicts' ? '搜索项目或会话' : '搜索设置文件',
+      onChange: event => setQuery(event.target.value),
+    }),
+    status ? e('p', { role: 'status' }, status) : null,
+    error && !selection ? e('p', { role: 'alert', className: 'dss-err' }, error, ' ', pill('重新读取', load)) : null,
+    !records && !error
+      ? e('p', { role: 'status' }, '正在读取…')
+      : records && !matches.length
+        ? e('p', { role: 'status' }, query.trim() ? '没有匹配的备份。' : '暂无备份。')
+        : null,
+    ...Array.from(projects, ([project, rows]) =>
+      e(
+        'section',
+        { key: project },
+        project ? e('h2', { className: 'dss-subtitle' }, '项目「' + project + '」') : null,
+        ...rows.map(record =>
+          e(
+            'div',
+            { className: 'dss-backup-record', key: record.id },
+            e(RecoveryItem, { record, onRestored: load, readOnly: true }),
+            pill(
+              '删除备份',
+              () => {
+                setError('');
+                setStatus('');
+                setSelection(record);
+              },
+              { disabled: busy },
+            ),
+          ),
+        ),
+      ),
+    ),
+    selection
+      ? e(
+          Modal,
+          {
+            title: '永久删除本机备份？',
+            onClose: () => {
+              if (!busy) {
+                setSelection(null);
+                setError('');
+              }
+            },
+          },
+          dialogBody(
+            e('p', null, selection.sessionTitle || selection.path),
+            error ? e('p', { role: 'alert', className: 'dss-err' }, error) : null,
+          ),
+          dialogActions(
+            '',
+            pill(
+              '取消',
+              () => {
+                setSelection(null);
+                setError('');
+              },
+              { disabled: busy },
+            ),
+            pill(busy ? '正在删除…' : '永久删除', remove, { kind: 'danger', disabled: busy }),
+          ),
+        )
+      : null,
+  );
+}
+
 let repairNavigation = null,
   repairRequest = { mode: 'all', sequence: 0 };
 const repairListeners = new Set();
@@ -114,6 +332,7 @@ function openRepairPage(request = {}) {
   for (const listener of repairListeners) listener(repairRequest);
 }
 function RepairPage() {
+  const root = usePageStart();
   const [request, setRequest] = useState(repairRequest);
   const { busy, refresh } = useSync();
   useEffect(() => {
@@ -125,23 +344,16 @@ function RepairPage() {
     'main',
     {
       id: 'dss-repair-page',
-      className: 'dss-panel',
+      className: 'dss-panel dss-management-panel',
+      ref: root,
+      tabIndex: -1,
       'aria-label': grouping ? '处理未分组会话' : '修复会话问题（实验性）',
     },
     e(
       'div',
       { className: 'dss-wrap' },
       e('style', null, STYLE),
-      e(
-        'header',
-        { className: 'dss-repair-heading' },
-        e('h1', null, grouping ? '处理未分组会话' : '修复会话问题（实验性）'),
-        e(
-          'button',
-          { type: 'button', className: 'dss-pill', onClick: () => repairNavigation.selectPanel('dsh-sync') },
-          '返回同步',
-        ),
-      ),
+      e(SyncPageHeading, { title: grouping ? '处理未分组会话' : '修复会话问题（实验性）' }),
       e(DataHealth, {
         key: request.sequence,
         expanded: true,

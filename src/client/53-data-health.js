@@ -1,4 +1,4 @@
-function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, grouping = false }) {
+function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, onGrouping, grouping = false }) {
   const [scan, setScan] = useState(null),
     [preview, setPreview] = useState(null);
   const previewRef = useRef(null);
@@ -95,7 +95,7 @@ function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, group
             'button',
             {
               type: 'button',
-              className: 'dss-pill',
+              className: 'dss-pill dss-primary',
               disabled: busy || pending,
               onClick: async () => {
                 const d = await perform(() => API.dataRepair('verify'));
@@ -157,7 +157,11 @@ function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, group
           !grouping && scan.ungroupedSessions?.length
             ? e(
                 'button',
-                { type: 'button', className: 'dss-pill', onClick: () => openRepairPage({ mode: 'grouping' }) },
+                {
+                  type: 'button',
+                  className: 'dss-pill',
+                  onClick: onGrouping || (() => openRepairPage({ mode: 'grouping' })),
+                },
                 '处理 ' + scan.ungroupedSessions.length + ' 个未分组会话',
               )
             : null,
@@ -281,7 +285,7 @@ function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, group
                   'button',
                   {
                     type: 'button',
-                    className: 'dss-pill',
+                    className: 'dss-pill dss-primary',
                     disabled: busy || pending || !repairWorkspace,
                     onClick: async () => {
                       if (!window.confirm(preview.warning)) return;
@@ -360,7 +364,7 @@ function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, group
                 'button',
                 {
                   type: 'button',
-                  className: 'dss-pill',
+                  className: 'dss-pill dss-primary',
                   disabled: busy || pending,
                   onClick: async () => {
                     if (!window.confirm(preview.warning + '\n\n安排这次修复？完全退出 DSH 后执行。')) return;
@@ -407,7 +411,7 @@ function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, group
                 'button',
                 {
                   type: 'button',
-                  className: 'dss-pill',
+                  className: 'dss-pill dss-primary',
                   disabled: busy || pending,
                   onClick: async () => {
                     if (!window.confirm('现在关闭桌面应用，应用已确认的修复，再重新打开？请先结束当前对话。')) return;
@@ -427,8 +431,7 @@ function DataHealth({ busy, initialIssueKey, expanded = false, onVerified, group
 function GroupingRepairOverlay() {
   const [notice, setNotice] = useState(null),
     [error, setError] = useState('');
-  const seen = useRef({ candidate: '', dismissed: '' }),
-    dialog = useRef(null);
+  const seen = useRef({ candidate: '', dismissed: '' });
   useEffect(() => {
     let alive = true,
       checking = false;
@@ -447,7 +450,7 @@ function GroupingRepairOverlay() {
         seen.current.candidate = d.signature;
         if (!d.enabled || d.busy || !stable || seen.current.dismissed === d.signature) return;
         // Defer while another native dialog is open, preserving its input.
-        if (typeof document !== 'undefined' && document.querySelector('dialog[open]') && !dialog.current?.open) return;
+        if (typeof document !== 'undefined' && document.querySelector('dialog[open]')) return;
         setNotice(d);
       } catch {
         /* Retry the local diagnosis on the next poll. */
@@ -462,43 +465,27 @@ function GroupingRepairOverlay() {
       clearInterval(timer);
     };
   }, []);
-  useEffect(() => {
-    if (!notice || !dialog.current) return;
-    const panel = dialog.current,
-      previous = document.activeElement;
-    if (!panel.open) panel.showModal();
-    return () => {
-      if (panel.open) panel.close();
-      previous?.focus?.();
-    };
-  }, [Boolean(notice)]);
   const dismiss = () => {
     seen.current.dismissed = notice.signature;
     setNotice(null);
   };
   if (!notice) return null;
   return e(
-    'dialog',
+    'section',
     {
-      className: 'dss-startup-dialog dss-grouping-notice',
-      ref: dialog,
-      role: 'dialog',
-      'aria-modal': true,
+      className: 'dss-update dss-update-popup dss-grouping-notice',
       'aria-label': '未分组会话修复',
-      onCancel: dismiss,
-      onKeyDown: event => event.stopPropagation(),
     },
-    e('div', { className: 'dss-startup-kicker' }, 'ChatSync'),
-    e('h2', null, '发现 ' + notice.count + ' 个未分组会话'),
+    e('h2', { role: 'status' }, '发现 ' + notice.count + ' 个未分组会话'),
     error ? e('p', { className: 'dss-err', role: 'alert' }, error) : null,
     e(
       'div',
-      { className: 'dss-startup-actions' },
+      { className: 'dss-diff-actions' },
       e(
         'button',
         {
           type: 'button',
-          className: 'dss-pill dss-startup-primary',
+          className: 'dss-pill',
           onClick: () => {
             try {
               openRepairPage({ mode: 'grouping' });
@@ -515,22 +502,97 @@ function GroupingRepairOverlay() {
   );
 }
 
-function RecoveryCenter({ busy, lastSyncAt }) {
+function SessionForkNotice({ count, onSelect }) {
+  const [open, setOpen] = useState(true);
+  const [view, setView] = useState(null);
+  const request = useRef(0);
+  const previousCount = useRef(0);
+  const load = async () => {
+    const id = ++request.current;
+    setView({ loading: true });
+    try {
+      const data = await API.recovery();
+      if (!data.ok) throw new Error(data.error);
+      const ids = new Set(data.pendingSessionForks?.map(fork => fork.id));
+      const rows = data.records.filter(record => ids.has(record.id));
+      if (id === request.current) setView({ rows });
+    } catch (err) {
+      if (id === request.current) setView({ error: err.message || String(err) });
+    }
+  };
+  useEffect(() => {
+    if (count > previousCount.current) setOpen(true);
+    previousCount.current = count || 0;
+  }, [count]);
+  useEffect(() => {
+    if (open && count) load();
+    else setView(null);
+    return () => {
+      request.current++;
+    };
+  }, [count, open]);
+  if (!count) return null;
+  return e(
+    'details',
+    {
+      className: 'dss-conflict-notice',
+      'aria-label': '会话同步冲突',
+      open,
+      onToggle: event => setOpen(event.currentTarget.open),
+    },
+    e('summary', null, e('span', { role: 'status' }, count + '个冲突会话待处理')),
+    view?.loading ? e('p', { role: 'status' }, '正在读取…') : null,
+    view?.error ? e('div', { className: 'dss-err', role: 'alert' }, view.error, pill('重新读取', load)) : null,
+    view?.rows?.length === 0 ? e('p', { role: 'status' }, '没有待处理的会话冲突') : null,
+    view?.rows?.length
+      ? e(
+          'div',
+          { className: 'dss-recovery-list' },
+          view.rows.map(record =>
+            e(
+              'div',
+              { key: record.id, className: 'dss-recovery-item' },
+              e('span', { className: 'dss-recovery-file' }, recoveryFileInfo(record).name),
+              e(
+                'button',
+                {
+                  type: 'button',
+                  className: 'dss-pill',
+                  'aria-label': '查看冲突：' + recoveryFileInfo(record).name,
+                  onClick: () => onSelect({ ...record, sessionConflict: true }),
+                },
+                '查看冲突',
+              ),
+            ),
+          ),
+        )
+      : null,
+  );
+}
+
+function RecoveryCenter({ busy, lastSyncAt, revision, onChanged, embedded = false }) {
   const [records, setRecords] = useState(null);
   const [error, setError] = useState('');
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(embedded);
 
   const load = () =>
     API.recovery()
       .then(d => {
         if (!d.ok) throw new Error(d.error);
-        setRecords(d.records);
+        setRecords(
+          d.records.filter(
+            record =>
+              !isSyncBackup(record) &&
+              (!record.sessionConflict || (record.category === 'history' && !record.conflictComplete)),
+          ),
+        );
         setError('');
       })
       .catch(err => setError(err.message || String(err)));
   useEffect(() => {
     load();
-  }, [lastSyncAt]);
+  }, [lastSyncAt, revision]);
+  if (records?.length === 0 && !error) return embedded ? e('p', { role: 'status' }, '暂无恢复记录。') : null;
   const newest = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
   const history = (records?.filter(record => record.category === 'history') || []).sort(newest);
   const attention = (records?.filter(record => record.category !== 'history') || []).sort(newest);
@@ -545,14 +607,24 @@ function RecoveryCenter({ busy, lastSyncAt }) {
           e(
             'div',
             { key: title + '-list', className: 'dss-recovery-list' },
-            rows.map(record => e(RecoveryItem, { key: record.id, record, busy, onRestored: load })),
+            rows.map(record =>
+              e(RecoveryItem, {
+                key: record.id,
+                record,
+                busy,
+                onRestored: () => {
+                  load();
+                  onChanged?.();
+                },
+              }),
+            ),
           ),
         ]
       : [];
   return e(
     'div',
     { className: 'dss-stack' },
-    e('p', { className: 'dss-desc' }, '查看同步、迁移或修复前保存的版本，找回缺失的消息或文件。'),
+    embedded ? null : e('h2', { className: 'dss-section-title' }, '找回同步前的内容（实验性）'),
     error
       ? e(
           'div',
@@ -564,22 +636,14 @@ function RecoveryCenter({ busy, lastSyncAt }) {
           'div',
           { className: 'dss-storage-head' },
           e('span', { className: 'dss-desc', role: 'status' }, status),
-          records?.length ? pill('查看', () => setOpen(true)) : null,
+          records?.length && !embedded
+            ? e(
+                'button',
+                { type: 'button', className: 'dss-link', 'aria-expanded': open, onClick: () => setOpen(!open) },
+                open ? '收起' : '查看',
+              )
+            : null,
         ),
-    open
-      ? e(
-          Modal,
-          {
-            title: '找回同步前的内容',
-            wide: true,
-            onClose: () => setOpen(false),
-          },
-          dialogBody(...list('待查看', attention), ...list('留存备份', history)),
-          dialogActions(
-            '',
-            pill('关闭', () => setOpen(false)),
-          ),
-        )
-      : null,
+    open ? e('div', null, ...list('待查看', attention), ...list('留存备份', history)) : null,
   );
 }

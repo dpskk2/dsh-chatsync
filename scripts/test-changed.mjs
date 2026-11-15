@@ -1,7 +1,7 @@
 // Fast check for the edit loop: runs only the tests and checks affected by the
 // files changed since a Git ref (default HEAD, i.e. uncommitted, staged and
-// untracked files). It does not replace `npm test`, which still runs before a
-// commit batch, nor the release regression.
+// untracked files). Choose broader checks or full `npm test` as the change
+// impact requires; formal release checks follow docs/release-safety-checklist.md.
 //
 // Module A depends on file B when A contains a quoted relative path that
 // resolves to B or to a directory holding B (imports, dynamic imports,
@@ -186,7 +186,9 @@ function main() {
   }
   console.log('');
   for (const [label, ok] of results) console.log(`${ok ? '通过' : '失败'}：${label}`);
-  console.log('这只是改动相关的快速检查；提交一批改动前仍要运行完整的 npm test。');
+  console.log(
+    '以上是改动相关的检查；请按影响扩大验证，必要时运行完整 npm test。正式发布检查见 docs/release-safety-checklist.md。',
+  );
   if (results.some(([, ok]) => !ok)) process.exitCode = 1;
 }
 

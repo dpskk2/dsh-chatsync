@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { SyncEngine } from '../lib/sync.js';
+import { SETTINGS_WRITER } from '../lib/scope.js';
 import { acceptFixturePreviews } from './helpers/reviewed-sync.mjs';
 import { attachFixturePersistence } from './helpers/session-persistence.mjs';
 
@@ -135,14 +136,111 @@ test(
   },
 );
 
-test('an unknown DSH version keeps the previous behaviour', { timeout: 120000 }, async t => {
-  const { make, put, read, sync } = devices(t);
+test('an unknown DSH version keeps syncing settings in an unversioned repository', async t => {
+  const { make, put, read, shown, sync } = devices(t);
   const a = make('a', null),
-    b = make('b', '0.2.1-rc.3');
+    b = make('b', null);
   put(a, 'cordis.patch.yml', patch('dark'));
   await sync(a);
-  await sync(b);
+  assert.equal(shown(SETTINGS_WRITER), null);
+  assert.equal(shown('cordis.patch.yml'), patch('dark'));
+  const synced = await sync(b);
+  assert.equal(synced.settingsPause, undefined);
   assert.equal(read(b, 'cordis.patch.yml'), patch('dark'));
+  put(b, 'cordis.patch.yml', patch('light'));
+  await sync(b);
+  assert.equal(shown('cordis.patch.yml'), patch('light'));
+  assert.equal(shown(SETTINGS_WRITER), null);
+});
+
+test('an unknown DSH version pauses settings in both directions while sessions and attachments keep syncing', async t => {
+  const { make, put, read, shown, sync } = devices(t);
+  const known = make('known', '0.2.2-rc.1'),
+    unknown = make('unknown', null);
+  const sessionId = 'session-11111111-1111-1111-1111-111111111111';
+  const session = `sessions/group/${sessionId}/session.v4.jsonl`;
+  const log = JSON.stringify({ type: 'session', version: 4, id: sessionId }) + '\n{"type":"turn/start","seq":0}\n';
+  put(known, 'cordis.patch.yml', patch('dark'));
+  put(known, 'attachments/from-known.txt', 'downloaded\n');
+  put(known, session, log);
+  await sync(known);
+  const beforeWriter = shown(SETTINGS_WRITER);
+  assert.match(beforeWriter, /0\.2\.2-rc\.1/);
+
+  put(unknown, 'cordis.patch.yml', patch('light'));
+  put(unknown, 'attachments/from-unknown.txt', 'uploaded\n');
+  const paused = await sync(unknown);
+  assert.match(paused.settingsPause, /无法检测本机的 DSH 版本.*0\.2\.2-rc\.1/);
+  assert.equal(paused.settingsPauseVersions, undefined);
+  assert.equal(paused.contentScope.settings, false);
+  assert.equal(read(unknown, 'cordis.patch.yml'), patch('light'));
+  assert.equal(shown('cordis.patch.yml'), patch('dark'));
+  assert.equal(shown(SETTINGS_WRITER), beforeWriter);
+  assert.equal(read(unknown, 'attachments/from-known.txt'), 'downloaded\n');
+  assert.equal(shown('attachments/from-unknown.txt'), 'uploaded\n');
+  assert.equal(read(unknown, session), log);
+});
+
+test('a settings edit in unpublished history cannot upload with an unknown DSH version even after reverting', async t => {
+  const { make, put, read, shown, sync } = devices(t);
+  const engine = make('device', '0.2.2-rc.1');
+  put(engine, 'cordis.patch.yml', patch('original'));
+  await sync(engine);
+  const beforeWriter = shown(SETTINGS_WRITER);
+  const run = engine.runWithRetry;
+  engine.runWithRetry = async function (op, ...args) {
+    if (op === 'push') return { code: 1, out: '', err: 'simulated interrupted upload' };
+    return run.call(this, op, ...args);
+  };
+  put(engine, 'cordis.patch.yml', patch('unpublished-edit'));
+  const interrupted = await engine.syncOnce('test', { forceCommit: true });
+  assert.equal(interrupted.committed, true, JSON.stringify(interrupted));
+  assert.equal(interrupted.pushed, false);
+  engine.runWithRetry = run;
+  const reverted = await engine.git(['revert', '--no-edit', 'HEAD']);
+  assert.equal(reverted.code, 0, reverted.err);
+  put(engine, 'cordis.patch.yml', patch('original'));
+  const outgoing = await engine.git(['diff', '--name-only', 'origin/main', 'HEAD']);
+  assert.equal(outgoing.out.trim(), '', 'the proposed settings tree matches the remote');
+
+  engine.hostDshVersion = () => null;
+  const paused = await engine.syncOnce('test', { forceCommit: true });
+  assert.match(paused.settingsPause, /无法检测本机的 DSH 版本/);
+  assert.doesNotMatch(paused.settingsPause, /会话和附件照常同步/);
+  assert.equal(paused.settingsPauseVersions, undefined);
+  assert.equal(paused.pushed, false);
+  assert.equal(paused.error, 'push');
+  assert.match(paused.hint, /待处理的设置变更.*暂停上传/);
+  assert.equal(read(engine, 'cordis.patch.yml'), patch('original'));
+  assert.equal(shown('cordis.patch.yml'), patch('original'));
+  assert.equal(shown(SETTINGS_WRITER), beforeWriter);
+  assert.equal(await engine.rev('origin/main'), await engine.rev('HEAD~2'));
+});
+
+test('an unknown DSH version cannot export settings when fetching the remote state fails', async t => {
+  const { make, put, read, shown, sync } = devices(t);
+  const engine = make('device', '0.2.2-rc.1');
+  put(engine, 'cordis.patch.yml', patch('original'));
+  await sync(engine);
+  const beforeWriter = shown(SETTINGS_WRITER);
+  assert.ok(engine._safeUploadHeads.has('main'));
+  engine.hostDshVersion = () => null;
+  put(engine, 'cordis.patch.yml', patch('local-edit'));
+  const run = engine.runWithRetry;
+  engine.runWithRetry = async function (op, ...args) {
+    if (op === 'fetch') return { code: 1, out: '', err: 'simulated fetch timeout', timedOut: true };
+    return run.call(this, op, ...args);
+  };
+  const unavailable = await engine.syncOnce('test', { forceCommit: true });
+  assert.equal(unavailable.pushed, false);
+  assert.equal(unavailable.error, 'push');
+  assert.match(unavailable.hint, /无法取得云端设置版本/);
+  assert.equal(engine._safeUploadHeads.has('main'), false);
+  assert.equal(read(engine, 'cordis.patch.yml'), patch('local-edit'));
+  assert.equal(shown('cordis.patch.yml'), patch('original'));
+  assert.equal(shown(SETTINGS_WRITER), beforeWriter);
+  const snapshot = await engine.git(['show', 'HEAD:cordis.patch.yml']);
+  assert.equal(snapshot.out, patch('original'));
 });
 
 test('after every computer upgrades past the recorded version, settings resume on the first sync', async t => {

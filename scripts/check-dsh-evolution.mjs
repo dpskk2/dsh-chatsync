@@ -14,7 +14,6 @@ import { parseSyncRemote } from '../lib/remote.js';
 import { scopeMirrorPath } from '../lib/scope.js';
 import { digest } from '../lib/recovery.js';
 import { previewSessionRepair, repairSessionImport } from '../lib/session-repair.js';
-import { acceptFixturePreviews } from '../tests/helpers/reviewed-sync.mjs';
 
 const dshRoot = path.resolve(process.argv[2]);
 if (process.argv.includes('--serve') && !process.stdin.isTTY)
@@ -46,6 +45,21 @@ const result = {
     : 'local Git bare fixture (private-remote check substituted only in this script)',
   checks: [],
 };
+async function inspectCache(host, ids) {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const observed = await host.request('/native-fixture/inspect');
+    assert.equal(observed.ok, true, JSON.stringify(observed));
+    if (
+      ids.every(id => {
+        const session = observed.sessions.find(item => item.id === id);
+        return session?.cached === true || (session?.cached === null && result.dshVersion !== '0.2.2-rc.3');
+      })
+    )
+      return observed;
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  throw new Error('Missing host projection cache for verified session(s): ' + ids.join(', '));
+}
 try {
   const remote = path.join(root, 'remote.git');
   if (!githubRepository) execFileSync('git', ['init', '--bare', remote], { windowsHide: true, stdio: 'ignore' });
@@ -124,17 +138,37 @@ import { releasedV3SessionFormatCodec } from ${JSON.stringify(moduleURL('@deepse
 import { RecoveryStore } from ${JSON.stringify(pathToFileURL(path.join(repo, 'lib/recovery.js')).href)};
 import { SyncEngine } from ${JSON.stringify(pathToFileURL(path.join(repo, 'lib/sync.js')).href)};
 import { importRecoverySession } from ${JSON.stringify(pathToFileURL(path.join(repo, 'lib/session-recovery.js')).href)};
+import { transferCatalog } from ${JSON.stringify(pathToFileURL(path.join(repo, 'lib/session-transfer.js')).href)};
+import { readBody, registerRoutes } from ${JSON.stringify(pathToFileURL(path.join(repo, 'lib/http/guard.js')).href)};
+import { acceptFixturePreviews } from ${JSON.stringify(pathToFileURL(path.join(repo, 'tests/helpers/reviewed-sync.mjs')).href)};
 export const inject = ['webServer', 'sessions', 'sessionPersistence', 'sessionQuery', 'workspaceRegistry', 'attachments'];
 export function apply(ctx) {
   const home = process.env.DSH_HOME;
   const respond = (res, value) => { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(value)); };
+  const engine = new SyncEngine(home, {
+    remote: ${JSON.stringify(logicalRemote)}, autoRepo: false, patches: false, workspaceSync: false,
+    contentScope: { sessions: true, attachments: true, settings: false }, autoRestartAfterRepair: false,
+  });
+  engine.setHostContext(ctx);
+  engine.loadTransferCatalog = transferCatalog;
+  if (${!githubRepository}) engine.verifyPrivateRemote = async () => ({ ok: true });
+  acceptFixturePreviews(engine);
+  ctx.effect(() => {
+    const disposers = [];
+    registerRoutes(ctx.webServer, [{ kind: 'exact', path: '/native-fixture/sync', handler: async (req, res) => {
+      if (req.method !== 'POST') { res.writeHead(405); res.end(); return; }
+      try { await readBody(req); respond(res, await engine.syncOnce('native-fixture', { forceCommit: true })); }
+      catch (e) { respond(res, { error: e.message }); }
+    } }], disposers);
+    return disposers[0];
+  });
   ctx.effect(() => ctx.webServer.register({ kind: 'exact', path: '/native-fixture/create', handler: async (_req, res) => {
     try {
       let requestText = ''; for await (const chunk of _req) requestText += chunk;
       const mode = JSON.parse(requestText || '{}').mode || 'closed';
       const cwd = path.join(home, 'fixture-project'); fs.mkdirSync(cwd, { recursive: true });
       const workspace = await ctx.workspaceRegistry.create(cwd, '隔离验收项目');
-      const session = ctx.sessions.prepare('session-' + randomUUID(), { meta: { cwd } });
+      const session = ctx.sessions.prepare(randomUUID(), { meta: { cwd } });
       const writer = await ctx.sessionPersistence.create(session.header);
       const detach = ctx.sessions.enter(session); ctx.effect(() => detach); ctx.sessions.announce(session);
       const attachment = await ctx.attachments.saveFile({ data: Buffer.from('attachment acceptance fixture'), name: '验收附件.txt' });
@@ -169,11 +203,13 @@ export function apply(ctx) {
   } }));
   ctx.effect(() => ctx.webServer.register({ kind: 'exact', path: '/native-fixture/inspect', handler: async (_req, res) => {
     try { const all = await ctx.sessionPersistence.list(); const tools = ctx.get('tools'); const sessions = [];
+      const cache = ctx.get('sessionProjectionCache');
       for (const s of all) {
+        const cached = typeof cache?.cachedSnapshot === 'function' ? !!cache.cachedSnapshot(s.header) : null;
         const read = await ctx.sessionQuery.readSession(s.header.id);
         const files = fs.readdirSync(path.join(home, 'sessions'), { recursive: true }).filter(file => file.includes(s.header.id) && /\\.jsonl(?:\\.zstd)?$/.test(file));
         sessions.push({ id: s.header.id, cwd: s.header.cwd, parentSession: s.header.parentSession, origin: s.header.origin,
-          inheritedEventCount: read.inheritedEventCount, eventCount: read.events.length, eventHash: createHash('sha256').update(JSON.stringify(read.events)).digest('hex'), tail: read.events.at(-1),
+          inheritedEventCount: read.inheritedEventCount, eventCount: read.events.length, eventHash: createHash('sha256').update(JSON.stringify(read.events)).digest('hex'), tail: read.events.at(-1), cached,
           fileHash: createHash('sha256').update(fs.readFileSync(path.join(home, 'sessions', files[0]))).digest('hex') });
       }
       respond(res, { ok: true,
@@ -230,7 +266,7 @@ export function apply(ctx) {
       const repeated = await host.request('/dsh-sync/api/recovery/import-session', request);
       assert.equal(repeated.ok, true, JSON.stringify(repeated));
       assert.equal(repeated.sessionId, imported.sessionId);
-      const observed = await host.request('/native-fixture/inspect');
+      const observed = await inspectCache(host, [imported.sessionId]);
       assert.equal(observed.ok, true, JSON.stringify(observed));
       assert.equal(observed.sessions.length, before + (mode === 'child' ? 3 : 2));
       const recovered = observed.sessions.find(s => s.id === imported.sessionId);
@@ -339,42 +375,36 @@ export function apply(ctx) {
   hosts.pop();
   // Run the production transport while real hosts own those same isolated stores.
   // Local fixtures cannot satisfy the production GitHub private-repo API check.
-  const engines = hosts.map(host => {
-    const engine = new SyncEngine(host.home, {
-      remote: logicalRemote,
-      autoRepo: false,
-      patches: false,
-      workspaceSync: false,
-      contentScope: { sessions: true, attachments: true, settings: false },
-      autoRestartAfterRepair: false,
-    });
-    if (!githubRepository) engine.verifyPrivateRemote = async () => ({ ok: true });
-    return acceptFixturePreviews(engine);
-  });
-  const synchronize = async engine => {
+  const firstHostIds = (await hosts[0].request('/native-fixture/inspect')).sessions.map(session => session.id);
+  const synchronize = async host => {
+    let value;
     for (let i = 0; i < 4; i++) {
-      const value = await engine.syncOnce('native-fixture', { forceCommit: true });
+      value = await host.request('/native-fixture/sync', {});
       if (!value.scopeWarnings?.length) return value;
       result.checks.push('Active host changed a local file during transfer; preserved it and retried');
     }
-    throw new Error('Host writes did not settle within four fixture rounds');
+    throw new Error('Host writes did not settle: ' + JSON.stringify(value.scopeWarnings));
   };
-  const a = await synchronize(engines[0]);
+  const a = await synchronize(hosts[0]);
   assert.equal(a.error, undefined, JSON.stringify(a));
-  const b = await synchronize(engines[1]);
+  const b = await synchronize(hosts[1]);
   assert.equal(b.error, undefined, JSON.stringify(b));
+  await inspectCache(hosts[1], firstHostIds);
+  result.checks.push(
+    'Received sessions are readable through the host and appear in its projection cache before restart',
+  );
   let expectedSessions = 20;
   if (githubRepository) {
     const added = await hosts[1].request('/native-fixture/create', { mode: 'closed' });
     assert.equal(added.ok, true, JSON.stringify(added));
-    const edited = await synchronize(engines[1]);
+    const edited = await synchronize(hosts[1]);
     assert.equal(edited.error, undefined, JSON.stringify(edited));
     expectedSessions++;
     result.checks.push(
       'B creates a new public-API session with file and image attachments after receiving A, then uploads to real GitHub',
     );
   }
-  const back = await synchronize(engines[0]);
+  const back = await synchronize(hosts[0]);
   assert.equal(back.error, undefined, JSON.stringify(back));
   result.checks.push('A upload → B receive + own additions → A receive with two real DSH processes running');
   for (let i = 0; i < hosts.length; i++) {
@@ -425,17 +455,18 @@ export function apply(ctx) {
       attachmentContent(hosts[1].home),
       'All transferred attachment bytes must match',
     );
-    const cfg = engines[0].loadConfig();
-    const mirror = scopeMirrorPath(engines[0].home, cfg);
-    const head = await engines[0].rev(cfg.branch, path.join(mirror, '.git'), mirror);
+    const engine = new SyncEngine(hosts[0].home, { remote: logicalRemote, autoRepo: false });
+    const cfg = engine.loadConfig();
+    const mirror = scopeMirrorPath(engine.home, cfg);
+    const head = await engine.rev(cfg.branch, path.join(mirror, '.git'), mirror);
     assert.match(head || '', /^[0-9a-f]{40,64}$/);
-    const ref = await engines[0].gh([
+    const ref = await engine.gh([
       'api',
       'repos/' + githubRepository.fullName + '/git/ref/heads/' + cfg.branch,
       '--jq',
       '.object.sha',
     ]);
-    assert.equal(engines[0].ok(ref), true, 'Real GitHub API could not read the uploaded branch');
+    assert.equal(engine.ok(ref), true, 'Real GitHub API could not read the uploaded branch');
     assert.equal(ref.out.trim(), head, 'GitHub API commit must match the checked transfer commit');
     result.github = {
       fullName: githubRepository.fullName,

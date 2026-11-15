@@ -1,0 +1,37 @@
+{
+  "originalSourceCommit": "fb95a161dd6a74346942d183c5a2bb003b82ed83",
+  "checkedCandidateCommit": "03c97fa493baa9e5e9694b028a35f25389353dd4",
+  "changedFile": "tests/session-fork-status.test.mjs",
+  "change": "Use the resolved temporary directory as the test fixture home to preserve the product symlink refusal on macOS.",
+  "applicability": "Production files and test expectations are unchanged. The only changed test file was rerun on both local runtimes. Original full-suite reports and installation reports retain their original identity. Repacking with npm 11.17.0 after the test fix reproduced both verified candidate hashes.",
+  "repack": {
+    "scoped": "b4552390f5f4360775bd274d0c52562805fc591008ecaf9241f2cd275e6e9e41",
+    "short": "74b4540596d11a94e54186a43bcd83993dae011f0550686bf5f4c1cc1e20b9d4",
+    "npm": "11.17.0",
+    "repackedAt": "2026-11-15T22:48:51.4768745+08:00"
+  },
+  "reruns": [
+    {
+      "runtime": "Node 24.19.0",
+      "command": "node --test tests/session-fork-status.test.mjs",
+      "completedAt": "2026-11-15T14:48:10.9297929Z",
+      "exitCode": 0,
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "runtime": "Electron 44.7.0 / Node 24.21.0",
+      "command": "ELECTRON_RUN_AS_NODE=1 <desktop exe> --expose-internals --test tests/session-fork-status.test.mjs",
+      "completedAt": "2026-11-15T14:49:06.3174704Z",
+      "exitCode": 0,
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  ]
+}

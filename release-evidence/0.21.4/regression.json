@@ -1,0 +1,96 @@
+{
+  "testedSource": "351c3869e1096fe59798687d3ded1a32b28095da",
+  "candidateSource": "351c3869e1096fe59798687d3ded1a32b28095da",
+  "procedure": [
+    "DSH_GUI_TEST_EXE=<installed desktop executable> node --test --test-concurrency=5 <all tests/*.test.mjs>",
+    "node scripts/run-desktop-regression.mjs <Electron.exe>"
+  ],
+  "applicability": "本机独立 Node 与 GitHub Actions 的 Windows/Electron 分别在最终候选完成回归。早期两次本机尝试到达脚本的 20 分钟时限，记录于 localAttempts。",
+  "localAttempts": [
+    {
+      "runtime": {
+        "node": "24.19.0",
+        "platform": "win32"
+      },
+      "completedAt": "2026-11-15T16:30:27.028Z",
+      "elapsedSeconds": 1200.326,
+      "exitCode": 1,
+      "stoppedFor": "timeout"
+    },
+    {
+      "runtime": {
+        "node": "24.21.0",
+        "electron": "44.7.0",
+        "platform": "win32"
+      },
+      "completedAt": "2026-11-15T16:30:28.966Z",
+      "elapsedSeconds": 1200.234,
+      "exitCode": 1,
+      "stoppedFor": "timeout"
+    }
+  ],
+  "fixtureChecks": [
+    {
+      "runtime": "node",
+      "file": "tests/config-api.test.mjs",
+      "tests": 29,
+      "passed": 29,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "runtime": "desktop",
+      "file": "tests/config-api.test.mjs",
+      "tests": 29,
+      "passed": 29,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  ],
+  "node": {
+    "ok": true,
+    "productVersion": "0.21.4",
+    "productBuild": "2026-11-16-release-0.21.4",
+    "runtime": {
+      "platform": "win32",
+      "node": "24.19.0"
+    },
+    "suite": {
+      "code": 0,
+      "tests": 639,
+      "passed": 639,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "completedAt": "2026-11-15T16:40:33.6335786+00:00",
+    "elapsedSeconds": 444.6420095,
+    "command": "DSH_GUI_TEST_EXE=<installed desktop executable> node --test --test-concurrency=5 <all tests/*.test.mjs>"
+  },
+  "desktop": {
+    "ok": true,
+    "productVersion": "0.21.4",
+    "productBuild": "2026-11-16-release-0.21.4",
+    "runtime": {
+      "platform": "win32",
+      "electron": "44.7.0",
+      "node": "24.21.0"
+    },
+    "suite": {
+      "code": 0,
+      "tests": 639,
+      "passed": 639,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "completedAt": "2026-11-15T16:35:06Z",
+    "elapsedSeconds": 912.348,
+    "ciJob": {
+      "url": "https://github.com/dpskk2/dsh-chatsync/actions/runs/43734778080/job/132874968328",
+      "command": "node scripts/run-desktop-regression.mjs <Electron.exe>"
+    }
+  }
+}

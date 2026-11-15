@@ -1,0 +1,18 @@
+{
+  "sourceSha256": "98075fa1b252a6551efb7b5f9d83f016fd9f8fc1951738b06223c2901579c4b0",
+  "shortPackageSha256": "e043e8ba0aff962c48172665194c953a8ef92ee9d64995b4c829d09bc650fb73",
+  "scopedPackageSha256": "213e0dae2519068629d45f1e1865bb56089a24ca5885e0c9fceec6689c08c98e",
+  "recordedAt": "2026-11-15T16:40:50.020Z",
+  "instructions": [
+    "撤回0.21.3，把刚才的修复更新到github和npm上。",
+    "发布前把本机先安装0.21.4"
+  ],
+  "dailyInstallation": {
+    "version": "0.21.4",
+    "name": "chatsync",
+    "verifiedPackageSha256": "e043e8ba0aff962c48172665194c953a8ef92ee9d64995b4c829d09bc650fb73",
+    "installedAt": "2026-11-15T16:14:19.337Z"
+  },
+  "maintainerVisual": "三个开关都显示，可以发布",
+  "physicalTwoDevice": "本版修改插件详情及本机开关界面，未执行物理双机验证。"
+}

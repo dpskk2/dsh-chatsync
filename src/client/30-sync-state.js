@@ -60,6 +60,7 @@ function useSync() {
   const [status, setStatus] = useState(null);
   const [progress, setProgress] = useState(null);
   const [statusError, setStatusError] = useState('');
+  const [runError, setRunError] = useState(null);
   const [review, setReview] = useState(null);
   const pollRef = useRef(null);
   const runStartedAt = useRef(0);
@@ -92,31 +93,29 @@ function useSync() {
       .catch(err => setStatusError('无法读取同步状态：' + (err.message || String(err))));
   }, []);
   const run = useCallback(
-    async (anchor, approval) => {
+    async (approval, expectedConnection) => {
       if (busy) return;
       runStartedAt.current = Date.now();
       setBusy(true);
+      setRunError(null);
       setProgress(null);
       startPoll();
       try {
-        const d = await API.run(approval);
+        const d = await API.run(approval, expectedConnection);
         setReview(d?.detail?.needsReview && !d.detail.privacy ? d.detail.review : null);
-        if (d?.detail?.needsReview) {
-          bubble(anchor, '等待确认同步预览，请打开“同步”查看并继续。', false);
-          return;
+        if (!d?.ok && !d?.detail) {
+          setRunError({ message: d?.error || '无法启动同步', startedAt: runStartedAt.current });
         }
-        const message = (d && d.error) || (d && d.summary) || '同步完成';
-        const notice = syncMessagePresentation(message, d?.ok || d?.detail?.cancelled, {
-          ...d?.detail,
-          ...(d?.error ? { error: d.error } : {}),
-        });
-        bubble(anchor, message, notice.ok);
+        return d;
       } catch (err) {
-        bubble(anchor, err.message || String(err), false);
+        const message = err.message || String(err);
+        setRunError({ message, startedAt: runStartedAt.current });
+        return { ok: false, error: message };
       } finally {
         stopPoll();
+        await refresh();
+        setProgress(null);
         setBusy(false);
-        refresh();
         API.progress()
           .then(setProgress)
           .catch(() => {});
@@ -148,6 +147,7 @@ function useSync() {
     busy: busy || Boolean(progress && progress.running),
     status,
     statusError,
+    runError: runError && !(status?.lastSyncAt >= runError.startedAt) ? runError : null,
     progress: current,
     refresh,
     run,

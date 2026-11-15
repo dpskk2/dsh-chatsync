@@ -10,6 +10,7 @@ import {
   advisoryChecks,
   minorChecks,
   patchChecks,
+  optionalTwoDeviceSummary,
   releaseTier,
   sourceFingerprint,
   workingSourceFingerprint,
@@ -81,7 +82,7 @@ test('patch and minor releases list their required checks pending; risk scenario
   );
   assert.deepEqual(
     minor.checks.map(check => check.id),
-    ['full-regression', 'candidate-install', 'physical-two-device-github'],
+    ['full-regression', 'candidate-install'],
   );
   assert.deepEqual(
     patchChecks,
@@ -91,8 +92,8 @@ test('patch and minor releases list their required checks pending; risk scenario
     minorChecks,
     minor.checks.map(check => check.id),
   );
-  assert.equal(advisoryChecks.length, 21);
-  assert.equal(new Set(advisoryChecks).size, 21);
+  assert.equal(advisoryChecks.length, 22);
+  assert.equal(new Set(advisoryChecks).size, 22);
   for (const manifest of [patch, minor]) {
     assert.equal(manifest.schemaVersion, 2);
     assert.ok(
@@ -126,17 +127,57 @@ test('local candidate evidence follows unstaged and new source bytes while ignor
   assert.equal(workingSourceFingerprint(f.root), added);
 });
 
-test('a patch release needs no two-device check; a minor release does, and the maintainer may confirm it', t => {
-  const patch = fixture(t, '1.2.3');
-  assert.ok(!patch.manifest.checks.some(check => check.id === 'physical-two-device-github'));
-  assert.deepEqual(patch.errors(), []);
-  const minor = fixture(t, '1.3.0');
-  assert.deepEqual(minor.errors(), []);
-  const twoDevice = minor.manifest.checks.find(check => check.id === 'physical-two-device-github');
-  twoDevice.status = 'pending';
-  assert.ok(minor.errors().some(error => error.includes('physical-two-device-github：未通过')));
-  minor.manifest.checks = minor.manifest.checks.filter(check => check !== twoDevice);
-  assert.ok(minor.errors().some(error => error.includes('不完整')));
+function requireTwoDevice(f) {
+  const index = f.manifest.advisory.findIndex(check => check.id === 'physical-two-device-github');
+  const [check] = f.manifest.advisory.splice(index, 1);
+  f.manifest.checks.push(check);
+  return check;
+}
+
+test('both release tiers permit unperformed advisory two-device acceptance', t => {
+  for (const version of ['1.2.3', '1.3.0']) {
+    const f = fixture(t, version);
+    assert.ok(!f.manifest.checks.some(check => check.id === 'physical-two-device-github'));
+    const check = f.manifest.advisory.find(check => check.id === 'physical-two-device-github');
+    for (const status of ['pending', 'not-verified', 'skipped', 'interrupted']) {
+      check.status = status;
+      assert.deepEqual(f.errors(), []);
+      assert.match(optionalTwoDeviceSummary(f.manifest), new RegExp(`双机验收未验证：${status}`));
+    }
+    f.manifest.advisory = [];
+    assert.match(optionalTwoDeviceSummary(f.manifest), /双机验收未验证：未记录/);
+  }
+});
+
+test('explicitly required two-device acceptance blocks until evidence is complete, including legacy schema 2', t => {
+  for (const version of ['1.2.3', '1.3.0']) {
+    const f = fixture(t, version);
+    const check = requireTwoDevice(f);
+    assert.equal(optionalTwoDeviceSummary(f.manifest), '');
+    assert.ok(f.errors().some(error => error.includes('physical-two-device-github：未通过')));
+    passed(check, version, f.report);
+    assert.deepEqual(f.errors(), [], 'schema 2 also accepts the former minor-release checks shape');
+    check.status = 'failed';
+    assert.ok(f.errors().some(error => error.includes('physical-two-device-github：未通过')));
+  }
+});
+
+test('advisory two-device success needs evidence and cannot also appear in required checks', t => {
+  const f = fixture(t);
+  const check = f.manifest.advisory.find(check => check.id === 'physical-two-device-github');
+  check.status = 'passed';
+  assert.ok(f.errors().some(error => error.includes('缺少证据文件')));
+  passed(check, f.manifest.version, f.report);
+  assert.deepEqual(f.errors(), []);
+  assert.equal(optionalTwoDeviceSummary(f.manifest), '');
+  check.artifacts[0].sha256 = '0'.repeat(64);
+  assert.ok(f.errors().some(error => error.includes('哈希不匹配')));
+  passed(check, f.manifest.version, f.report);
+  check.status = 'failed';
+  assert.ok(f.errors().some(error => error.includes('参考检查发现失败')));
+  passed(check, f.manifest.version, f.report);
+  f.manifest.checks.push(structuredClone(check));
+  assert.ok(f.errors().some(error => error.includes('参考检查项目重复')));
 });
 
 test('advisory checks are optional, but a recorded failure or unknown advisory item blocks release', t => {
@@ -218,7 +259,7 @@ test('wrong version, missing review details, future dates and absent artifacts b
   f.manifest.version = '1.2.2';
   f.manifest.checks[0].reviewer = '';
   f.manifest.checks[1].completedAt = '2999-01-01T00:00:00Z';
-  f.manifest.checks[2].artifacts = [];
+  f.manifest.checks[1].artifacts = [];
   const errors = f.errors();
   assert.ok(errors.some(error => error.includes('版本或构建')));
   assert.equal(errors.filter(error => error.includes('有效完成时间')).length, 2);
@@ -227,7 +268,9 @@ test('wrong version, missing review details, future dates and absent artifacts b
 
 function ownerDecision(f) {
   const id = 'physical-two-device-github';
-  f.manifest.checks.find(c => c.id === id).status = 'not-verified';
+  const check = requireTwoDevice(f);
+  passed(check, f.manifest.version, f.report);
+  check.status = 'not-verified';
   f.manifest.ownerDecision = {
     mode: 'release-with-unverified-scenarios',
     version: f.manifest.version,

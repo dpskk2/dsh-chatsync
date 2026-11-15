@@ -1,0 +1,63 @@
+{
+  "version": "0.21.3",
+  "build": "2026-11-15-release-0.21.3",
+  "originalFullRunCommit": "fb95a161dd6a74346942d183c5a2bb003b82ed83",
+  "candidateCommit": "03c97fa493baa9e5e9694b028a35f25389353dd4",
+  "sourceSha256": "68a3faff26e80a5a49b93816a1517b125b12ff67af3dcab85519245b93e21edd",
+  "windowsVersion": "10.0.26300.0",
+  "environments": [
+    {
+      "ok": true,
+      "completedAt": "2026-11-15T14:55:37.215Z",
+      "elapsedSeconds": 1100.933,
+      "productVersion": "0.21.3",
+      "productBuild": "2026-11-15-release-0.21.3",
+      "testFileConcurrency": 2,
+      "runtime": {
+        "node": "24.19.0",
+        "platform": "win32"
+      },
+      "suite": {
+        "code": 0,
+        "tests": 638,
+        "passed": 638,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "command": "DSH_ISSUE4_CATALOG_ROOT=. DSH_GUI_TEST_EXE=<installed DSH Desktop exe> node scripts/check-runtime-regression.mjs"
+    },
+    {
+      "ok": true,
+      "completedAt": "2026-11-15T14:57:06.417Z",
+      "elapsedSeconds": 1190.078,
+      "productVersion": "0.21.3",
+      "productBuild": "2026-11-15-release-0.21.3",
+      "testFileConcurrency": 2,
+      "runtime": {
+        "node": "24.21.0",
+        "electron": "44.7.0",
+        "platform": "win32"
+      },
+      "suite": {
+        "code": 0,
+        "tests": 638,
+        "passed": 638,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "command": "DSH_ISSUE4_CATALOG_ROOT=. node scripts/check-runtime-regression.mjs --desktop"
+    }
+  ],
+  "sourceFollowup": "source-followup.json",
+  "staticAndPackagingChecks": [
+    "build-client --check",
+    "ESLint",
+    "Prettier",
+    "tsc",
+    "check-package-contents",
+    "repack and compare both candidate SHA-256 digests"
+  ],
+  "verificationScope": "One Windows machine, isolated synthetic data and local Git repositories. Physical two-device acceptance was advisory and not run."
+}

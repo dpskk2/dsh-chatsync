@@ -1,23 +1,25 @@
 /* ---------- 同步仓库与本机存储 ---------- */
 // One section with a summary line per kind; lists, choices and confirmations open
 // in a dialog whose body scrolls while its buttons stay in view.
-function Modal({ title, note, wide = false, onClose, children }) {
+function Modal({ title, note, wide = false, comparison = false, label, tools, onClose, children }) {
   const dialog = useRef(null);
   useDialogWheel(dialog);
   useEffect(() => {
     const node = dialog.current;
+    const previous = node?.ownerDocument.activeElement;
     if (node && !node.open) node.showModal?.();
     return () => {
       if (node?.open) node.close();
+      if (previous?.isConnected) previous.focus();
     };
   }, []);
   return e(
     'dialog',
     {
       ref: dialog,
-      className: 'dss-confirm-dialog' + (wide ? ' dss-dialog-wide' : ''),
+      className: 'dss-confirm-dialog' + (comparison ? ' dss-recovery-dialog' : wide ? ' dss-dialog-wide' : ''),
       'aria-modal': true,
-      'aria-label': title,
+      'aria-label': label || title,
       onCancel: event => {
         event.preventDefault();
         onClose();
@@ -27,8 +29,8 @@ function Modal({ title, note, wide = false, onClose, children }) {
     e(
       'div',
       { className: 'dss-confirm-head' },
-      e('h2', null, title),
-      note ? e('p', { className: 'dss-desc' }, note) : null,
+      e('div', null, e('h2', null, title), note ? e('p', { className: 'dss-desc' }, note) : null),
+      tools,
     ),
     children,
   );
@@ -280,14 +282,16 @@ const USAGE_ACTIONS = {
   hidden: ['移出同步', 'sessions'],
   leftover: ['移除', 'remoteFiles'],
 };
-function UsageDialog({ data, busy, onClose, onRefresh, onOpen }) {
+function UsageDialog({ data, busy, onRefresh, onOpen }) {
   const rows = data.groups.filter(g => g.files || g.historyBytes);
   return e(
-    Modal,
-    {
-      title: '同步仓库占用',
-      note:
-        '本机可见的同步分支：当前内容 ' +
+    'section',
+    { className: 'dss-usage-detail', 'aria-label': '同步仓库占用' },
+    e('h3', null, '同步仓库占用'),
+    e(
+      'p',
+      { className: 'dss-desc' },
+      '本机可见的同步分支：当前内容 ' +
         fmtBytes(data.currentBytes) +
         '，历史版本 ' +
         fmtBytes(data.historyBytes) +
@@ -295,9 +299,7 @@ function UsageDialog({ data, busy, onClose, onRefresh, onOpen }) {
         fmtBytes(data.structureBytes) +
         '。' +
         (data.localBytes != null ? '这台电脑的同步副本共占 ' + fmtBytes(data.localBytes) + '。' : ''),
-      wide: true,
-      onClose,
-    },
+    ),
     dialogBody(
       e(
         'div',
@@ -386,7 +388,7 @@ function UsageDialog({ data, busy, onClose, onRefresh, onOpen }) {
           : '连不上同步仓库，没有统计其他分支。',
       ),
     ),
-    dialogActions('大小按压缩后的存储计算', pill('重新统计', onRefresh, { disabled: busy }), pill('关闭', onClose)),
+    dialogActions('大小按压缩后的存储计算', pill('重新统计', onRefresh, { disabled: busy })),
   );
 }
 
@@ -516,7 +518,7 @@ function HistoryDialog({ busy, onClose, onDone }) {
               ? pickRow({
                   key: 'branches',
                   label: '同时删除同步仓库中 ' + preview.backupBranches.length + ' 个同步前备份分支',
-                  detail: '同步遇到冲突时保存的远端版本。不删除的话，它们仍占用同步仓库的空间。',
+                  detail: '同步遇到冲突时保存的云端版本。不删除的话，它们仍占用同步仓库的空间。',
                   checked: deleteBranches,
                   disabled: blocked,
                   onChange: setDeleteBranches,
@@ -883,7 +885,7 @@ function RemoteFilesDialog({ preview, busy, onClose, onDone }) {
   return e(
     Modal,
     {
-      title: '远端旧文件',
+      title: '云端旧文件',
       note: '旧版本上传过的插件清单、备份、脚本等本机文件，现在不再同步。',
       onClose,
     },
@@ -898,7 +900,7 @@ function RemoteFilesDialog({ preview, busy, onClose, onDone }) {
               { className: 'dss-err', role: 'alert' },
               '这些电脑还不是 ' +
                 preview.minVersion +
-                ' 或更新版本。旧版本会把远端移除当作删除本机文件，请先在它们上面升级并同步一次；不再使用的电脑可以勾选：',
+                ' 或更新版本。旧版本会把云端移除当作删除本机文件，请先在它们上面升级并同步一次；不再使用的电脑可以勾选：',
             ),
             ...preview.blockers.map(b =>
               pickRow({
@@ -944,7 +946,7 @@ const STORAGE_ROWS = [
   },
   {
     key: 'remoteFiles',
-    title: '远端旧文件',
+    title: '云端旧文件',
     remote: true,
     action: '明细',
     load: () => API.remoteCleanup(),
@@ -952,7 +954,23 @@ const STORAGE_ROWS = [
     empty: data => !data.files.length,
   },
 ];
-function StorageOverview({ busy, remote }) {
+const storageTitle = '同步仓库与本机存储（实验性）';
+function StoragePage() {
+  const { busy, status, statusError, refresh } = useSync();
+  return e(
+    ManagementPage,
+    { title: storageTitle },
+    status
+      ? e(StorageOverview, { busy, remote: Boolean(status.remote), onRecovered: refresh })
+      : e(
+          'p',
+          { role: statusError ? 'alert' : 'status' },
+          statusError || '正在读取…',
+          statusError ? pill('重新读取', refresh) : null,
+        ),
+  );
+}
+function StorageOverview({ busy, remote, onRecovered }) {
   const [results, setResults] = useState({}),
     [loading, setLoading] = useState({}),
     [open, setOpen] = useState(null),
@@ -974,8 +992,9 @@ function StorageOverview({ busy, remote }) {
       }),
     );
   };
-  const checking = rows.some(row => loading[row.key]);
-  const checked = rows.some(row => results[row.key]);
+  useEffect(() => {
+    load(rows.map(row => row.key));
+  }, [remote]);
   const close = () => setOpen(null);
   // After a change, the affected lines and the repository usage are checked again.
   const done = keys => text => {
@@ -986,21 +1005,23 @@ function StorageOverview({ busy, remote }) {
   const dialogProps = { busy, onClose: close };
   const data = open && results[open.key]?.data;
   const dialog =
-    open?.key === 'history'
-      ? e(HistoryDialog, { ...dialogProps, onDone: done(['usage', 'backups']) })
-      : open?.key === 'localHistory'
-        ? e(LocalHistoryDialog, { ...dialogProps, onDone: done(['usage']) })
-        : !data
-          ? null
-          : open.key === 'sessions'
-            ? e(SessionsDialog, { ...dialogProps, data, focus: open.focus, onDone: done(['sessions', 'usage']) })
-            : open.key === 'usage'
-              ? e(UsageDialog, {
-                  ...dialogProps,
-                  data,
-                  onRefresh: () => load(['usage']),
-                  onOpen: (key, focus) => setOpen({ key, focus }),
-                })
+    open?.key === 'recovery'
+      ? e(
+          Modal,
+          { title: '找回同步前的内容', wide: true, onClose: close },
+          dialogBody(
+            e('div', { className: 'dss-wrap' }, e(RecoveryCenter, { busy, embedded: true, onChanged: onRecovered })),
+          ),
+          dialogActions('', pill('返回存储管理', close)),
+        )
+      : open?.key === 'history'
+        ? e(HistoryDialog, { ...dialogProps, onDone: done(['usage', 'backups']) })
+        : open?.key === 'localHistory'
+          ? e(LocalHistoryDialog, { ...dialogProps, onDone: done(['usage']) })
+          : !data
+            ? null
+            : open.key === 'sessions'
+              ? e(SessionsDialog, { ...dialogProps, data, focus: open.focus, onDone: done(['sessions', 'usage']) })
               : open.key === 'backups'
                 ? e(BackupDialog, { ...dialogProps, scan: data, onRescan: () => load(['backups']) })
                 : open.key === 'remoteFiles'
@@ -1009,43 +1030,53 @@ function StorageOverview({ busy, remote }) {
   return e(
     'section',
     { className: 'dss-sec', 'data-storage-overview': true },
-    e('h2', { className: 'dss-section-title' }, '同步仓库与本机存储（实验性）'),
+    message ? e('div', { className: 'dss-save-state', role: 'status' }, message) : null,
     e(
       'div',
-      { className: 'dss-storage-head' },
-      e('p', { className: 'dss-desc' }, '看看同步了什么、占了多少，清理用不上的。'),
-      pill(checking ? '正在检查…' : checked ? '重新检查' : '检查', () => load(rows.map(row => row.key)), {
-        disabled: busy || checking,
+      { className: 'dss-storage-rows' },
+      rows.map(row => {
+        const result = results[row.key];
+        const ready = result?.data && !loading[row.key];
+        return e(
+          'div',
+          { key: row.key, className: 'dss-storage-row', 'data-storage-row': row.key },
+          e('span', { className: 'dss-storage-title' }, row.title),
+          loading[row.key]
+            ? e('span', { className: 'dss-desc' }, '正在检查…')
+            : result?.error
+              ? e('span', { className: 'dss-err', role: 'alert' }, result.error)
+              : e('span', { className: 'dss-desc' }, ready ? row.summary(result.data) : ''),
+          result?.error && !loading[row.key]
+            ? pill('重试', () => load([row.key]), { disabled: busy })
+            : ready && !row.empty?.(result.data)
+              ? e(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dss-link',
+                    disabled: busy,
+                    'aria-expanded': row.key === 'usage' ? open?.key === 'usage' : undefined,
+                    onClick: () => setOpen(row.key === 'usage' && open?.key === 'usage' ? null : { key: row.key }),
+                  },
+                  row.key === 'usage' && open?.key === 'usage' ? '收起' : row.action,
+                )
+              : e('span'),
+        );
       }),
     ),
-    message ? e('div', { className: 'dss-save-state', role: 'status' }, message) : null,
-    checked || checking
-      ? e(
-          'div',
-          { className: 'dss-storage-rows' },
-          rows.map(row => {
-            const result = results[row.key];
-            const ready = result?.data && !loading[row.key];
-            return e(
-              'div',
-              { key: row.key, className: 'dss-storage-row', 'data-storage-row': row.key },
-              e('span', { className: 'dss-storage-title' }, row.title),
-              loading[row.key]
-                ? e('span', { className: 'dss-desc' }, '正在检查…')
-                : result?.error
-                  ? e('span', { className: 'dss-err', role: 'alert' }, result.error)
-                  : e('span', { className: 'dss-desc' }, ready ? row.summary(result.data) : ''),
-              ready && !row.empty?.(result.data)
-                ? e(
-                    'button',
-                    { type: 'button', className: 'dss-link', disabled: busy, onClick: () => setOpen({ key: row.key }) },
-                    row.action,
-                  )
-                : e('span'),
-            );
-          }),
-        )
+    open?.key === 'usage' && data
+      ? e(UsageDialog, {
+          ...dialogProps,
+          data,
+          onRefresh: () => load(['usage']),
+          onOpen: (key, focus) => setOpen({ key, focus }),
+        })
       : null,
+    e(
+      'div',
+      { className: 'dss-actions' },
+      pill('找回同步前的内容', () => setOpen({ key: 'recovery' })),
+    ),
     dialog,
   );
 }

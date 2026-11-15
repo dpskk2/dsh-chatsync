@@ -1,0 +1,27 @@
+{
+  "dshVersion": "0.2.2-rc.3",
+  "physicalMachines": 1,
+  "hostProcesses": 2,
+  "additionalFaultHostProcesses": 1,
+  "remote": "local Git bare fixture (private-remote check substituted only in this script)",
+  "checks": [
+    "a: closed source → new fork, source unchanged, file + image verified, durable readback, inherited prefix, project membership, idempotent retry, three read-only tools registered",
+    "a: open source → new fork, source unchanged, file + image verified, durable readback, inherited prefix, project membership, idempotent retry, three read-only tools registered",
+    "a: child source → new fork, source unchanged, file + image verified, durable readback, inherited prefix, project membership, idempotent retry, three read-only tools registered",
+    "a: v3 source → new fork, source unchanged, file + image verified, durable readback, inherited prefix, project membership, idempotent retry, three read-only tools registered",
+    "a: failure after durable append retries the same fork identity",
+    "b: closed source → new fork, source unchanged, file + image verified, durable readback, inherited prefix, project membership, idempotent retry, three read-only tools registered",
+    "b: open source → new fork, source unchanged, file + image verified, durable readback, inherited prefix, project membership, idempotent retry, three read-only tools registered",
+    "b: child source → new fork, source unchanged, file + image verified, durable readback, inherited prefix, project membership, idempotent retry, three read-only tools registered",
+    "b: v3 source → new fork, source unchanged, file + image verified, durable readback, inherited prefix, project membership, idempotent retry, three read-only tools registered",
+    "b: failure after durable append retries the same fork identity",
+    "Separate host: persistent partial seeded log is refused, source unchanged, synchronization paused before transmission; generic public API cannot roll it back",
+    "Received sessions are readable through the host and appear in its projection cache before restart",
+    "A upload → B receive + own additions → A receive with two real DSH processes running",
+    "a: restart reads all 20 independently identified sessions",
+    "b: restart reads all 20 independently identified sessions"
+  ],
+  "sourceSha256": "b7cb842e59eee2e3f5d3fb92c7bec64a01cf25dec6904ec95270af0e688843aa",
+  "completedAt": "2026-11-15T14:41:44.2732180Z",
+  "procedure": "node scripts/check-dsh-evolution.mjs <DSH 0.2.2-rc.3 npm package directory>"
+}

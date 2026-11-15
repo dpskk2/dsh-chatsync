@@ -6,14 +6,19 @@ import { fileURLToPath } from 'node:url';
 
 export const risks = ['data-loss', 'corruption-spread', 'privacy', 'upgrade-environments', 'recovery'];
 export const methods = ['source-review', 'automated', 'fault-injection', 'native-runtime'];
-// Tiered gate (docs/release-safety-checklist.md): every release needs the full
+// Release gate (docs/release-safety-checklist.md): every release needs the full
 // regression (standalone Node and the Windows Electron runtime) and the candidate
-// package checked in an isolated host; a minor or major release also needs the
-// physical two-device acceptance, which the maintainer may confirm.
+// package checked in an isolated host. Physical two-device acceptance is advisory
+// unless the maintainer moves it into the candidate's required checks.
 export const patchChecks = ['full-regression', 'candidate-install'];
-export const minorChecks = [...patchChecks, 'physical-two-device-github'];
+export const minorChecks = [...patchChecks];
+const twoDeviceCheck = 'physical-two-device-github';
 // Advisory guidance: recorded when performed, never required, but a failure still blocks.
-export const advisoryChecks = [...risks.flatMap(risk => methods.map(method => `${risk}/${method}`)), 'restore-drill'];
+export const advisoryChecks = [
+  ...risks.flatMap(risk => methods.map(method => `${risk}/${method}`)),
+  'restore-drill',
+  twoDeviceCheck,
+];
 /** 'patch' for x.y.z with z > 0; any other version is treated as a minor (or major) release. */
 export function releaseTier(version) {
   const match = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(String(version));
@@ -84,6 +89,12 @@ export function template(pkg) {
   };
 }
 
+export function optionalTwoDeviceSummary(manifest) {
+  if (manifest.checks?.some(check => check.id === twoDeviceCheck)) return '';
+  const check = manifest.advisory?.find(check => check.id === twoDeviceCheck);
+  return check?.status === 'passed' ? '' : `双机验收未验证：${check?.status ?? '未记录'}（参考项，未列为本次必过项）。`;
+}
+
 export function validateRelease(root, manifest, packageFile) {
   const errors = [];
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
@@ -99,7 +110,9 @@ export function validateRelease(root, manifest, packageFile) {
     errors.push(error.message);
   }
   if (manifest.tier !== tier) errors.push(`版本级别与清单不一致：${pkg.version} 属于 ${tier}`);
-  const requiredChecks = requiredChecksFor(tier);
+  const checks = Array.isArray(manifest.checks) ? manifest.checks : [];
+  const requiredChecks = [...requiredChecksFor(tier)];
+  if (checks.some(check => check?.id === twoDeviceCheck)) requiredChecks.push(twoDeviceCheck);
   if (!validHash(manifest.sourceSha256) || manifest.sourceSha256 !== sourceFingerprint(root))
     errors.push('源码指纹不一致，必须重新验收');
   if (
@@ -109,7 +122,6 @@ export function validateRelease(root, manifest, packageFile) {
     manifest.packageSha256 !== sha256(fs.readFileSync(packageFile))
   )
     errors.push('候选安装包缺失或 SHA-256 不一致');
-  const checks = Array.isArray(manifest.checks) ? manifest.checks : [];
   // An explicit, candidate-bound owner decision records unverified scenarios;
   // it never converts them to passed, and cannot override an actual failure.
   const decision = manifest.ownerDecision;
@@ -142,14 +154,20 @@ export function validateRelease(root, manifest, packageFile) {
   const advisory = Array.isArray(manifest.advisory) ? manifest.advisory : [];
   if (
     advisory.some(check => !advisoryChecks.includes(check?.id)) ||
-    new Set(advisory.map(check => check?.id)).size !== advisory.length
+    new Set(advisory.map(check => check?.id)).size !== advisory.length ||
+    advisory.some(check => checks.some(required => required?.id === check?.id))
   )
     errors.push('参考检查项目重复或包含未知项目');
   for (const check of advisory)
     if (check?.status === 'failed') errors.push(`${check.id}：参考检查发现失败，必须先处理`);
-  for (const id of requiredChecks) {
-    const check = checks.find(item => item?.id === id);
-    if (!check || (check.status !== 'passed' && !(check.status === 'not-verified' && accepted.has(id)))) {
+  const evidenceChecks = [
+    ...requiredChecks.map(id => ({ id, check: checks.find(item => item?.id === id), required: true })),
+    ...advisory
+      .filter(check => check?.id === twoDeviceCheck && check.status === 'passed')
+      .map(check => ({ id: check.id, check, required: false })),
+  ];
+  for (const { id, check, required } of evidenceChecks) {
+    if (!check || (check.status !== 'passed' && !(required && check.status === 'not-verified' && accepted.has(id)))) {
       errors.push(`${id}：未通过`);
       continue;
     }
@@ -232,6 +250,8 @@ function main() {
       ? `依据用户决定允许有限验证发布：${pkg.version}；未验证 ${unverified.length} 项（不是全部验收通过）：${unverified.join(', ')}`
       : `安全证据门禁通过：${pkg.version} / ${pkg.chatsyncBuild}（${manifest.tier === 'patch' ? '补丁版' : '次版本'}，${manifest.checks.length} 项必过）；请保留实测范围声明。`,
   );
+  const summary = optionalTwoDeviceSummary(manifest);
+  if (summary) console.log(summary);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

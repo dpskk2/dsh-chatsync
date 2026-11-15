@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 2,
+  "version": "0.21.3",
+  "build": "2026-11-15-release-0.21.3",
+  "tier": "patch",
+  "sourceSha256": "68a3faff26e80a5a49b93816a1517b125b12ff67af3dcab85519245b93e21edd",
+  "packageSha256": "b4552390f5f4360775bd274d0c52562805fc591008ecaf9241f2cd275e6e9e41",
+  "checks": [
+    {
+      "id": "full-regression",
+      "status": "passed",
+      "completedAt": "2026-11-15T14:57:06.417Z",
+      "environment": "Windows，独立 Node 24.19.0，DSH Desktop 内置 Electron 44.7.0 / Node 24.21.0，隔离数据。",
+      "procedure": "两套 check-runtime-regression.mjs 完整运行。候选仅随后调整一个测试的临时目录，调整后的测试文件在两个运行时分别重跑。",
+      "observed": "每套各 638 项全部通过，退出码 0，失败、取消及跳过均为 0。受影响的文件在两个运行时各 3 项通过。静态与打包检查通过。",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "sha256": "f0cd691bf346c0ce713d445f85a9a21056601e0fc3010edd1f1279b5cda17a3e",
+          "path": "release-evidence/0.21.3/regression.json"
+        },
+        {
+          "sha256": "251c4a277165716c41c4b806675327de49ee321b1a313e62e00d04cd87516bdb",
+          "path": "release-evidence/0.21.3/source-followup.json"
+        }
+      ]
+    },
+    {
+      "id": "candidate-install",
+      "status": "passed",
+      "completedAt": "2026-11-15T14:38:19.1818133Z",
+      "environment": "一台 Windows 电脑，隔离 DSH Desktop 0.2.2-rc.3，Electron 44.7.0，内置 Node 24.21.0。测试数据为合成数据。",
+      "procedure": "npm 11.17.0 打包两个实际候选。node scripts/check-local-package-desktop.mjs <candidate.tgz> <isolated-output> 分别加载两个包并重启。",
+      "observed": "两个包均加载 0.21.3 / 2026-11-15-release-0.21.3。分别核对 80 个运行文件和 2 个语言文件。公共接口读写、保留策略冷启动读回及合成附件保留均通过。",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "sha256": "aeb72ea4307ed6c72962c9c1ad4280551b816db58786bb966434d0952d36c987",
+          "path": "release-evidence/0.21.3/candidate-install-scoped.json"
+        },
+        {
+          "sha256": "5425e8c158e6950c8b108c9caf99ff1807e22cc002cf42a182e445324bd83d31",
+          "path": "release-evidence/0.21.3/candidate-install-short.json"
+        },
+        {
+          "sha256": "251c4a277165716c41c4b806675327de49ee321b1a313e62e00d04cd87516bdb",
+          "path": "release-evidence/0.21.3/source-followup.json"
+        }
+      ]
+    }
+  ],
+  "advisory": [
+    {
+      "id": "data-loss/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "data-loss/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "data-loss/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "data-loss/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "corruption-spread/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "corruption-spread/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "corruption-spread/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "corruption-spread/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "privacy/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "privacy/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "privacy/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "privacy/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "upgrade-environments/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "upgrade-environments/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "upgrade-environments/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "upgrade-environments/native-runtime",
+      "status": "passed",
+      "completedAt": "2026-11-15T14:41:44.273218Z",
+      "environment": "Windows 单机，两个 DSH 0.2.2-rc.3 Web 宿主及一个额外故障宿主，本地裸 Git 仓库，合成数据。",
+      "procedure": "node scripts/check-dsh-evolution.mjs <DSH 0.2.2-rc.3 npm package directory>",
+      "observed": "正常、进行中、子会话和历史 v3 原件均可另存。验证附件、同一身份重试、未完成写入保护、同步取回缓存及重启后两端各 20 条。",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "sha256": "eba7461b7aa27a047e1e01ee18d57d0fd6012be57c3bfa1a24faa27f3d5804a5",
+          "path": "release-evidence/0.21.3/session-web.json"
+        }
+      ]
+    },
+    {
+      "id": "recovery/source-review",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "recovery/automated",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "recovery/fault-injection",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "recovery/native-runtime",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "restore-drill",
+      "status": "pending",
+      "completedAt": "",
+      "environment": "",
+      "procedure": "",
+      "observed": "",
+      "reviewer": "",
+      "artifacts": []
+    },
+    {
+      "id": "physical-two-device-github",
+      "status": "not-verified",
+      "completedAt": "2026-11-15T22:39:57.4214899+08:00",
+      "environment": "单机隔离验证",
+      "procedure": "维护者当次指定物理双机作为可选参考。",
+      "observed": "未执行物理双机经专用私有仓库的往返。",
+      "reviewer": "仓库维护者与 Codex",
+      "artifacts": [
+        {
+          "sha256": "ded819fe793a42facf416c4b532979b8a1f2d884aee62f6fd7c0b429ac8e5edc",
+          "path": "release-evidence/0.21.3/maintainer-review.json"
+        }
+      ]
+    }
+  ],
+  "shortPackageSha256": "74b4540596d11a94e54186a43bcd83993dae011f0550686bf5f4c1cc1e20b9d4"
+}

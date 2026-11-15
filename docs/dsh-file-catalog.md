@@ -5,9 +5,9 @@
 | 路径 | 对使用者的含义 | 什么时候需要处理 |
 | --- | --- | --- |
 | `storages/sync-meta/**.vmap.json` | ChatSync 自己的修改先后账本，帮助两台电脑合并设置；不是聊天内容，也不是关联文件本身 | 正常时无需选择或手工编辑 |
-| `profiles/<环境>/package.json` | 插件清单：想安装哪些插件、版本要求、启动装入哪些功能 | 插件缺失或异常时通过插件管理检查；同步清单不等于安装完成 |
-| `profiles/<环境>/pnpm-lock.yaml` | 安装工具记录的最终依赖版本、来源及校验信息 | 通常无需处理；让安装工具配合清单更新，避免单独恢复 |
-| `profiles/<环境>/pnpm-workspace.yaml` | 安装规则，可能涉及依赖覆盖、安装脚本许可等 | 安装报错时结合错误检查；不是聊天项目列表 |
+| `profiles/<环境>/package.json` | 本机插件安装清单，包含版本要求和加载信息。当前同步范围不包含它 | 换机时在 DSH 插件管理中安装所需插件 |
+| `profiles/<环境>/pnpm-lock.yaml` | 本机依赖版本、来源及校验信息 | 由插件安装工具管理。旧同步记录中的副本只用于排查 |
+| `profiles/<环境>/pnpm-workspace.yaml` | 本机安装规则，可能涉及依赖覆盖或脚本许可 | 安装报错时结合错误排查 |
 | `profiles/<环境>/cordis.patch.yml` | 启动时应用的功能及设置配置补丁 | 设置或插件不符合预期时通过对应界面调整 |
 | `settings.yaml`、`settings.yaml.imported` | 旧版设置及迁移原件；不保证是当前生效配置 | 先核对设置页，不直接覆盖 |
 | `storages/workspace.json` | 项目分组、会话归属相关登记数据 | 分组异常时保留原件排查，不手工拼接 |
@@ -55,7 +55,7 @@
 | 项目登记、投影缓存 | `storages/workspace.json` 仍是 `workspace` 第 2 版，字段不变；`session_projcache` 规格不变 |
 | 设置位置 | 仍是 `profiles/<环境>/cordis.patch.yml` 和数据目录下的 `cordis.patch.yml`，结构仍是按 id 的补丁列表。Include 改用 journal 写盘并会为无 id 的行写回生成的 id，这些写入发生在加载器自己的 `cordis.yml` 层；profile 根 Include 的运行时变更不再写回 |
 | 新增设置 | 模型服务商的 `maxRequestImages`、`imageOffloadCountQuantum` 为可选字段，按普通设置原样同步；未发现新增的凭据或代理字段。`DEFAULT_CONTEXT_WINDOW`、`DEFAULT_MAX_TOKENS`、`fs-observation-policy` 等默认值变化不写入用户文件 |
-| 随版本移除的条目 | `tool-subagent-list-agents`、`ui-deepseek-model-label-1017`、`tools` 等捆绑条目已移除或替换，用户补丁中指向旧条目的行只产生一条宿主警告，不影响启动；两台电脑 DSH 版本不同时设置本来就暂停互传 |
+| 随版本移除的条目 | `tool-subagent-list-agents`、`ui-deepseek-model-label-1017`、`tools` 等捆绑条目已移除或替换，用户补丁中指向旧条目的行只产生一条宿主警告，不影响启动；DSH 较旧的电脑在较新的电脑写入设置后本来就暂停同步设置 |
 | 不同步的新内容 | `schedule` 领域升到第 2 版、`change-request-states`、Computer Use 授权都不在同步范围内，留在各台电脑 |
 | macOS 桌面端 | 宿主进程参数和 Windows 一致；`/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh` 是自带命令行；桌面端启动时读取登录 shell 环境，因此 Homebrew 安装的 Git 和 GitHub CLI 能被找到 |
 

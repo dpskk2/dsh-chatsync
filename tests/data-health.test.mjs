@@ -275,7 +275,7 @@ test('completed repairs wait for explicit user verification before any transfer'
   assert.equal(result.deferred, true);
   assert.match(result.error, /核对正文/);
   assert.equal(result.dataVerificationPending, true);
-  assert.match(result.error, /检查与修复历史数据.*已检查修复结果，允许同步.*立即同步/);
+  assert.match(result.error, /前往核对修复结果.*已检查修复结果，允许同步.*立即同步/);
   assert.equal(fs.existsSync(path.join(home, '.git')), false);
   acknowledgeDataRepairs(engine);
   assert.deepEqual(pendingDataVerification(engine), []);

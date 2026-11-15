@@ -1,0 +1,28 @@
+{
+  "version": "0.21.3",
+  "build": "2026-11-15-release-0.21.3",
+  "sourceSha256": "b7cb842e59eee2e3f5d3fb92c7bec64a01cf25dec6904ec95270af0e688843aa",
+  "recordedAt": "2026-11-15T14:39:57.4214899+00:00",
+  "releaseInstruction": "准备发布前检查后发布",
+  "channels": [
+    "GitHub Release",
+    "npm @dpskk2/dsh-chatsync",
+    "npm chatsync"
+  ],
+  "visual": {
+    "reviewer": "仓库维护者",
+    "reply": "目视已通过",
+    "surface": "可点击交互预览，使用示例数据",
+    "status": "passed",
+    "scope": [
+      "冲突对比",
+      "缺少文件提示",
+      "登录帮助"
+    ]
+  },
+  "physicalTwoDevice": {
+    "reply": "列为可选，记录未验证",
+    "required": false,
+    "status": "not-verified"
+  }
+}

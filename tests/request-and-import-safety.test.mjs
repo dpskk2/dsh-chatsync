@@ -125,6 +125,33 @@ test('a cross-site settings change is refused and leaves the configuration file 
   assert.equal(config.body.config.proxy, '');
 });
 
+test('clearing the settings version record refuses cross-site and non-JSON requests and writes nothing', async t => {
+  const request = host(t);
+  const body = Buffer.from(JSON.stringify({ expectedVersion: '0.2.2' }));
+  const same = { host: '127.0.0.1:7788', origin: 'http://127.0.0.1:7788', 'content-length': String(body.length) };
+  for (const [headers, status] of [
+    [
+      {
+        ...same,
+        origin: 'https://attacker.example',
+        'sec-fetch-site': 'cross-site',
+        'content-type': 'application/json',
+      },
+      403,
+    ],
+    [{ ...same, 'sec-fetch-site': 'same-origin', 'content-type': 'text/plain' }, 415],
+  ]) {
+    const refused = await request('settings-version/reset', { headers, chunks: [body] });
+    assert.equal(refused.status, status);
+    assert.equal(refused.body.ok, false);
+  }
+  const oversized = await request('settings-version/reset', {
+    chunks: Array.from({ length: 5 }, () => Buffer.alloc(1024 * 1024, 0x20)),
+  });
+  assert.equal(oversized.body.ok, false);
+  assert.match(oversized.body.error, /过大/);
+});
+
 test('request bodies are decoded after all chunks, so split Chinese characters survive', async t => {
   const request = host(t);
   const target = path.join(tempDir(t, 'dsh-request-utf8-'), '项目文件夹');

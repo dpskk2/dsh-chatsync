@@ -75,6 +75,35 @@ test('blank enables the default repository without a network call or repository 
   assert.equal(fs.existsSync(path.join(engine.home, '.git')), false);
 });
 
+test('first setup validates a candidate without writing the destination and checks the original branch', async t => {
+  const engine = fixture(t);
+  writeSyncConfig(engine.configPath(), { autoRepo: false, repoOwner: 'legacy', repoName: 'legacy' });
+  const before = fs.readFileSync(engine.configPath());
+  const calls = [];
+  engine.gh = async args => {
+    calls.push(args);
+    return { code: 0, out: args[0] === 'api' ? 'alice' : '{"visibility":"PRIVATE","viewerPermission":"ADMIN"}' };
+  };
+  const expected = { expectedRemote: old, expectedBranch: 'backup', expectedAutoRepo: false };
+  const custom = await saveConnection(engine, { ...expected, remote, validateOnly: true });
+  assert.equal(custom.config.remote, remote);
+  const fallback = await saveConnection(engine, { ...expected, remote: '', validateOnly: true });
+  assert.match(fallback.hint, /alice\/dsh-sync/);
+  assert.equal(fallback.defaultOwner, 'alice');
+  assert.deepEqual(
+    calls.map(args => args.slice(0, 3)),
+    [
+      ['repo', 'view', 'team/dsh-sync2'],
+      ['api', 'user', '--jq'],
+      ['repo', 'view', 'alice/dsh-sync'],
+    ],
+  );
+  assert.deepEqual(fs.readFileSync(engine.configPath()), before);
+  writeSyncConfig(engine.configPath(), { branch: 'different' });
+  await assert.rejects(saveConnection(engine, { ...expected, remote }), /同步仓库设置已变化/);
+  assert.equal(engine.loadConfig().remote, old);
+});
+
 test('changes during verification, active sync, process locks and host overrides cannot replace a destination', async t => {
   const engine = fixture(t);
   engine.gh = async () => {

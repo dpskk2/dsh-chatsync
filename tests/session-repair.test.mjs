@@ -196,7 +196,7 @@ test('stale previews, changed prefixes, seed or plan corruption stop before repl
   await assert.rejects(repairSessionImport(f.engine, preview.planId, { offline: true }), /种子校验/);
   fs.writeFileSync(seedFile, f.payload);
   fs.appendFileSync(path.join(f.engine.recovery.directory(), f.record.id, 'import-remote.json'), ' ');
-  await assert.rejects(repairSessionImport(f.engine, preview.planId, { offline: true }), /分叉计划校验/);
+  await assert.rejects(repairSessionImport(f.engine, preview.planId, { offline: true }), /会话导入方案校验/);
   assert.deepEqual(fs.readFileSync(f.file), f.before);
 });
 

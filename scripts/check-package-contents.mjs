@@ -30,13 +30,12 @@ const userDocs = new Set([
   'docs/dsh-0.2.1-rc.3-adaptation.md',
   'docs/sync-content.md',
   'docs/data-repair-0.20.1.md',
-  'docs/release-0.21.2-validation.md',
+  'docs/release-0.21.3-validation.md',
   'docs/local-storage.md',
 ]);
 const metadata = new Set([
   'package.json',
   'README.md',
-  'README.en.md',
   'CHANGELOG.md',
   'LICENSE',
   'icon.png',
@@ -61,6 +60,7 @@ const required = [
   ...metadata,
   ...userDocs,
   ...runtime,
+  'docs/assets/readme/sync-settings.jpg',
   pkg.main,
   pkg.icon,
   pkg.dsh.bundle.patch,

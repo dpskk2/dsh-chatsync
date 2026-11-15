@@ -94,7 +94,7 @@ test(
   },
 );
 
-test('an append during network wait aborts materialization without losing a byte', { timeout: 90_000 }, async t => {
+test('an append after snapshot export aborts materialization without losing a byte', { timeout: 90_000 }, async t => {
   const h = fixture(t);
   h.write(h.a, encode(rows(1)));
   await sync(h.a);
@@ -104,20 +104,23 @@ test('an append during network wait aborts materialization without losing a byte
   const file = path.join(h.b.home, rel),
     before = fs.readFileSync(file);
   const appended = zstdCompressSync(Buffer.from(JSON.stringify({ type: 'event', seq: 1, time: 99 }) + '\n'));
-  const retry = h.b.runWithRetry.bind(h.b);
+  const step = h.b.step.bind(h.b);
   let injected = false;
-  h.b.runWithRetry = async (op, label, args, opts) => {
-    const result = await retry(op, label, args, opts);
-    if (op === 'fetch' && label === '主仓库' && !injected) {
+  h.b.step = (stage, label) => {
+    step(stage, label);
+    if (stage === 'commit' && !injected) {
       fs.appendFileSync(file, appended);
       injected = true;
     }
-    return result;
   };
   const result = await sync(h.b);
   assert.equal(injected, true);
   assert.equal(result.downloadPending, true, JSON.stringify(result));
   assert.deepEqual(fs.readFileSync(file), Buffer.concat([before, appended]));
+  assert.deepEqual(
+    execFileSync('git', ['--git-dir', h.remote, 'show', `refs/heads/${DEFAULT_CONFIG.branch}:${rel}`]),
+    encode(rows(2)),
+  );
 });
 
 test('a corrupt remote fast-forward is rejected before checkout and publication', { timeout: 90_000 }, async t => {

@@ -37,14 +37,18 @@ function usePluginPreferences() {
   }, []);
   return state;
 }
+function pluginPreferenceEnabled(config, key) {
+  if (key === 'automatic') return config.automatic ?? config.enabled !== false;
+  return config[key] !== false;
+}
 async function togglePluginPreference(key) {
   if (!pluginPreferences.config || pluginPreferences.saving) return;
-  const next = pluginPreferences.config[key] === false;
+  const next = !pluginPreferenceEnabled(pluginPreferences.config, key);
   publishPreferences({ saving: true, error: '' });
   try {
     const data = await API.saveConfig({ [key]: next });
     acceptPreferences(data);
-    if ((data.config[key] !== false) !== next) publishPreferences({ error: '宿主配置固定了此选项。' });
+    if (pluginPreferenceEnabled(data.config, key) !== next) publishPreferences({ error: '宿主配置固定了此选项。' });
   } catch (error) {
     try {
       acceptPreferences(await API.config());
@@ -67,20 +71,23 @@ function PluginPreferences({ view } = {}) {
     'div',
     { className: 'dss-plugin-prefs' },
     ...[
-      ['showSidebarSync', '侧边栏显示同步'],
-      ['autoCheckUpdates', '自动检查更新'],
-    ].map(([key, label]) => {
-      const checked = Boolean(config && config[key] !== false);
+      ['showSidebarSync', '侧边栏显示同步', '关闭后仍可从「设置 → 同步」打开。'],
+      ['automatic', '自动同步', '按同步设置中的选项，在启动或退出 DSH 时自动同步。关闭后仍可手动同步。'],
+      ['autoCheckUpdates', '自动检查更新', '检查 ChatSync 的新版本并显示更新提醒。'],
+    ].map(([key, label, description]) => {
+      const checked = Boolean(config && pluginPreferenceEnabled(config, key));
+      const descriptionId = 'dss-plugin-preference-' + key;
       return e(
         'div',
         { className: 'dss-rowline', key },
-        e('span', null, label),
+        e('div', { className: 'dss-rowtext' }, e('span', null, label), e('small', { id: descriptionId }, description)),
         e(
           'button',
           {
             type: 'button',
             role: 'switch',
             'aria-label': label,
+            'aria-describedby': descriptionId,
             'aria-checked': checked,
             disabled: !config || saving,
             className: 'dss-switch' + (checked ? ' dss-switch-on' : ''),

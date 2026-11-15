@@ -1,0 +1,16 @@
+{
+  "packageSha256": "e043e8ba0aff962c48172665194c953a8ef92ee9d64995b4c829d09bc650fb73",
+  "sourceCommit": "351c3869e1096fe59798687d3ded1a32b28095da",
+  "ok": true,
+  "host": "DSH Desktop 0.2.2-rc.3",
+  "packageName": "chatsync",
+  "labels": [
+    "侧边栏显示同步",
+    "自动同步",
+    "自动检查更新"
+  ],
+  "persistedToggles": true,
+  "isolated": true,
+  "screenshotSha256": "119d51cc8abab1e181078e1a08be35461358a54f82e2769b8a3e36a0c78ad647",
+  "scope": "隔离 DSH 桌面宿主的插件详情，由无头浏览器点击实际页面；使用合成数据。"
+}

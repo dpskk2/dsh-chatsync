@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 2,
+  "version": "0.21.4",
+  "build": "2026-11-16-release-0.21.4",
+  "tier": "patch",
+  "sourceSha256": "98075fa1b252a6551efb7b5f9d83f016fd9f8fc1951738b06223c2901579c4b0",
+  "packageSha256": "213e0dae2519068629d45f1e1865bb56089a24ca5885e0c9fceec6689c08c98e",
+  "checks": [
+    {
+      "id": "full-regression",
+      "status": "passed",
+      "completedAt": "2026-11-15T16:40:33.6335786+00:00",
+      "environment": "Windows，独立 Node 24.19.0；Electron 44.7.0 内置 Node 24.21.0。",
+      "procedure": "在本机 Windows 独立 Node 与 GitHub Actions 的 Windows/Electron 分别运行完整回归，另行核对生成文件、代码及安装包内容。",
+      "observed": "独立 Node 639 项通过，Electron 639 项通过，均退出 0，失败、取消和跳过均为 0。",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.21.4/regression.json",
+          "sha256": "aaca559f44319907da18be23455228c0f7b46e11b0634d81f4a316b6246500ae"
+        }
+      ]
+    },
+    {
+      "id": "candidate-install",
+      "status": "passed",
+      "completedAt": "2026-11-15T16:40:50.020Z",
+      "environment": "隔离 Windows DSH Desktop 0.2.2-rc.3，Electron 44.7.0，内置 Node 24.21.0。",
+      "procedure": "分别安装正式候选包，以公开接口验证加载、合成数据读写和冷启动读回。",
+      "observed": "两个包都加载最终候选；分别核对 80 个运行文件和 2 个语言文件，测试设置读回及合成附件保留通过。",
+      "reviewer": "Codex",
+      "artifacts": [
+        {
+          "path": "release-evidence/0.21.4/candidate-install-scoped.json",
+          "sha256": "7d0666d77932b7cbb1e3a28c882f424c0a765cd79398b7cc5a5aee59ac9374f7"
+        },
+        {
+          "path": "release-evidence/0.21.4/candidate-install-short.json",
+          "sha256": "9438f065560a164505c9e5f21eaeb78838dd5b7825c9ac6676fed24894e633a0"
+        }
+      ]
+    }
+  ],
+  "advisory": [
+    {
+      "id": "physical-two-device-github",
+      "status": "not-verified",
+      "completedAt": "2026-11-15T16:40:50.020Z",
+      "environment": "单机隔离 Windows 宿主",
+      "procedure": "插件详情和本机设置开关修复。物理双机为可选参考项。",
+      "observed": "未执行真实物理双机往返。",
+      "reviewer": "Codex",
+      "artifacts": []
+    }
+  ],
+  "shortPackageSha256": "e043e8ba0aff962c48172665194c953a8ef92ee9d64995b4c829d09bc650fb73"
+}

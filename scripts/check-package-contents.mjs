@@ -22,6 +22,7 @@ const pack = JSON.parse(
   }),
 )[0];
 const files = new Set(pack.files.map(file => file.path));
+const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const userDocs = new Set([
   'docs/README.md',
   'docs/getting-started.md',
@@ -30,7 +31,7 @@ const userDocs = new Set([
   'docs/dsh-0.2.1-rc.3-adaptation.md',
   'docs/sync-content.md',
   'docs/data-repair-0.20.1.md',
-  'docs/release-0.21.3-validation.md',
+  `docs/release-${pkg.version}-validation.md`,
   'docs/local-storage.md',
 ]);
 const metadata = new Set([
@@ -51,7 +52,6 @@ for (const file of files) {
     `Development or historical file in package: ${file}`,
   );
 }
-const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const runtime = fs
   .readdirSync(path.join(root, 'lib'), { recursive: true })
   .map(name => 'lib/' + name.replaceAll('\\', '/'))

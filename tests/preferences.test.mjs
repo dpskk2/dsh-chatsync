@@ -19,7 +19,15 @@ function text(node) {
 function harness(
   fetchImpl,
   componentName = 'SyncPreferences',
-  { timers = true, confirm = () => false, interval, document, timeout = setTimeout, ui = {} } = {},
+  {
+    timers = true,
+    confirm = () => false,
+    interval,
+    document,
+    timeout = setTimeout,
+    ui = {},
+    shortPackage = false,
+  } = {},
 ) {
   let hooks = [],
     cursor = 0,
@@ -53,7 +61,7 @@ function harness(
     useCallback: fn => fn,
   };
   vm.runInNewContext(
-    source.replace(
+    (shortPackage ? source.replaceAll('@dpskk2/dsh-chatsync', 'chatsync') : source).replace(
       'module.exports = {',
       'module.exports = { testComponents: { RecoveryReadableVersion, RecoveryReadableComparison, RecoveryTranscriptComparison, SessionForkNotice, RecoveryMarkdown, syncMessagePresentation, useSync, scrollDialogWheel, StorageOverview, SessionsDialog, SessionPreview, UsageDialog, HistoryDialog, BackupDialog, RemoteFilesDialog, WorkspaceLocations, SidebarVisibilityProvider, PluginPreferences, RepairPage, openRepairPage, GroupingRepairOverlay, installSendProtection, showSendBlock, DataHealth, recoveryRows, RecoveryDialog, RecoveryComparison, SyncPreferences, ConnectionSettings, RecoveryCenter, RecoveryItem, TransferReview, StartupSyncOverlay, StartupProgress, SyncIssues, TransferLine, STYLE },',
     ),
@@ -89,6 +97,7 @@ function harness(
     slots: {
       inject: (_name, cb) => cb(),
       register: (meta, component) => {
+        if (meta.name === 'plugins.bundle.config' && slots.has(meta.key)) throw Error('duplicate bundle settings key');
         slots.set(meta.id ?? meta.key, component);
         return () => slots.delete(meta.id ?? meta.key);
       },
@@ -2238,19 +2247,52 @@ test('sidebar preference reconciles a lost save response and rejects duplicate p
   assert.match(text(h.render()), /响应丢失/);
 });
 
-test('both package names register the switch in plugin details and remove it from sync headers', async () => {
-  for (const remote of ['', 'https://github.com/alice/data.git']) {
+test('each packaged identity registers its own settings once in the native plugin details slot', async () => {
+  for (const shortPackage of [false, true]) {
+    const remote = shortPackage ? 'https://github.com/alice/data.git' : '';
     const h = harness(
       url => response(url.endsWith('/status') ? { ok: true, remote } : { ok: true, config: initial }),
       'Section',
-      { timers: false },
+      { timers: false, shortPackage },
     );
     h.render();
     await h.effects();
     assert.equal(all(h.render()).filter(n => n.type?.name === 'PluginPreferences').length, 0);
-    assert.equal(h.slots.get('chatsync'), h.functions.PluginPreferences);
-    assert.equal(h.slots.get('@dpskk2/dsh-chatsync'), h.functions.PluginPreferences);
+    assert.equal(h.slots.has('chatsync'), shortPackage);
+    assert.equal(h.slots.has('@dpskk2/dsh-chatsync'), !shortPackage);
+    assert.equal(h.slots.get(shortPackage ? 'chatsync' : '@dpskk2/dsh-chatsync'), h.functions.PluginPreferences);
   }
+});
+
+test('the plugin details automatic switch saves the lifecycle master setting and keeps the other choices', async () => {
+  let current = { ...initial, automatic: true, autoPullOnStart: true, autoPushOnExit: false };
+  const calls = [];
+  const h = harness(
+    (_url, options) => {
+      if (options) {
+        const patch = JSON.parse(options.body);
+        calls.push(patch);
+        current = { ...current, ...patch };
+      }
+      return response({ ok: true, config: current });
+    },
+    'PluginPreferences',
+    { timers: false, shortPackage: true },
+  );
+  h.render({ view: 'page' });
+  await h.effects();
+  const switches = () => all(h.render({ view: 'page' })).filter(node => node.props.role === 'switch');
+  assert.deepEqual(
+    switches().map(node => node.props['aria-label']),
+    ['侧边栏显示同步', '自动同步', '自动检查更新'],
+  );
+  await switches()[1].props.onClick();
+  assert.equal(switches()[1].props['aria-checked'], false);
+  await switches()[1].props.onClick();
+  assert.equal(switches()[1].props['aria-checked'], true);
+  assert.deepEqual(calls, [{ automatic: false }, { automatic: true }]);
+  assert.equal(current.autoPullOnStart, true);
+  assert.equal(current.autoPushOnExit, false);
 });
 
 const button = (tree, label) => all(tree).find(n => n.type === 'button' && text(n) === label);

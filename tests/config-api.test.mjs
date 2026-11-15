@@ -477,7 +477,11 @@ test('status reports active sessions with the projection title for the restart g
   const request = host(t, {}, home => {
     const dir = path.join(home, 'sessions', 'g1', id);
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'session.v3.jsonl.zstd'), 'placeholder');
+    const log = path.join(dir, 'session.v3.jsonl.zstd');
+    fs.writeFileSync(log, 'placeholder');
+    // The status clock uses milliseconds; give the file a recent time safely in the past.
+    const recent = new Date(Date.now() - 1000);
+    fs.utimesSync(log, recent, recent);
     const cache = path.join(home, 'storages', 'session_projcache', 'sessions');
     fs.mkdirSync(cache, { recursive: true });
     fs.writeFileSync(

@@ -10,7 +10,7 @@
 | `autoCheckUpdates` | `true` | 在 ChatSync 插件详情页切换。开启时检查新版本并显示现有更新提示。 |
 | `remote` | 空 | 不含凭据的私有 Git 仓库 HTTPS / SSH 地址：GitHub、Gitee、GitLab 等托管站均可。明文 `http://`、带令牌或密码的地址、本地路径停止传输，原地址不自动改写。 |
 | `branch` | `main` | 两台电脑使用相同分支。 |
-| `enabled` | `true` | 启动/退出自动同步总开关；关闭仍能手动同步。 |
+| `enabled` | `true` | 启动和退出自动同步的总开关，可在插件详情或同步设置中切换。关闭后仍可手动同步。 |
 | `autoPullOnStart` | `true` | 总开关开启后，启动时后台同步；不阻塞进入，失败后台重试。旧会话未核对或未完成写入时仅拦截发送。 |
 | `autoPushOnExit` | `true` | 总开关开启后，正常退出会安排后台上传。Windows 桌面端从托盘选择「退出」并确认。 |
 | `contentScope` | 全选 | `sessions`、`attachments`、`settings` 三类主数据，两台电脑共用这项选择。 |

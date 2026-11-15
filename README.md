@@ -1,6 +1,6 @@
 # ChatSync
 
-ChatSync 是 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-harness) 的多设备同步插件。把常用的会话、附件、项目分组和文件夹同步到另一台电脑，在原来的项目里接着工作。
+ChatSync 是 [DeepSeek Harness(DSH)](https://github.com/deepseek-ai/deepseek-harness) 的多设备同步插件。把常用的会话、附件、项目分组和文件夹同步到另一台电脑，在原来的项目里接着工作。
 
 数据存放在你自己的私有 Git 仓库。可以使用 GitHub 默认仓库，也可以连接 Gitee、GitLab 等托管站上的已有私有仓库。
 
